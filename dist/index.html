@@ -479,7 +479,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="battlegrid">
       <div class="chartbox big" id="battleChartBox">
         <div class="legend" style="align-items:center">
-          <div class="seg" id="chartMode" role="group" aria-label="차트 종류" style="padding:2px"><button type="button" data-mode="price" aria-pressed="true">실제 시세</button><button type="button" data-mode="compare" aria-pressed="false">기술 비교</button><button type="button" data-mode="equity" aria-pressed="false">파티·보스</button></div>
+          <div class="seg" id="chartMode" role="group" aria-label="차트 종류" style="padding:2px"><button type="button" data-mode="price" aria-pressed="true">실제 시세</button><button type="button" data-mode="compare" aria-pressed="false">내 상품들</button><button type="button" data-mode="equity" aria-pressed="false">내 자금</button></div>
           <span id="chartNote" class="muted"></span>
         </div>
         <div class="legend" id="chartLegend" style="justify-content:flex-start;gap:10px"></div>
@@ -520,8 +520,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
         </div>
       </div>
       <div class="card" style="display:flex;flex-direction:column;gap:14px">
-        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span><i style="background:var(--gold)"></i>내 파티 <i style="background:#8A8F99;margin-left:12px"></i>기본 파티</span></div><div class="chart" id="rChart" style="height:150px"></div></div>
-        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">레이드 구간 실제 시세 (시작일 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
+        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend" id="rChartLegend" style="justify-content:flex-start;gap:12px"></div><div class="chart" id="rChart" style="height:170px"></div></div>
+        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">내가 든 상품들의 실제 흐름 (시작 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
         <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
         <div>
           <div class="small muted" style="margin-bottom:6px">같은 시장, 다른 선택이었다면</div>
@@ -1778,7 +1778,7 @@ class BattleChart {
     this.tape = tape; this.mode = mode; this.container = container; this.state = opts.state || null; this.quiet = !!opts.quiet; this.futureShade = !!opts.futureShade;
     this.ids = mode === 'price' ? [opts.main || mainInstrument(tape)] : mode === 'compare' ? (opts.ids || [mainInstrument(tape)]) : [];
     this.upto = opts.upto ?? 0;
-    const withLeft = mode === 'equity';
+    const withLeft = false;
     this.c = LightweightCharts.createChart(container, {
       autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#5A5244', fontFamily: '"Noto Sans KR", sans-serif', fontSize: 13 },
       grid: { vertLines: { visible: false }, horzLines: { color: '#EFE8D6', style: 0 } },
@@ -1790,18 +1790,20 @@ class BattleChart {
     const cur = tape.instruments[this.ids[0]]?.currency || 'USD';
     const money = { type: 'custom', formatter: v => fmtMoney(v, cur), minMove: .01 };
     // ghost: full timeline, invisible, excluded from autoscale, carries markers
-    this.ghost = this.c.addLineSeries({ color: 'rgba(0,0,0,0)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null, priceFormat: mode === 'price' ? money : pct });
+    const wonFmt = { type: 'custom', formatter: v => (v / 10000).toLocaleString('ko-KR', { maximumFractionDigits: 0 }) + '만', minMove: 1000 };
+    this.ghost = this.c.addLineSeries({ color: 'rgba(0,0,0,0)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null, priceFormat: mode === 'price' ? money : mode === 'equity' ? wonFmt : pct });
     this.series = [];
     if (mode === 'equity') {
-      this.boss = this.c.addAreaSeries({ priceScaleId: 'left', lineColor: '#D6453F', topColor: 'rgba(214,69,63,.22)', bottomColor: 'rgba(214,69,63,0)', lineWidth: 2, lastValueVisible: true, priceLineVisible: false,
-        priceFormat: { type: 'custom', formatter: v => 'HP ' + Math.round(v), minMove: 1 }, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }) });
-      this.c.priceScale('left').applyOptions({ scaleMargins: { top: .06, bottom: 0 } });
-      this.bm = this.c.addLineSeries({ color: '#8A8F99', lineWidth: 2, lineStyle: 2, lastValueVisible: false, priceLineVisible: false, priceFormat: pct });
-      this.eq = this.c.addLineSeries({ color: '#C8921A', lineWidth: 4, lastValueVisible: true, priceLineVisible: false, priceFormat: pct });
-      this.series = [this.eq, this.bm, this.boss];
+      // "내 자금" view: won, not percent. One axis, one goal line (보스 격파), one start line (1,000만원), the default party as a dashed ghost.
+      const won = { type: 'custom', formatter: v => (v / 10000).toLocaleString('ko-KR', { maximumFractionDigits: 0 }) + '만', minMove: 1000 };
+      this.bm = this.c.addLineSeries({ color: '#9AA0AA', lineWidth: 2, lineStyle: 2, lastValueVisible: false, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: won });
+      this.eq = this.c.addAreaSeries({ lineColor: '#E0A72E', topColor: 'rgba(224,167,46,.30)', bottomColor: 'rgba(224,167,46,0)', lineWidth: 4, lastValueVisible: true, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: won });
+      this.series = [this.eq, this.bm];
       const breakPct = this.state ? 100 / this.state.bossScale : 100 / (tape.scale?.bossHpPerPct || 40);
-      this.eq.createPriceLine({ price: breakPct, color: '#D6453F', lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title: '격파선' });
-      this.eq.createPriceLine({ price: 0, color: '#B9AE91', lineWidth: 1, lineStyle: 3, axisLabelVisible: false, title: '' });
+      this.eq.createPriceLine({ price: SEED * (1 + breakPct / 100), color: '#D6453F', lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title: '보스 격파' });
+      this.eq.createPriceLine({ price: SEED, color: '#8E8676', lineWidth: 1, lineStyle: 3, axisLabelVisible: true, title: '시작' });
+      // keep the goal line in view even when the party is far below it
+      this.eq.applyOptions({ autoscaleInfoProvider: orig => { const r = orig(); if (!r) return r; const goal = SEED * (1 + breakPct / 100); return { priceRange: { minValue: Math.min(r.priceRange.minValue, SEED * .985), maxValue: Math.max(r.priceRange.maxValue, goal * 1.002) }, margins: r.margins }; } });
     } else {
       this.lines = this.ids.map((id, i) => (mode === 'price' && i === 0)
         ? this.c.addAreaSeries({ lineColor: '#E0A72E', topColor: 'rgba(224,167,46,.28)', bottomColor: 'rgba(224,167,46,0)', lineWidth: 4, lastValueVisible: true, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: money })
@@ -1816,17 +1818,17 @@ class BattleChart {
   /** value of a series at bar i (from the tape, or from battle history for equity) */
   valueAt(kind, i) {
     const b = this.tape.bars[i];
-    if (kind === 'eq' || kind === 'bm' || kind === 'boss') {
-      if (i === 0) return kind === 'boss' ? 100 : 0;
+    if (kind === 'eq' || kind === 'bm') {
+      if (i === 0) return SEED;
       const h = this.state?.history.find(p => p.bar === i); if (!h) return null;
-      return kind === 'eq' ? h.equity - 100 : kind === 'bm' ? h.benchmark - 100 : h.bossHp;
+      return SEED * (kind === 'eq' ? h.equity : h.benchmark) / 100;
     }
     const p = b.prices[kind]; return this.mode === 'price' ? p : 100 * (p / this.tape.bars[0].prices[kind] - 1);
   }
-  kinds() { return this.mode === 'equity' ? ['eq', 'bm', 'boss'] : this.ids; }
+  kinds() { return this.mode === 'equity' ? ['eq', 'bm'] : this.ids; }
   draw() {
     const n = this.tape.bars.length, up = Math.min(this.upto, n - 1);
-    const ghostVal = this.mode === 'price' ? this.tape.bars[0].prices[this.ids[0]] : 0;
+    const ghostVal = this.mode === 'price' ? this.tape.bars[0].prices[this.ids[0]] : this.mode === 'equity' ? SEED : 0;
     this.ghost.setData(this.tape.bars.map((b, i) => ({ time: this.t(i), value: ghostVal })));
     this.kinds().forEach((k, j) => {
       const pts = []; for (let i = 0; i <= up; i++) { const v = this.valueAt(k, i); if (v !== null && v !== undefined) pts.push({ time: this.t(i), value: v }); }
@@ -1870,7 +1872,8 @@ class BattleChart {
   }
   legend() {
     const up = Math.min(this.upto, this.tape.bars.length - 1);
-    if (this.mode === 'equity') return `<span><i style="background:#C8921A"></i>내 파티</span><span><i style="background:#8A8F99"></i>기본 파티</span><span><i style="background:#D6453F"></i>보스 HP</span>`;
+    if (this.mode === 'equity') { const h = this.state?.history.find(p => p.bar === up); const eq = h ? SEED * h.equity / 100 : SEED, bm = h ? SEED * h.benchmark / 100 : SEED;
+      return `<span><i style="background:#E0A72E"></i>내 자금 <b class="tabular">${fmtKRW(eq)}</b></span><span><i style="background:#9AA0AA"></i>기본 파티였다면 <b class="tabular">${fmtKRW(bm)}</b></span><span><i style="background:#D6453F"></i>보스 격파선</span>`; }
     return this.ids.map((id, i) => { const p0 = this.tape.bars[0].prices[id], p = this.tape.bars[up].prices[id], ins = this.tape.instruments[id];
       return `<span><i style="background:${INS_COLORS[i % INS_COLORS.length]}"></i>${id} ${ins.name} <b class="tabular">${fmtMoney(p, ins.currency)}</b> <span class="${p >= p0 ? 'ret up' : 'ret down'} tabular" style="font-size:12px">${fmtPct(100 * (p / p0 - 1))}</span></span>`; }).join('');
   }
@@ -2060,6 +2063,7 @@ async function showResult() {
   ].join('');
   $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
   rChart?.remove(); rChart = new BattleChart($('#rChart'), currentTape, 'equity', { state: s, upto: currentTape.bars.length - 1 });
+  $('#rChartLegend').innerHTML = rChart.legend();
   rPriceChart?.remove(); rPriceChart = new BattleChart($('#rPriceChart'), currentTape, 'compare', { state: s, upto: currentTape.bars.length - 1, ids: battleInstruments().slice(0, 5) });
   $('#rPriceLegend').innerHTML = rPriceChart.legend();
   $('#coachAv').src = portrait('hero_healer');

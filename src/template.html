@@ -477,7 +477,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="battlegrid">
       <div class="chartbox big" id="battleChartBox">
         <div class="legend" style="align-items:center">
-          <div class="seg" id="chartMode" role="group" aria-label="차트 종류" style="padding:2px"><button type="button" data-mode="price" aria-pressed="true">실제 시세</button><button type="button" data-mode="compare" aria-pressed="false">기술 비교</button><button type="button" data-mode="equity" aria-pressed="false">파티·보스</button></div>
+          <div class="seg" id="chartMode" role="group" aria-label="차트 종류" style="padding:2px"><button type="button" data-mode="price" aria-pressed="true">실제 시세</button><button type="button" data-mode="compare" aria-pressed="false">내 상품들</button><button type="button" data-mode="equity" aria-pressed="false">내 자금</button></div>
           <span id="chartNote" class="muted"></span>
         </div>
         <div class="legend" id="chartLegend" style="justify-content:flex-start;gap:10px"></div>
@@ -518,8 +518,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
         </div>
       </div>
       <div class="card" style="display:flex;flex-direction:column;gap:14px">
-        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span><i style="background:var(--gold)"></i>내 파티 <i style="background:#8A8F99;margin-left:12px"></i>기본 파티</span></div><div class="chart" id="rChart" style="height:150px"></div></div>
-        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">레이드 구간 실제 시세 (시작일 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
+        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend" id="rChartLegend" style="justify-content:flex-start;gap:12px"></div><div class="chart" id="rChart" style="height:170px"></div></div>
+        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">내가 든 상품들의 실제 흐름 (시작 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
         <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
         <div>
           <div class="small muted" style="margin-bottom:6px">같은 시장, 다른 선택이었다면</div>
