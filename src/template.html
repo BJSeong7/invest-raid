@@ -474,7 +474,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <section id="screen-select" class="screen">
     <div class="hero">
       <div class="party-preview" id="partyPreview"></div>
-      <div class="hero-copy"><h2>이번 주, 시장에 보스가 나타났다</h2><p class="muted">비중 = 포트폴리오 · 기술 = 실제 상품 · 데미지 = 실제 등락률</p></div>
+      <div class="hero-copy"><h2>이번 주, 시장에 보스가 나타났다</h2><p class="muted">레이드를 골라 모험단을 보내세요.</p></div>
     </div>
     <div>
       <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
@@ -498,16 +498,18 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="brief-text">
         <p class="brief-copy" id="bBrief"></p>
         <div class="event-card" id="bEvent"></div>
-        <div class="chartbox" style="padding:8px 10px 4px">
-          <div class="legend"><span class="small" id="bChartTitle"></span></div>
-          <div class="chart" id="bChart" style="height:150px"></div>
-        </div>
-        <div class="timeline" id="bTimeline"></div>
-        <div class="row" id="bConcepts" style="gap:6px"></div>
-        <div class="row" style="margin-top:auto">
+        <div class="row">
           <button class="btn" id="toParty" type="button">파티 짜기</button>
           <button class="btn secondary" id="backToSelect" type="button">돌아가기</button>
         </div>
+        <details class="cp-more" id="bMore">
+          <summary>참고 — 지금까지 차트 · 레이드 구간 · 배우는 개념</summary>
+          <div class="cp-more-body">
+            <div class="chartbox" style="padding:8px 10px 4px"><div class="legend"><span class="small" id="bChartTitle"></span></div><div class="chart" id="bChart" style="height:150px"></div></div>
+            <div class="timeline" id="bTimeline"></div>
+            <div class="row" id="bConcepts" style="gap:6px"></div>
+          </div>
+        </details>
       </div>
     </div>
   </section>
@@ -539,12 +541,12 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <section id="screen-battle" hidden style="display:flex;flex-direction:column;gap:10px">
     <div class="hud">
       <div class="bossbar"><span class="name"><img id="hBossPf" alt=""><span id="hBossName">보스</span></span><div class="bar"><i id="hBossHp"></i><b id="hBossHpTxt">100</b></div><span class="phase" id="hPhase"></span><span class="goal tabular" id="hBreak"></span></div>
-      <div class="turnline"><span><span class="label" id="hLabel">대기</span> <span class="tabular" id="hTime"></span></span><span class="balance"><span class="muted">이번 구간 파티 </span><span class="ret tabular" id="hRet">—</span><span class="muted"> · 자금 </span><b class="tabular" id="hBal">10,000,000원</b> <span class="ret tabular" id="hBalD">+0원 (+0.00%)</span></span></div>
+      <div class="turnline"><span><span class="label" id="hLabel">대기</span> <span class="tabular" id="hTime"></span></span><span class="balance"><span class="muted">이번 구간 </span><span class="ret tabular" id="hRet">—</span><span hidden><b id="hBal"></b><span id="hBalD"></span></span></span></div>
 
     </div>
     <div class="battlegrid">
       <div class="chartbox big panes" id="battleChartBox">
-        <div class="pane-h"><b><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16" stroke="#24405F" stroke-width="2" stroke-linecap="round"/><path d="M5 15l4-5 4 3 6-8" fill="none" stroke="#E0A72E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>실제 시세</b><span id="chartLegend"></span><span id="chartNote" class="muted"></span></div>
+        <div class="pane-h"><b><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16" stroke="#24405F" stroke-width="2" stroke-linecap="round"/><path d="M5 15l4-5 4 3 6-8" fill="none" stroke="#E0A72E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>실제 시세</b><span id="chartLegend"></span><span id="chartNote" class="muted" hidden></span></div>
         <div class="chart pane-price" id="chart"></div>
         <div class="pane-h"><b><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</b><span id="chartLegendEq"></span></div>
         <div class="chart pane-eq" id="chartEq"></div>
