@@ -2,6 +2,7 @@
 // Prices are hand-authored, event-shaped EXAMPLE paths (clearly flagged `example: true`).
 // Replace with real intraday bars from the data adapter when available; the shape stays identical.
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { calibrate } from './calibrate.mjs';
 
 function build({ id, title, boss, bossSpecies, market, example, start, labels, instruments, skills, checkpoints, lesson, briefing, concepts = [], event }) {
   // instruments: { ID: { name, kind, start, path: [pct per bar...] } }
@@ -156,6 +157,6 @@ const pce = build({
 });
 
 mkdirSync('data/tapes', { recursive: true });
-for (const t of [fomc, semi, pce]) writeFileSync(`data/tapes/${t.id}.json`, JSON.stringify(t, null, 1));
+for (const t of [fomc, semi, pce]) { calibrate(t); writeFileSync(`data/tapes/${t.id}.json`, JSON.stringify(t, null, 1)); console.log(t.id, t.scale.note); }
 writeFileSync('data/tapes/index.json', JSON.stringify([fomc, semi, pce].map(t => ({ id: t.id, title: t.title, boss: t.boss, market: t.market, date: t.bars[0].t })), null, 1));
 console.log('wrote', [fomc, semi, pce].map(t => t.id).join(', '));

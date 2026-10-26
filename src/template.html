@@ -121,7 +121,15 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .skill:disabled{opacity:.55;cursor:not-allowed}
 .party-top{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:stretch}
 .party-meta{display:flex;flex-direction:column;gap:8px;min-width:0}
-.presets{display:flex;gap:6px;flex-wrap:wrap}
+.presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.preset{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px;cursor:pointer;box-shadow:0 3px 0 var(--edge)}
+.preset b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--navy)}
+.preset span{font-size:12px;color:var(--muted)}
+.preset .mini-alloc{display:flex;width:100%;height:8px;border-radius:4px;overflow:hidden;margin-top:4px;border:1px solid var(--line)}
+.preset .mini-alloc i{display:block;height:100%}
+.preset[aria-pressed="true"]{border-color:var(--navy);background:#EEF4FF;box-shadow:0 3px 0 var(--navy),inset 0 0 0 1px var(--navy)}
+.preset:active{transform:translateY(2px)}
 .sumrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .radar-card{display:flex;align-items:center;gap:10px;background:var(--panel2);border:2px solid var(--line);border-radius:var(--r);padding:8px 14px 8px 6px;min-width:300px}
 .radar-card .ptype{font-family:var(--display);font-size:24px;color:var(--navy);display:block}
@@ -144,6 +152,11 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .bossbar .bar{flex:1 1 160px;min-width:120px;height:20px;background:#fff;border-radius:10px;overflow:hidden;border:2px solid #C98A86;position:relative}
 .bossbar .bar i{display:block;height:100%;background:linear-gradient(180deg,#FF8E86 0,#E84E47 55%,#C83A34 100%);width:100%;transition:width .5s cubic-bezier(.2,.8,.2,1);box-shadow:inset 0 2px 0 rgba(255,255,255,.45)}
 .bossbar .bar b{position:absolute;right:8px;top:-1px;font-family:var(--display);font-size:14px;color:#fff;font-weight:400;text-shadow:0 1px 0 #7A1F1B,0 0 3px #7A1F1B}
+.bossbar .phase{display:inline-flex;align-items:center;gap:4px;font-family:var(--display);font-size:13px;color:var(--purple);white-space:nowrap}
+.bossbar .phase span{margin-right:4px}
+.bossbar .phase i{width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--purple)}
+.bossbar .phase i.done{background:var(--purple)} .bossbar .phase i.now{background:#fff;box-shadow:0 0 0 3px rgba(116,88,201,.3)}
+.bossbar .goal{font-family:var(--display);font-size:14px;color:#8A2E2A;white-space:nowrap}
 .turnline{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
 .turnline .label{font-family:var(--display);font-size:20px;color:var(--navy)}
 .turnline .ret{font-family:var(--display);font-size:16px}
@@ -268,7 +281,12 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .stamp.F,.stamp.D{color:#FF7A72;-webkit-text-stroke-color:#5A1A1A}
 .stamp.B,.stamp.C{color:#8FB8FF;-webkit-text-stroke-color:#17315A}
 .verdict{font-family:var(--display);font-size:24px;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6),0 0 2px #000;background:rgba(20,30,15,.5);padding:4px 16px;border-radius:999px;border:2px solid rgba(255,255,255,.5)}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.money-result{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 14px}
+.money-result small{color:var(--muted)}.money-result b{font-family:var(--display);font-size:32px;color:var(--navy)}.money-result span{font-family:var(--display);font-size:18px}
+.more summary{cursor:pointer;font-family:var(--display);font-size:16px;color:var(--navy);list-style:none;display:flex;align-items:center;gap:8px}
+.more summary::before{content:"▸";transition:transform .15s}.more[open] summary::before{transform:rotate(90deg)}
+.more summary::-webkit-details-marker{display:none}
 .stat{background:var(--panel2);border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .stat small{color:var(--muted);font-size:12px}
 .stat b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--navy)}
@@ -358,6 +376,12 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .choices button[aria-selected="true"]{border-color:var(--navy);background:#EEF4FF;box-shadow:0 3px 0 var(--navy),inset 0 0 0 1px var(--navy)}
 .choices button[aria-selected="true"] b{color:var(--navy)}
 .cp-panel{background:var(--panel2);border:2px solid var(--line);border-radius:var(--r2);padding:12px}
+.pay{display:inline-flex;gap:6px;font-family:var(--display);font-size:13px;white-space:nowrap}
+.pay em{font-style:normal;border-radius:6px;padding:1px 7px;border:1.5px solid}
+.pay .up{color:var(--green);background:#EAF7EE;border-color:#B5DEC2}.pay .dn{color:var(--red);background:#FBECEB;border-color:#EFC2BF}
+.cp-role .opts .skill{align-items:flex-start}
+.cp-role .opts .skill .pay{margin-top:4px}
+#cpSum .pay{margin-left:8px;vertical-align:middle}
 @media (max-width:520px){.choices{grid-template-columns:1fr}.choices button{min-height:0}}
 .newsline{display:flex;align-items:center;gap:8px;font-size:13px;background:#FFF7E0;border:1.5px solid var(--gold);border-radius:10px;padding:5px 10px;color:var(--ink)}
 .newsline b{font-family:var(--display);font-weight:400;color:var(--gold-dark);white-space:nowrap}
@@ -461,13 +485,16 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
         <h2 style="font-size:28px;color:var(--navy)">파티 짜기</h2>
         <div class="small muted">＋/－로 비중을 나누고, 캐릭터마다 상품 하나를 고르세요.</div>
         <div class="presets" role="group" aria-label="추천 편성">
-          <button type="button" class="iconbtn" data-preset="balanced">균형형</button><button type="button" class="iconbtn" data-preset="safe">안정형</button><button type="button" class="iconbtn" data-preset="aggro">공격형</button><button type="button" class="iconbtn" data-preset="hedge">헤지형</button>
+          <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>균형형</b><span>공격·방어 반반</span><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>안정형</b><span>덜 벌고 덜 잃기</span><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="aggro" aria-pressed="false"><b>공격형</b><span>크게 먹고 크게 맞기</span><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>헤지형</b><span>보험 두껍게</span><i class="mini-alloc"></i></button>
         </div>
         <div class="sumrow"><div class="sum" id="sumTxt">100 / 100</div><div class="alloc" id="alloc"></div></div>
       </div>
       <div class="radar-card"><div id="partyRadar"></div><div><b id="partyType" class="ptype">균형형</b><p id="partyTypeDesc" class="small muted"></p></div></div>
     </div>
-    <div class="roles" id="roles"></div>
+    <details class="card more" id="partyDetail"><summary>직접 조정 — 캐릭터별 비중 ＋/－ 와 상품 선택</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
     <div class="row" style="justify-content:space-between">
       <button class="btn secondary" id="backToBrief" type="button">브리핑으로</button>
       <button class="btn" id="startBattle" type="button">출발!</button>
@@ -477,9 +504,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <!-- 4. battle -->
   <section id="screen-battle" hidden style="display:flex;flex-direction:column;gap:10px">
     <div class="hud">
-      <div class="bossbar"><span class="name"><img id="hBossPf" alt=""><span id="hBossName">보스</span></span><div class="bar"><i id="hBossHp"></i><b id="hBossHpTxt">100</b></div><span class="small muted tabular" id="hBreak" style="white-space:nowrap"></span></div>
+      <div class="bossbar"><span class="name"><img id="hBossPf" alt=""><span id="hBossName">보스</span></span><div class="bar"><i id="hBossHp"></i><b id="hBossHpTxt">100</b></div><span class="phase" id="hPhase"></span><span class="goal tabular" id="hBreak"></span></div>
       <div class="turnline"><span><span class="label" id="hLabel">대기</span> <span class="tabular" id="hTime"></span></span><span class="balance"><span class="muted">이번 구간 파티 </span><span class="ret tabular" id="hRet">—</span><span class="muted"> · 자금 </span><b class="tabular" id="hBal">10,000,000원</b> <span class="ret tabular" id="hBalD">+0원 (+0.00%)</span></span></div>
-      <div class="ticker" id="ticker" aria-label="실시간 시세"></div>
+
     </div>
     <div class="battlegrid">
       <div class="chartbox big panes" id="battleChartBox">
@@ -493,8 +520,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     </div>
     <div class="partyhud" id="partyhud"></div>
     <div class="controls">
-      <div class="seg" role="group" aria-label="재생 속도"><button type="button" data-speed="1" aria-pressed="true">1×</button><button type="button" data-speed="2" aria-pressed="false">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div>
-      <div class="row"><button class="btn secondary" id="pauseBtn" type="button">일시정지</button><button class="btn secondary" id="abortBtn" type="button">레이드 포기</button></div>
+      <div class="row"><div class="seg" role="group" aria-label="재생 속도"><button type="button" data-speed="1" aria-pressed="false">1×</button><button type="button" data-speed="2" aria-pressed="true">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div><button class="btn secondary" id="skipBtn" type="button" title="다음 체크포인트까지 빠르게">▶▶ 체크포인트까지</button></div>
+      <div class="row"><button class="btn secondary" id="pauseBtn" type="button">일시정지</button><button class="btn secondary" id="abortBtn" type="button">포기</button></div>
     </div>
   </section>
 
@@ -503,42 +530,42 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="result">
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
+        <div class="money-result"><small>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
         <div class="stats">
-          <div class="stat"><small>레이드 수익률</small><b class="tabular" id="rRet">0.00%</b></div>
-          <div class="stat"><small>기본 파티 대비</small><b class="tabular" id="rAlpha">0.00%</b></div>
+          <div class="stat"><small>기본 파티였다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
           <div class="stat"><small>보스</small><b id="rBoss">—</b></div>
           <div class="stat"><small>생존</small><b id="rAlive">4 / 4</b></div>
         </div>
-        <div>
-          <div class="small muted" style="margin-bottom:8px">역할별 기여도 (포트폴리오 %p)</div>
-          <div class="contribs" id="rContribs"></div>
-        </div>
-        <div>
-          <div class="small muted" style="margin-bottom:6px">체크포인트 선택</div>
-          <div class="decisions" id="rDecisions"></div>
-        </div>
-        <div>
-          <div class="small muted" style="margin-bottom:6px">이번 레이드에서 배운 개념 · 눌러서 펼치기</div>
-          <div class="concepts" id="rConcepts"></div>
-        </div>
-      </div>
-      <div class="card" style="display:flex;flex-direction:column;gap:14px">
-        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend" id="rChartLegend" style="justify-content:flex-start;gap:12px"></div><div class="chart" id="rChart" style="height:170px"></div></div>
-        <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">내가 든 상품들의 실제 흐름 (시작 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
-        <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
-        <div>
-          <div class="small muted" style="margin-bottom:6px">같은 시장, 다른 선택이었다면</div>
-          <div class="whatif" id="rWhatIf"></div>
-        </div>
         <div class="expgain"><div class="big">경험치 <span id="rExp" class="tabular">+0</span> <span class="small muted" id="rBonus"></span></div><div class="expbar lg"><i id="rExpBar"></i></div><div class="small muted" id="rExpTxt"></div></div>
         <div id="rBadgesWrap" hidden><div class="small muted" style="margin-bottom:6px">새 배지</div><div class="badges" id="rBadges"></div></div>
-        <div class="row">
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
+        <div>
+          <div class="section-h" style="margin:0 0 8px"><h3 style="font-size:17px">같은 시장, 다른 선택이었다면</h3></div>
+          <div class="whatif" id="rWhatIf"></div>
+        </div>
+        <div class="row" style="margin-top:auto">
           <button class="btn" id="retryBtn" type="button">다시 도전</button>
           <button class="btn secondary" id="otherBtn" type="button">다른 레이드</button>
           <button class="btn secondary" id="etfBtn" type="button">닮은 ETF 보기</button>
         </div>
       </div>
     </div>
+    <details class="card more" id="rMore">
+      <summary>자세히 보기 — 자금 흐름 · 내 상품들 · 역할별 기여 · 선택 기록 · 배운 개념</summary>
+      <div class="result" style="margin-top:12px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend" id="rChartLegend" style="justify-content:flex-start;gap:12px"></div><div class="chart" id="rChart" style="height:170px"></div></div>
+          <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">내가 든 상품들의 실제 흐름 (시작 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div><div class="small muted" style="margin-bottom:8px">역할별 기여도 (포트폴리오 %p)</div><div class="contribs" id="rContribs"></div></div>
+          <div><div class="small muted" style="margin-bottom:6px">체크포인트 선택</div><div class="decisions" id="rDecisions"></div></div>
+          <div><div class="small muted" style="margin-bottom:6px">이번 레이드에서 배운 개념</div><div class="concepts" id="rConcepts"></div></div>
+        </div>
+      </div>
+    </details>
     <p class="foot">게임 결과는 학습용이며 특정 상품의 투자권유가 아닙니다. 투자 전 상품설명서를 확인하세요. · 캐릭터·배경 아트: 이 게임을 위해 생성한 오리지널 디자인 · 차트: TradingView Lightweight Charts</p>
   </section>
 </div>
@@ -560,12 +587,13 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="cp-col">
         <p class="cp-hint" id="cpHint"></p>
         <div class="cp-scen"><div class="up"><b>▲ 오르면</b><span id="cpBull"></span></div><div class="dn"><b>▼ 내리면</b><span id="cpBear"></span></div></div>
+        <p class="small muted" id="cpScenNote" style="margin:-4px 0 0;font-size:11.5px"></p>
         <div class="choices" role="tablist">
           <button type="button" role="tab" data-tab="hold" aria-selected="true"><b>그대로 간다</b><span>지금 편성 그대로</span></button>
           <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
           <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
         </div>
-        <div class="cp-panel" id="cpHold"><p class="small muted" style="margin:0 0 8px">편성을 바꾸지 않고 다음 구간을 맞습니다.</p><button class="btn" id="cpHoldBtn" type="button">이대로 간다</button></div>
+        <div class="cp-panel" id="cpHold"><div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="small muted">지금 편성 그대로 다음 구간을 맞습니다.</span><span id="cpHoldPay"></span></div><button class="btn" id="cpHoldBtn" type="button">이대로 간다</button></div>
         <div class="cp-panel cp-roles" id="cpEquip" hidden></div>
         <div class="cp-panel" id="cpRebal" hidden><div class="rebal" id="cpSliders"></div><div class="total" style="margin-top:8px"><div class="sum" id="cpSum"></div><button class="btn" id="cpRebalBtn" type="button">이 비중으로 간다</button></div></div>
         <div class="cp-say" id="cpSay" hidden></div>

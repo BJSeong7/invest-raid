@@ -2,6 +2,7 @@
 // One bar = one New York close. Prices are unadjusted closes in USD. Dividends are ignored (small for a 2-week raid).
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { buildTape } from './tape-from-bars.mjs';
+import { calibrate } from './calibrate.mjs';
 
 const SOURCE = 'stockanalysis.com 일별 종가 (2026-10-27 수집)';
 const D = (s) => s.split('\n').map(l => l.trim()).filter(Boolean).map(l => { const [d, c] = l.split(','); return { t: Date.parse(`${d}T16:00:00-04:00`), c: Number(c) }; });
@@ -412,5 +413,5 @@ const capex = buildTape({
 }, key => CLOSES[key]);
 
 mkdirSync('data/tapes', { recursive: true });
-for (const t of [fomc, capex]) writeFileSync(`data/tapes/${t.id}.json`, JSON.stringify(t, null, 1));
+for (const t of [fomc, capex]) { calibrate(t); writeFileSync(`data/tapes/${t.id}.json`, JSON.stringify(t, null, 1)); console.log(t.id, t.scale.note); }
 console.log('wrote', [fomc, capex].map(t => `${t.id} (${t.bars.length - 1} turns)`).join(', '));

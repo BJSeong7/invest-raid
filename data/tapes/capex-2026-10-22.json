@@ -10,7 +10,8 @@
  "source": "stockanalysis.com 일별 종가 (2026-10-27 수집)",
  "scale": {
   "hpPerPct": 8,
-  "bossHpPerPct": 15
+  "bossHpPerPct": 80,
+  "note": "best single-decision path 0.72% -> 격파선 1.25%"
  },
  "event": {
   "kind": "earnings",

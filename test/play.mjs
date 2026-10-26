@@ -45,6 +45,7 @@ try {
   // party: push dealer to 60, tank 10 (sum stays 100 via explicit set)
   await page.click('#toParty');
   await page.waitForSelector('#screen-party:not([hidden])');
+  await page.evaluate(() => { document.querySelector('#partyDetail').open = true; });
   for (let i = 0; i < 4; i++) await page.click('.wbtn[data-w="dealer"][data-d="5"]');   // 40 -> 60, taken from the largest other role
   check((await page.evaluate(() => Object.values(window.__rpg.profile ? 1 : 1))) !== null && (await page.textContent('#o-dealer')) === '60%', 'dealer stepped to 60% and total stays 100');
   await page.click('.wbtn[data-w="tank"][data-d="-5"]');
@@ -85,7 +86,7 @@ try {
   const grade = await page.textContent('#rStamp');
   check(/^[SABCDF]$/.test(grade.trim()), 'result grade shown: ' + grade.trim());
   const ret = await page.textContent('#rRet');
-  check(/%$/.test(ret.trim()), 'return shown: ' + ret.trim());
+  check(/%\)$/.test(ret.trim()), 'return shown: ' + ret.trim());
   await page.waitForTimeout(2500);
   const coach = await page.textContent('#coachBubble');
   check(coach.length > 20, 'coach text typed');
@@ -154,7 +155,7 @@ try {
   await phone.waitForSelector('#tut:not([hidden])'); await phone.click('#tutSkip'); await phone.waitForSelector('#tut', { state: 'hidden' });
   const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(overflow <= 0, 'no horizontal overflow at 390px (' + overflow + ')');
-  await phone.click('#raids .raid'); await phone.click('#toParty');
+  await phone.click('#raids .raid'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; });
   const ov2 = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(ov2 <= 0, 'no horizontal overflow on party screen at 390px (' + ov2 + ')');
   await shot(phone, '7-phone-party');

@@ -328,5 +328,10 @@
     "QQQ_P": 6.07
    }
   }
- ]
+ ],
+ "scale": {
+  "bossHpPerPct": 64.7,
+  "hpPerPct": 12,
+  "note": "best single-decision path 2.21% -> 격파선 1.55%"
+ }
 }

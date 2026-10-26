@@ -259,17 +259,28 @@ function pickSkill(role, prefs, lvl) {
   for (const pref of prefs) { const hit = list.find(k => by[pref]?.(k) && open(k)); if (hit) return hit.id; }
   return (list.find(k => k.default) || list[0]).id;
 }
+let presetKey = 'balanced';
 function applyPreset(key) {
   const pr = PRESETS[key], lvl = effectiveLevel();
   party = Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
   party.weights = { ...pr.weights };
   ROLES.forEach(r => { if (pr.pick[r]) party.skills[r] = pickSkill(r, pr.pick[r], lvl); });
-  renderPartyScreen(); toast(`${pr.name} 편성!`);
+  presetKey = key; renderPartyScreen(); toast(`${pr.name} 편성`);
+}
+/** which preset (if any) the current party equals — manual edits clear the highlight */
+function matchPreset() {
+  const lvl = effectiveLevel();
+  return Object.keys(PRESETS).find(k => { const pr = PRESETS[k]; return ROLES.every(r => party.weights[r] === pr.weights[r] && party.skills[r] === (pr.pick[r] ? pickSkill(r, pr.pick[r], lvl) : (currentTape.skills.find(x => x.role === r && x.default) || {}).id)); }) || null;
+}
+function renderPresets() {
+  const cur = matchPreset();
+  $$('.preset').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.preset === cur)); const pr = PRESETS[b.dataset.preset]; b.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${pr.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); });
 }
 function renderPartyMeta() {
   const st = partyStats(), [type, desc] = partyType(st);
   $('#partyRadar').innerHTML = radarSVG(st);
   $('#partyType').textContent = type; $('#partyTypeDesc').textContent = desc;
+  renderPresets();
 }
 function openParty() {
   party = party && party._tapeId === currentTape.id ? party : Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
@@ -631,8 +642,9 @@ function cutForTurn(turn) {
 /* ------------------------------------------------------------------ */
 /* Battle flow                                                         */
 /* ------------------------------------------------------------------ */
-let battle = null, speed = 1, userPaused = false, aborted = false, resumeWaiters = [];
-const speedFactor = () => reduceMotion ? Math.max(4, speed) : speed;
+let battle = null, speed = 2, userPaused = false, aborted = false, resumeWaiters = [], skipping = false;
+const speedFactor = () => skipping ? 8 : reduceMotion ? Math.max(4, speed) : speed;
+$('#skipBtn').addEventListener('click', () => { skipping = true; $('#skipBtn').disabled = true; sfx.select(); toast('다음 체크포인트까지 빠르게'); });
 
 $$('.seg [data-speed]').forEach(b => b.addEventListener('click', () => { speed = +b.dataset.speed; $$('.seg [data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); sfx.select(); }));
 $('#pauseBtn').addEventListener('click', () => { userPaused = !userPaused; $('#pauseBtn').textContent = userPaused ? '계속' : '일시정지'; if (!userPaused) { resumeWaiters.splice(0).forEach(r => r()); } sfx.select(); });
@@ -660,15 +672,17 @@ function renderPartyHud(turn) {
 function renderBossHud() {
   $('#hBossName').textContent = (drama.rage && battle.bossHp > 0 ? '격노한 ' : '') + currentTape.boss; $('#hBossPf').src = portrait(bossUnit(currentTape.bossSpecies));
   $('#hBossHp').style.width = battle.bossHp + '%'; $('#hBossHpTxt').textContent = Math.round(battle.bossHp);
-  const need = Math.max(0, battle.bossHp / battle.bossScale);
-  $('#hBreak').textContent = battle.bossHp <= 0 ? '격파!' : `격파선까지 누적 +${need.toFixed(2)}%`;
+  const goal = SEED * (1 + 1 / battle.bossScale);
+  $('#hBreak').textContent = battle.bossHp <= 0 ? '격파!' : `격파까지 ${fmtKRW(Math.max(0, goal - totalValue()))}`;
+  const cps = currentTape.checkpoints || [], passed = cps.filter(c => c.bar <= battle.bar).length;
+  $('#hPhase').innerHTML = `<span>페이즈 ${Math.min(passed + 1, cps.length + 1)}/${cps.length + 1}</span>` + Array.from({ length: cps.length + 1 }, (_, i) => `<i class="${i < passed ? 'done' : i === passed ? 'now' : ''}"></i>`).join('');
 }
 function renderTurnLine(turn) {
   const renderBalance = () => { const c = battle.equity - 100, v = totalValue(); $('#hBal').textContent = fmtKRW(v); $('#hBalD').textContent = `${fmtKRWd(v - SEED)} (${fmtPct(c)})`; $('#hBalD').className = 'ret tabular ' + (c >= 0 ? 'up' : 'down'); };
-  if (!turn) { $('#hLabel').textContent = `${fmtBar(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '—'; $('#hRet').className = 'ret tabular'; renderBalance(); renderTicker($('#ticker'), 0); return; }
+  if (!turn) { $('#hLabel').textContent = `${fmtBar(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '—'; $('#hRet').className = 'ret tabular'; renderBalance(); return; }
   $('#hLabel').textContent = turn.label; $('#hTime').textContent = `${fmtBar(turn.t)} ${unitNote()}`;
   const r = turn.boss.portfolioRet; $('#hRet').textContent = fmtPct(r); $('#hRet').className = 'ret tabular ' + (r >= 0 ? 'up' : 'down');
-  renderBalance(); renderTicker($('#ticker'), turn.bar, true);
+  renderBalance();
 }
 
 /* ------------------------------------------------------------------ */
@@ -811,7 +825,7 @@ function flashChart(ret) { const box = $('#battleChartBox'); box.classList.remov
 async function startBattle() {
   const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
   unlock(); sfx.select();
-  battle = createBattle(currentTape, party); aborted = false; userPaused = false; $('#pauseBtn').textContent = '일시정지';
+  battle = createBattle(currentTape, party); aborted = false; userPaused = false; skipping = false; $('#skipBtn').disabled = false; $('#pauseBtn').textContent = '일시정지';
   showScreen('battle');
   let sc; try { sc = await ensureGame(); } catch (e) { toast(e.message, 5000); try { game?.destroy(true); } catch {} game = null; scene = null; showScreen('party'); return; }
   game.scale.refresh();
@@ -830,7 +844,7 @@ async function raidLoop() {
   while (!battle.done && !aborted) {
     await waitResume(); if (aborted) return;
     const turn = step(battle);
-    if (!turn) { if (battle.paused) { await showCheckpoint(battle.paused); continue; } break; }
+    if (!turn) { if (battle.paused) { skipping = false; $('#skipBtn').disabled = false; await showCheckpoint(battle.paused); continue; } break; }
     const sp = speedFactor();
     const ret = turn.boss.portfolioRet;
     drama.combo = ret > 0 ? drama.combo + 1 : 0; drama.maxCombo = Math.max(drama.maxCombo, drama.combo);
@@ -843,14 +857,48 @@ async function raidLoop() {
     });
     battleChart.markers(); battleChartEq.markers();
     const cut = cutForTurn(turn);
-    if (cut && speed < 4) await cutIn(cut, sp);
+    if (cut && speed < 4 && !skipping) await cutIn(cut, sp);
     if (battle.bossHp <= 0 && !battle._bossShown) { battle._bossShown = true; startBgm(.8); }
   }
   if (aborted) return;
+  skipping = false; $('#skipBtn').disabled = false;
   stopBgm();
   const r = battle.result;
   if (r.bossDown) await scene.bossDefeated(speedFactor()); else if (r.alive === 0) await scene.partyWiped(speedFactor()); else await sleep(400);
   showResult();
+}
+
+/* ---------- what is at stake: rough payoff preview per choice ----------
+   Each instrument gets a rough sensitivity to the raid's main instrument (βup when the main rises, βdown when it falls).
+   Preview = Σ weight × β × assumed move, in won. Deliberately simple and labelled "대략" — it shows the shape of the
+   trade-off (symmetric / levered / insured), not a forecast. */
+function betaOf(id) {
+  const ins = currentTape.instruments[id], n = ins.name || '', k = ins.kind;
+  if (id === mainInstrument(currentTape)) return { up: 1, down: 1 };
+  if (k === 'cash') return { up: 0, down: 0 };
+  if (k === 'lev') { const x = /2배/.test(n) ? 2 : 3; return /인버스/.test(n) ? { up: -x, down: -x } : { up: x, down: x }; }
+  if (k === 'option') return /인버스/.test(n) ? { up: -(/3배/.test(n) ? 3 : 1), down: -(/3배/.test(n) ? 3 : 1) } : { up: -3, down: -8 };   // put: premium melts on the way up, pays big on the way down
+  if (/반도체/.test(n)) return { up: 1.8, down: 1.8 };
+  if (/장기채|국고채/.test(n)) return { up: 0.3, down: 0.3 };
+  if (/단기채/.test(n)) return { up: 0.05, down: 0.05 };
+  if (/금/.test(n) && !/금리/.test(n)) return { up: 0.2, down: 0.1 };
+  if (/배당/.test(n)) return { up: 0.6, down: 0.6 };
+  return { up: 1, down: 1 };
+}
+function skillBeta(sk) { const parts = sk.blend ? Object.entries(sk.blend) : [[sk.instrument, 1]]; return parts.reduce((a, [id, w]) => { const b = betaOf(id); return { up: a.up + b.up * w, down: a.down + b.down * w }; }, { up: 0, down: 0 }); }
+function partyBeta(weights, skills) { return ROLES.reduce((a, r) => { const b = skillBeta(battle.party._bySkill[skills[r]]); return { up: a.up + b.up * weights[r] / 100, down: a.down + b.down * weights[r] / 100 }; }, { up: 0, down: 0 }); }
+/** assumed size of the next move: average |move| of the main instrument over the bars seen so far, floored */
+function moveSize(upto) {
+  const main = mainInstrument(currentTape), bars = currentTape.bars; let sum = 0, n = 0;
+  for (let i = 1; i <= upto; i++) { sum += Math.abs(100 * (bars[i].prices[main] / bars[i - 1].prices[main] - 1)); n++; }
+  const floor = currentTape.daily ? 1 : 0.5;
+  return Math.max(floor, Math.round((n ? sum / n : floor) * 10) / 10);
+}
+const fmtMan = v => (v >= 0 ? '+' : '−') + Math.round(Math.abs(v) / 10000).toLocaleString('ko-KR') + '만원';
+function payoffHTML(weights, skills, m) {
+  const b = partyBeta(weights, skills), v = totalValue();
+  const up = v * b.up * m / 100, dn = -v * b.down * m / 100;
+  return `<span class="pay"><em class="up">▲ ${fmtMan(up)}</em><em class="dn">▼ ${fmtMan(dn)}</em></span>`;
 }
 
 /* ---------- checkpoint modal ---------- */
@@ -887,8 +935,11 @@ async function showCheckpoint(cp) {
     $('#cpParty').innerHTML = ROLES.map(role => { const sk = battle.party._bySkill[battle.party.skills[role]], rv = roleValue(role), r0 = roleStart(role), dead = battle.partyHp[role] <= 0;
       return `<div style="--rc:${ROLE_COLOR[role]};${dead ? 'opacity:.45' : ''}" title="${sk.name} · ${currentTape.instruments[sk.instrument].name}"><img src="${portrait(heroUnit(role))}" alt=""><b>${charOf(role).name}</b><span class="w">${battle.party.weights[role]}%</span><span class="pr">${sk.instrument}</span><span class="pl ${rv >= r0 ? 'ret up' : 'ret down'}">${fmtKRWd(rv - r0)}</span></div>`; }).join('');
     renderTicker($('#cpTicker'), cp.bar - 1);
-    $('#cpBull').textContent = cp.bull || '좋은 쪽으로 가면 공격적인 기술이 보상받는다.';
+    const mv = moveSize(cp.bar - 1), mainId = mainInstrument(currentTape);
+    $('#cpBull').textContent = cp.bull || '좋은 쪽으로 가면 공격적인 상품이 보상받는다.';
     $('#cpBear').textContent = cp.bear || '나쁜 쪽으로 가면 현금·채권·보험이 방패가 된다.';
+    $('#cpScenNote').textContent = `${mainId}가 ±${mv}% 움직인다고 가정한 대략의 예상치예요. 상품별 민감도(레버리지 3배, 풋옵션 역방향 등)로 계산합니다.`;
+    $('#cpHoldPay').innerHTML = payoffHTML(battle.party.weights, battle.party.skills, mv);
     $('#cpEvent').innerHTML = eventCardHTML(currentTape, cp.bar, { source: false, newAt: cp.bar });
     $('#cpSay').innerHTML = heroLines(cp).slice(0, 2).map(([r, line]) => `<span><img src="${portrait(heroUnit(r))}" alt=""><b>${charOf(r).name}</b> ${line}</span>`).join('');
     // countdown: time out = hold (a decision not taken is still a decision)
@@ -912,7 +963,8 @@ async function showCheckpoint(cp) {
       currentTape.skills.filter(s => s.role === role && s.id !== cur.id).forEach(s => {
         const locked = s.unlockLevel && lvl < s.unlockLevel;
         const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked; if (s.lesson) b.title = s.lesson;
-        b.innerHTML = `<span class="n">${s.name}</span><span class="i">${currentTape.instruments[s.instrument].name}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>`;
+        const skills2 = { ...battle.party.skills, [role]: s.id };
+        b.innerHTML = `<span class="n">${s.name}</span><span class="i">${currentTape.instruments[s.instrument].name}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
         b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: lvl }, `${charOf(role).name} → ${s.name}`); };
         opts.appendChild(b);
       });
@@ -923,7 +975,7 @@ async function showCheckpoint(cp) {
     const w = { ...battle.party.weights };
     const renderSl = () => {
       $('#cpSliders').innerHTML = ROLES.map(role => `<div class="weight" style="--rc:${ROLE_COLOR[role]}"><label><span><img src="${portrait(heroUnit(role))}" alt="" style="width:22px;height:22px;border-radius:50%;vertical-align:middle;margin-right:4px">${charOf(role).name} · ${battle.party._bySkill[battle.party.skills[role]].name}</span></label><div class="wctl"><button type="button" class="wbtn" data-cw="${role}" data-d="-5" aria-label="${charOf(role).name} 비중 줄이기">−</button><output id="cw-${role}">${w[role]}%</output><button type="button" class="wbtn" data-cw="${role}" data-d="5" aria-label="${charOf(role).name} 비중 늘리기">+</button></div></div>`).join('');
-      const sync = () => { ROLES.forEach(r => { $('#cw-' + r).value = w[r] + '%'; }); const sum = ROLES.reduce((a, r) => a + w[r], 0), pool = 100 - sum; $('#cpSum').innerHTML = pool > 0 ? `<span class="pool">남은 비중 ${pool}%</span>` : '비중 100%'; $('#cpSum').classList.toggle('bad', sum !== 100); $('#cpRebalBtn').disabled = sum !== 100; $$('#cpSliders .wbtn[data-d="-5"]').forEach(b => { b.disabled = w[b.dataset.cw] <= 0; }); };
+      const sync = () => { ROLES.forEach(r => { $('#cw-' + r).value = w[r] + '%'; }); const sum = ROLES.reduce((a, r) => a + w[r], 0), pool = 100 - sum; $('#cpSum').innerHTML = (pool > 0 ? `<span class="pool">남은 비중 ${pool}%</span>` : '비중 100%') + (sum === 100 ? ' ' + payoffHTML(w, battle.party.skills, mv) : ''); $('#cpSum').classList.toggle('bad', sum !== 100); $('#cpRebalBtn').disabled = sum !== 100; $$('#cpSliders .wbtn[data-d="-5"]').forEach(b => { b.disabled = w[b.dataset.cw] <= 0; }); };
       $$('#cpSliders .wbtn').forEach(b => b.addEventListener('click', () => { sfx.select(); stepWeight(w, b.dataset.cw, +b.dataset.d); sync(); }));
       sync();
     };
@@ -956,8 +1008,10 @@ async function showResult() {
 
   const stamp = $('#rStamp'); stamp.textContent = r.grade; stamp.className = 'stamp ' + r.grade;
   $('#rVerdict').textContent = r.bossDown ? `${currentTape.boss} 격파!` : r.alive === 0 ? '파티 전멸…' : r.returnPct >= 0 ? '레이드 생존 · 보스는 버텼다' : '보스에게 밀렸다';
-  $('#rRet').textContent = fmtPct(r.returnPct); $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
-  $('#rAlpha').textContent = fmtPct(r.alpha); $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)';
+  $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
+  $('#rMoney').textContent = fmtKRW(totalValue());
+  $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)} · 내가 ${fmtPct(r.alpha)}`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
+  $('#rMore').open = false;
   $('#rBoss').textContent = r.bossDown ? '격파' : `HP ${Math.round(s.bossHp)} 남음`;
   $('#rAlive').textContent = `${r.alive} / 4`;
   const cs = ROLES.map(role => ({ role, c: contribution(s, role) })); const mx = Math.max(.2, ...cs.map(x => Math.abs(x.c)));
@@ -981,6 +1035,7 @@ async function showResult() {
   $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
   rChart?.remove(); rChart = new BattleChart($('#rChart'), currentTape, 'equity', { state: s, upto: currentTape.bars.length - 1 });
   $('#rChartLegend').innerHTML = rChart.legend();
+  $('#rMore').ontoggle = () => { if ($('#rMore').open) setTimeout(() => { rChart?.c.timeScale().fitContent(); rPriceChart?.c.timeScale().fitContent(); }, 50); };
   rPriceChart?.remove(); rPriceChart = new BattleChart($('#rPriceChart'), currentTape, 'compare', { state: s, upto: currentTape.bars.length - 1, ids: battleInstruments().slice(0, 5) });
   $('#rPriceLegend').innerHTML = rPriceChart.legend();
   $('#coachAv').src = portrait('hero_healer');
