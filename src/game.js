@@ -96,7 +96,7 @@ async function openBrief(id) {
   $('#bBrief').innerHTML = `<b>[시스템]</b> ${t.briefing}`;
   // labels after the first checkpoint describe what happened; keep them hidden until the raid reaches them
   const reveal = Math.min(...t.checkpoints.map(c => c.bar), t.bars.length - 1);
-  $('#bTimeline').innerHTML = t.bars.map((b, i) => `<span class="${t.checkpoints.some(c => c.bar === i) ? 'cp' : ''}">${fmtTime(b.t)} ${i <= reveal ? b.label : '???'}</span>`).join('');
+  $('#bTimeline').innerHTML = t.bars.map((b, i) => { const cp = t.checkpoints.find(c => c.bar === i); return `<span class="${cp ? 'cp' : ''}">${fmtTime(b.t)} ${cp ? cp.title : i <= reveal ? b.label : '???'}</span>`; }).join('');
   $('#bConcepts').innerHTML = (t.concepts || []).map(c => `<span class="chip" style="color:var(--gold)">${c.name}</span>`).join('');
   showScreen('brief');
   gsap.fromTo('#bArt', { scale: .6, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .6, ease: 'back.out(1.6)' });

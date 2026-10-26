@@ -100,9 +100,25 @@ node scripts/tape-from-bars.mjs spec.json > data/tapes/<id>.json
 현재 `coachText()`는 규칙 기반(결정적)이다. LLM으로 바꿀 때는 같은 입력(파티 구성, 턴 로그, 체크포인트 선택, 개념 카드)을
 프롬프트로 넘기고 출력 형식만 맞추면 된다. 가드레일: 개념 설명만, 특정 상품 매수·매도 판단과 수익 전망 금지.
 
+## 아트 파이프라인 (Flare)
+
+캐릭터·보스·배경은 오픈소스 RPG [Flare](https://github.com/flareteam/flare-game)의 프리렌더 아트(CC-BY-SA 3.0)를 가져와 쓴다.
+
+```
+git clone --filter=blob:none --sparse https://github.com/flareteam/flare-game.git /tmp/flare
+cd /tmp/flare && git sparse-checkout set mods/fantasycore/images mods/fantasycore/animations mods/fantasycore/engine
+python3 scripts/flare-import.py /tmp/flare/mods/fantasycore     # -> dist/assets/flare/*
+```
+
+- `scripts/flare.py`: Flare 애니메이션 정의(`frame=index,dir,x,y,w,h,offX,offY`) 파서 + 레이어 합성 + Phaser JSON-hash 아틀라스 패커.
+- `scripts/flare-import.py`: 영웅 4종(갑옷·무기 레이어 조합, 방향 SE)과 보스(방향 SW)의 stance/swing/cast/shoot/hit/die 아틀라스, 초상화, 컷인용 전신 PNG, 던전 배경을 만든다.
+- 영웅 장비 구성과 보스 매핑은 `flare-import.py` 상단 `HEROES` / `BOSSES`에서 바꾼다. Flare에는 고블린, 스켈레톤(기사/마법사/궁수), 좀비, 개미지옥, 와이번(불/물/공중) 등이 더 있다.
+- 배포 시 `dist/assets/flare/`를 페이지와 함께 올린다(아티팩트는 `files`로, 서버는 정적 경로로). 상대 경로 `assets/flare/...`로 로드한다.
+
 ## 라이선스·고지
 
-- 캐릭터·보스 아트, 효과음: 이 저장소에서 코드로 생성한 오리지널.
+- 캐릭터·보스·배경 아트: Flare (flareteam/flare-game) CC-BY-SA 3.0. 저작자: Clint Bellanger, Justin Nichol, Justin Jacobs 외 (`dist/assets/flare/CREDITS.txt`). 화면 하단에 출처를 표기한다. 아트를 수정해 배포하면 같은 라이선스를 따라야 한다.
+- 효과음: 이 저장소에서 코드로 합성한 오리지널. `src/art.js`의 SVG 캐릭터는 초기 러프로, 현재 빌드에는 포함되지 않는다.
 - 차트: [TradingView Lightweight Charts](https://github.com/tradingview/lightweight-charts) (Apache 2.0). 화면의 TradingView 로고 표기는 라이선스 조건이므로 지우지 말 것.
 - Phaser(MIT), GSAP(표준 라이선스, 무료 사용 범위 확인).
 - 예시 테이프의 가격은 실제 시세가 아니다. 특정 상품의 투자권유가 아니다.

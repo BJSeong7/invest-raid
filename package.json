@@ -9,7 +9,8 @@
     "build": "node scripts/build.mjs",
     "play": "node test/play.mjs",
     "play:shots": "node test/play.mjs --shots",
-    "all": "npm run tapes && npm test && npm run build && npm run play"
+    "all": "npm run tapes && npm test && npm run build && npm run play",
+    "art": "python3 scripts/flare-import.py"
   },
   "keywords": [],
   "author": "",
