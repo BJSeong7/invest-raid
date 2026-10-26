@@ -170,6 +170,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .chartbox .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap;justify-content:space-between}
 .legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
 .chart{height:150px;width:100%}
+.future-shade{position:absolute;top:0;bottom:26px;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(90,80,60,.07) 0 8px,rgba(90,80,60,0) 8px 16px);border-left:2px dashed var(--purple);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;color:var(--purple)}
+.future-shade span{font-family:var(--shout);font-size:40px;line-height:1;opacity:.7}
+.future-shade small{font-family:var(--display);font-size:12px;opacity:.8}
 .ticker{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:thin}
 .ticker .tk{flex-shrink:0;display:inline-flex;gap:5px;align-items:baseline;font-size:12px;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:3px 8px;transition:background .3s}
 .ticker .tk b{font-family:var(--display);font-weight:400;color:var(--navy)}
@@ -210,13 +213,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .timer i b{display:block;height:100%;width:100%;background:linear-gradient(180deg,#6FA2FF,var(--blue));transition:width 1s linear}
 .timer.hot{color:var(--red);animation:pulse .5s infinite alternate} .timer.hot i b{background:linear-gradient(180deg,#FF8E86,var(--red))}
 @keyframes pulse{to{transform:scale(1.06)}}
-.scen{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.scen>div{border-radius:var(--r2);padding:10px 12px;font-size:13px;line-height:1.55;border:2px solid}
-.scen b{display:block;font-family:var(--display);font-weight:400;font-size:16px;margin-bottom:4px}
-.scen p{margin:0}
-.scen .bull{background:#EAF7EE;border-color:#B5DEC2}.scen .bull b{color:var(--green)}
-.scen .bear{background:#FBECEB;border-color:#EFC2BF}.scen .bear b{color:var(--red)}
-@media (max-width:560px){.scen{grid-template-columns:1fr}}
 .cp-say{display:flex;gap:8px;flex-wrap:wrap}
 .cp-say span{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:3px 10px 3px 3px;font-size:12px}
 .cp-say span b{font-family:var(--display);font-weight:400;color:var(--navy)}
@@ -236,13 +232,16 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .tabs button{background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:9px 16px;cursor:pointer;font-family:var(--display);font-size:16px;min-height:44px;box-shadow:0 3px 0 var(--edge);color:var(--navy)}
 .tabs button[aria-selected="true"]{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:0 3px 0 #122236}
 .cp-roles{display:flex;flex-direction:column;gap:10px}
-.cp-role{display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:start;background:var(--panel2);border:2px solid var(--line);border-radius:var(--r2);padding:10px;border-left:6px solid var(--rc)}
-.cp-role img{width:56px;height:56px;object-fit:cover}
+.cp-role{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:start;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:8px 10px;border-left:6px solid var(--rc)}
+.cp-role img{width:44px;height:44px;object-fit:cover}
+.cp-roles{gap:8px}
+.cp-role .opts .skill .n::before{content:'→ ';color:var(--muted)}
 .cp-role .opts{display:flex;flex-wrap:wrap;gap:6px}
 .cp-role .opts .skill{min-height:40px;padding:6px 10px;flex-direction:column;align-items:flex-start;gap:0}
 .cp-role .hdr{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);margin-bottom:6px}
 .cp-role .hdr b{font-family:var(--display);font-weight:400;color:var(--navy);font-size:16px}
-.rebal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.rebal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.rebal .weight{background:#fff;border:2px solid var(--line);border-left:5px solid var(--rc);border-radius:var(--r2);padding:6px 8px}
 @media (max-width:520px){.rebal{grid-template-columns:1fr}}
 
 /* ---- cut-in overlay (anime panel) ---- */
@@ -326,9 +325,33 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 @keyframes factIn{from{background:#FFE38A}}
 .event-card .src{font-size:11px;color:var(--dim)}
 @media (max-width:560px){.event-card .facts{grid-template-columns:1fr}}
-.cp-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;align-items:start}
-.cp-side{display:flex;flex-direction:column;gap:10px;min-width:0}
-@media (max-width:720px){.cp-grid{grid-template-columns:1fr}}
+.cp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+.cp-col{display:flex;flex-direction:column;gap:10px;min-width:0}
+@media (max-width:760px){.cp-grid{grid-template-columns:1fr}}
+.cp-step{display:inline-block;font-family:var(--display);font-size:13px;color:#fff;background:var(--purple);border-radius:999px;padding:1px 10px;margin-bottom:2px}
+.cp-money{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:8px 14px}
+.cp-money small{color:var(--muted);font-size:12px}.cp-money b{font-family:var(--display);font-size:28px;color:var(--navy)}
+.cp-party{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.cp-party>div{display:flex;flex-direction:column;align-items:center;gap:2px;background:#fff;border:2px solid var(--line);border-top:5px solid var(--rc);border-radius:var(--r2);padding:6px 4px;font-size:11px;text-align:center;min-width:0}
+.cp-party img{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#E4EFFF}
+.cp-party b{font-family:var(--display);font-weight:400;font-size:15px;color:var(--navy)}
+.cp-party .w{font-family:var(--display);font-size:16px}
+.cp-party .pr{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cp-party .pl{font-family:var(--display);font-size:12px}
+.cp-hint{margin:0;font-size:15px;line-height:1.6;background:#EEF4FF;border:2px solid #C9D9F5;border-radius:var(--r2);padding:10px 14px}
+.cp-scen{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cp-scen>div{border-radius:var(--r2);padding:8px 10px;font-size:12.5px;line-height:1.5;border:2px solid}
+.cp-scen b{display:block;font-family:var(--display);font-weight:400;font-size:14px}
+.cp-scen .up{background:#EAF7EE;border-color:#B5DEC2}.cp-scen .up b{color:var(--green)}
+.cp-scen .dn{background:#FBECEB;border-color:#EFC2BF}.cp-scen .dn b{color:var(--red)}
+.choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.choices button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px;cursor:pointer;min-height:64px;box-shadow:0 3px 0 var(--edge)}
+.choices button b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--navy)}
+.choices button span{font-size:11.5px;color:var(--muted);line-height:1.3}
+.choices button[aria-selected="true"]{border-color:var(--navy);background:#EEF4FF;box-shadow:0 3px 0 var(--navy),inset 0 0 0 1px var(--navy)}
+.choices button[aria-selected="true"] b{color:var(--navy)}
+.cp-panel{background:var(--panel2);border:2px solid var(--line);border-radius:var(--r2);padding:12px}
+@media (max-width:520px){.choices{grid-template-columns:1fr}.choices button{min-height:0}}
 .newsline{display:flex;align-items:center;gap:8px;font-size:13px;background:#FFF7E0;border:1.5px solid var(--gold);border-radius:10px;padding:5px 10px;color:var(--ink)}
 .newsline b{font-family:var(--display);font-weight:400;color:var(--gold-dark);white-space:nowrap}
 .newsline img{width:20px;height:20px;border-radius:5px}
@@ -515,24 +538,34 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   </section>
 </div>
 
-<!-- checkpoint modal -->
+<!-- checkpoint modal: 상황(왼쪽) → 선택(오른쪽) -->
 <div class="modal" id="cp" hidden role="dialog" aria-modal="true" aria-labelledby="cpTitle">
-  <div class="box wide">
-    <div class="cp-head"><h2 id="cpTitle"><span class="pause"></span><span></span></h2><div class="timer" id="cpTimer" title="시간이 다 되면 그대로 진행"><span id="cpTimerTxt">30</span><i><b id="cpTimerBar"></b></i></div></div>
+  <div class="box wide cp-box">
+    <div class="cp-head">
+      <div><span class="cp-step" id="cpStep">체크포인트</span><h2 id="cpTitle"><span class="pause"></span><span></span></h2></div>
+      <div class="timer" id="cpTimer" title="시간이 다 되면 그대로 진행"><span id="cpTimerTxt">30</span><i><b id="cpTimerBar"></b></i></div>
+    </div>
     <div class="cp-grid">
-      <div class="chartbox" style="padding:8px 10px 4px"><div class="legend"><span class="small" id="cpChartTitle"></span></div><div class="chart" id="cpChart" style="height:200px"></div><div class="ticker" id="cpTicker"></div></div>
-      <div class="cp-side">
+      <div class="cp-col">
+        <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
+        <div class="cp-party" id="cpParty"></div>
+        <div class="chartbox" style="padding:8px 10px 4px"><div class="legend"><span class="small" id="cpChartTitle"></span></div><div class="chart" id="cpChart" style="height:170px"></div><div class="ticker" id="cpTicker"></div></div>
         <div class="event-card compact" id="cpEvent"></div>
       </div>
+      <div class="cp-col">
+        <p class="cp-hint" id="cpHint"></p>
+        <div class="cp-scen"><div class="up"><b>▲ 오르면</b><span id="cpBull"></span></div><div class="dn"><b>▼ 내리면</b><span id="cpBear"></span></div></div>
+        <div class="choices" role="tablist">
+          <button type="button" role="tab" data-tab="hold" aria-selected="true"><b>그대로 간다</b><span>지금 편성 그대로</span></button>
+          <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
+          <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
+        </div>
+        <div class="cp-panel" id="cpHold"><p class="small muted" style="margin:0 0 8px">편성을 바꾸지 않고 다음 구간을 맞습니다.</p><button class="btn" id="cpHoldBtn" type="button">이대로 간다</button></div>
+        <div class="cp-panel cp-roles" id="cpEquip" hidden></div>
+        <div class="cp-panel" id="cpRebal" hidden><div class="rebal" id="cpSliders"></div><div class="total" style="margin-top:8px"><div class="sum" id="cpSum"></div><button class="btn" id="cpRebalBtn" type="button">이 비중으로 간다</button></div></div>
+        <div class="cp-say" id="cpSay" hidden></div>
+      </div>
     </div>
-    <div class="balance-box" id="cpBalance"></div>
-    <p class="brief-copy" id="cpHint" style="margin:0"></p>
-    <div class="scen"><div class="bull"><b>오르면</b><p id="cpBull"></p></div><div class="bear"><b>내리면</b><p id="cpBear"></p></div></div>
-    <div class="cp-say" id="cpSay" hidden></div>
-    <div class="tabs" role="tablist"><button type="button" role="tab" data-tab="hold" aria-selected="true">그대로</button><button type="button" role="tab" data-tab="equip" aria-selected="false">상품 바꾸기</button><button type="button" role="tab" data-tab="rebalance" aria-selected="false">비중 바꾸기</button></div>
-    <div id="cpHold"><button class="btn" id="cpHoldBtn" type="button">이대로 간다</button></div>
-    <div id="cpEquip" hidden class="cp-roles"></div>
-    <div id="cpRebal" hidden style="display:flex;flex-direction:column;gap:10px"><div class="rebal" id="cpSliders"></div><div class="total"><div class="sum" id="cpSum"></div><button class="btn" id="cpRebalBtn" type="button">이 비중으로 간다</button></div></div>
   </div>
 </div>
 

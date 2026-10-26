@@ -689,7 +689,7 @@ const easeOut = t => 1 - Math.pow(1 - t, 3);
 class BattleChart {
   /** @param mode 'price' | 'compare' | 'equity'  @param opts { ids, state, upto, height } */
   constructor(container, tape, mode, opts = {}) {
-    this.tape = tape; this.mode = mode; this.container = container; this.state = opts.state || null;
+    this.tape = tape; this.mode = mode; this.container = container; this.state = opts.state || null; this.quiet = !!opts.quiet; this.futureShade = !!opts.futureShade;
     this.ids = mode === 'price' ? [opts.main || mainInstrument(tape)] : mode === 'compare' ? (opts.ids || [mainInstrument(tape)]) : [];
     this.upto = opts.upto ?? 0;
     const withLeft = mode === 'equity';
@@ -751,12 +751,20 @@ class BattleChart {
   markers() {
     const up = this.upto, cps = this.tape.checkpoints || [], acts = this.state?.actions || [];
     const m = [];
+    if (this.futureShade) this.shadeFuture();
+    if (this.quiet) { this.ghost.setMarkers([]); return; }
     cps.forEach(cp => { if (cp.bar > up) m.push({ time: this.t(cp.bar), position: 'inBar', color: '#7458C9', shape: 'circle', text: '', size: 1.4 }); });
     acts.filter(a => a.type !== 'hold').forEach(a => m.push({ time: this.t(a.at), position: 'belowBar', color: '#C8921A', shape: 'arrowUp', text: a.type === 'equip' ? '교체' : '비중' }));
     if (up > 0 && up < this.tape.bars.length - 1) m.push({ time: this.t(up), position: 'aboveBar', color: '#24405F', shape: 'arrowDown', text: '지금' });
     if (this.state) (this.state.log || []).forEach(h => { const r = h.boss.portfolioRet; if (h.bar < up && Math.abs(r) >= 1) m.push({ time: this.t(h.bar), position: r < 0 ? 'aboveBar' : 'belowBar', color: r < 0 ? '#D6453F' : '#2E9A58', shape: r < 0 ? 'arrowDown' : 'arrowUp', text: fmtPct(r) }); });
     m.sort((a, b) => a.time - b.time);
     this.ghost.setMarkers(m);
+  }
+  /** grey hatched overlay over the bars not yet revealed, with a "?" — what the player is deciding about */
+  shadeFuture() {
+    const el = this.container;
+    if (!this.shadeEl) { el.style.position = 'relative'; this.shadeEl = document.createElement('div'); this.shadeEl.className = 'future-shade'; this.shadeEl.innerHTML = '<span>?</span><small>아직 모름</small>'; el.appendChild(this.shadeEl); this.ro = new ResizeObserver(() => this.shadeFuture()); this.ro.observe(el); }
+    requestAnimationFrame(() => { const x = this.c.timeScale().timeToCoordinate(this.t(Math.min(this.upto, this.tape.bars.length - 1))); const W = el.clientWidth - (this.c.priceScale('right').width() || 60); if (x === null || this.upto >= this.tape.bars.length - 1) { this.shadeEl.style.display = 'none'; return; } this.shadeEl.style.display = ''; this.shadeEl.style.left = Math.round(x) + 'px'; this.shadeEl.style.width = Math.max(0, Math.round(W - x)) + 'px'; });
   }
   setUpto(upto) { this.upto = upto; this.draw(); }
   /** animate the newest bar growing from the previous value — the "market moves" beat of a turn */
@@ -780,7 +788,7 @@ class BattleChart {
     return this.ids.map((id, i) => { const p0 = this.tape.bars[0].prices[id], p = this.tape.bars[up].prices[id], ins = this.tape.instruments[id];
       return `<span><i style="background:${INS_COLORS[i % INS_COLORS.length]}"></i>${id} ${ins.name} <b class="tabular">${fmtMoney(p, ins.currency)}</b> <span class="${p >= p0 ? 'ret up' : 'ret down'} tabular" style="font-size:12px">${fmtPct(100 * (p / p0 - 1))}</span></span>`; }).join('');
   }
-  remove() { try { this.c.remove(); } catch {} }
+  remove() { try { this.ro?.disconnect(); this.shadeEl?.remove(); this.c.remove(); } catch {} }
 }
 
 let chartMode = 'price', battleChart = null;
@@ -859,17 +867,19 @@ async function showCheckpoint(cp) {
   return new Promise(resolve => {
     sfx.pause();
     const m = $('#cp'); m.hidden = false;
-    $('#cpTitle span:last-child').textContent = `${cpWhen(cp)} · ${cp.title}`;
+    const cps = currentTape.checkpoints, idx = cps.indexOf(cp);
+    $('#cpStep').textContent = `체크포인트 ${idx + 1} / ${cps.length} · ${cpWhen(cp)}`;
+    $('#cpTitle span:last-child').textContent = cp.title;
     const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
-    $('#cpHint').innerHTML = `${cp.hint} <span class="muted">다음 구간 <b>${fmtBar(next.t)} ${next.label}</b></span>`;
+    $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간: <b>${fmtBar(next.t)} ${next.label}</b> · 결정은 한 번만</span>`;
     // the chart is the question: real closes up to now, the rest still hidden
     const main = mainInstrument(currentTape);
-    $('#cpChartTitle').innerHTML = `${main} ${currentTape.instruments[main].name} <span class="muted">· 지금까지 · 보라 점 = 다음 체크포인트</span>`;
-    cpChart?.remove(); cpChart = new BattleChart($('#cpChart'), currentTape, 'price', { state: battle, upto: cp.bar - 1 });
+    $('#cpChartTitle').innerHTML = `${main} ${currentTape.instruments[main].name} <span class="muted">· 지금까지의 실제 흐름</span>`;
+    cpChart?.remove(); cpChart = new BattleChart($('#cpChart'), currentTape, 'price', { state: battle, upto: cp.bar - 1, quiet: true, futureShade: true });
     const v = totalValue();
-    $('#cpBalance').innerHTML = `<div class="bal-top"><span class="muted small">모험단 자금 평가</span><b class="tabular">${fmtKRW(v)}</b><span class="ret tabular ${v >= SEED ? 'up' : 'down'}">${fmtKRWd(v - SEED)} (${fmtPct(cum)})</span></div>
-      <div class="bal-roles">${ROLES.map(role => { const sk = battle.party._bySkill[battle.party.skills[role]], q = quote(sk.instrument), rv = roleValue(role), r0 = roleStart(role);
-        return `<div style="--rc:${ROLE_COLOR[role]}" title="${sk.name}"><img src="${portrait(heroUnit(role))}" alt=""><div><b>${charOf(role).name}</b> <span class="muted">${battle.party.weights[role]}% · ${sk.instrument} ${fmtMoney(q.p, q.cur)} <em class="${q.dStart >= 0 ? 'ret up' : 'ret down'}">${fmtPct(q.dStart)}</em></span></div><div class="tabular v">${fmtKRW(rv)} <em class="${rv >= r0 ? 'ret up' : 'ret down'}">${fmtKRWd(rv - r0)}</em></div></div>`; }).join('')}</div>`;
+    $('#cpMoney').textContent = fmtKRW(v); $('#cpMoneyD').textContent = `${fmtKRWd(v - SEED)} (${fmtPct(cum)})`; $('#cpMoneyD').className = 'ret tabular ' + (v >= SEED ? 'up' : 'down');
+    $('#cpParty').innerHTML = ROLES.map(role => { const sk = battle.party._bySkill[battle.party.skills[role]], rv = roleValue(role), r0 = roleStart(role), dead = battle.partyHp[role] <= 0;
+      return `<div style="--rc:${ROLE_COLOR[role]};${dead ? 'opacity:.45' : ''}" title="${sk.name} · ${currentTape.instruments[sk.instrument].name}"><img src="${portrait(heroUnit(role))}" alt=""><b>${charOf(role).name}</b><span class="w">${battle.party.weights[role]}%</span><span class="pr">${sk.instrument}</span><span class="pl ${rv >= r0 ? 'ret up' : 'ret down'}">${fmtKRWd(rv - r0)}</span></div>`; }).join('');
     renderTicker($('#cpTicker'), cp.bar - 1);
     $('#cpBull').textContent = cp.bull || '좋은 쪽으로 가면 공격적인 기술이 보상받는다.';
     $('#cpBear').textContent = cp.bear || '나쁜 쪽으로 가면 현금·채권·보험이 방패가 된다.';
@@ -877,9 +887,9 @@ async function showCheckpoint(cp) {
     $('#cpSay').innerHTML = heroLines(cp).slice(0, 2).map(([r, line]) => `<span><img src="${portrait(heroUnit(r))}" alt=""><b>${charOf(r).name}</b> ${line}</span>`).join('');
     // countdown: time out = hold (a decision not taken is still a decision)
     clearInterval(cpTimer); let left = CP_SECONDS; const tEl = $('#cpTimer');
-    const tick = () => { $('#cpTimerTxt').textContent = left; $('#cpTimerBar').style.width = (100 * left / CP_SECONDS) + '%'; tEl.classList.toggle('hot', left <= 10); if (left <= 10 && left > 0) sfx.select(); if (left <= 0) { clearInterval(cpTimer); done({ type: 'hold' }, '시간 초과 — 버티기로 진행'); } left--; };
+    const tick = () => { $('#cpTimerTxt').textContent = left; $('#cpTimerBar').style.width = (100 * left / CP_SECONDS) + '%'; tEl.classList.toggle('hot', left <= 10); if (left <= 10 && left > 0) sfx.select(); if (left <= 0) { clearInterval(cpTimer); done({ type: 'hold' }, '시간 초과 — 그대로 진행'); } left--; };
     tick(); cpTimer = setInterval(tick, 1000);
-    const tabs = $$('#cp .tabs [data-tab]');
+    const tabs = $$('#cp .choices [data-tab]');
     const setTab = name => { tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpHold').hidden = name !== 'hold'; $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
     tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
     setTab('hold');
@@ -891,16 +901,16 @@ async function showCheckpoint(cp) {
     ROLES.forEach(role => {
       const cur = battle.party._bySkill[battle.party.skills[role]];
       const box = document.createElement('div'); box.className = 'cp-role'; box.style.setProperty('--rc', ROLE_COLOR[role]);
-      box.innerHTML = `<img src="${portrait(heroUnit(role))}" alt="" class="pf"><div><div class="hdr"><b>${charOf(role).name}</b><span>지금: ${cur.name} · ${battle.party.weights[role]}%</span></div><div class="opts"></div></div>`;
+      box.innerHTML = `<img src="${portrait(heroUnit(role))}" alt="" class="pf"><div><div class="hdr"><b>${charOf(role).name} <span class="muted small">${battle.party.weights[role]}%</span></b><span>지금 ${cur.name} (${cur.instrument})</span></div><div class="opts"></div></div>`;
       const opts = box.querySelector('.opts');
       currentTape.skills.filter(s => s.role === role && s.id !== cur.id).forEach(s => {
         const locked = s.unlockLevel && lvl < s.unlockLevel;
         const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked; if (s.lesson) b.title = s.lesson;
         b.innerHTML = `<span class="n">${s.name}</span><span class="i">${currentTape.instruments[s.instrument].name}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>`;
-        b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: lvl }, `${charOf(role).name}: ${s.name} 장착!`); };
+        b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: lvl }, `${charOf(role).name} → ${s.name}`); };
         opts.appendChild(b);
       });
-      if (!opts.children.length) opts.innerHTML = '<span class="small muted">바꿀 기술이 없어요</span>';
+      if (!opts.children.length) opts.innerHTML = '<span class="small muted">바꿀 상품이 없어요</span>';
       $('#cpEquip').appendChild(box);
     });
     // rebalance
