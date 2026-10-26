@@ -1,5 +1,5 @@
 // Game layer: screens, Phaser battle scene, cut-ins, checkpoint modal, chart, result.
-// The build concatenates engine.js + art.js + audio.js + this file into one inline module, so these imports
+// The build concatenates engine.js + audio.js + this file into one inline module, so these imports
 // exist for editors/tests only and are stripped at build time.
 import { ROLES, ROLE_META, ReplayAdapter, defaultParty, validateParty, createBattle, step, intervene, nextCheckpoint, settle, coachText, contribution, applyExp, expNext, alternatives } from './engine.js';
 import { unlock, setMuted, isMuted, sfx, startBgm, stopBgm } from './audio.js';
@@ -7,26 +7,51 @@ import { unlock, setMuted, isMuted, sfx, startBgm, stopBgm } from './audio.js';
 const TAPES = window.__TAPES__ || [];
 // Weekly cadence preview. Real dates from the public calendars; the boss is generated after the event is scheduled and judged after it prints.
 const UPCOMING = [
-  { date: '2026-11-06T22:30:00+09:00', title: '미국 10월 고용보고서', boss: '???', species: 'skeleton', note: '발표 후 실제 분봉으로 판정' },
-  { date: '2026-12-10T04:00:00+09:00', title: '12월 FOMC 금리 결정', boss: '긴축의 미노타우로스 2차', species: 'minotaur', note: '2026년 마지막 회의' },
+  { date: '2026-10-30T03:00:00+09:00', title: '10월 FOMC 금리 결정', boss: '금리 마법사', species: 'lich', note: '발표 후 실제 데이터로 판정' },
+  { date: '2026-11-06T22:30:00+09:00', title: '미국 10월 고용보고서', boss: '뼈다귀', species: 'skeleton', note: '발표 후 실제 데이터로 판정' },
+  { date: '2026-12-10T04:00:00+09:00', title: '12월 FOMC 금리 결정', boss: '동결이', species: 'minotaur', note: '2026년 마지막 회의' },
 ];
 const adapter = new ReplayAdapter(TAPES);
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fmtPct = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+// The raid plays with a notional 1,000만원 of 모험단 자금. Equity is a constant-mix index (engine), so a role's
+// current value is equity × its current weight — the number a brokerage user actually wants to see.
+const SEED = 10_000_000;
+const fmtKRW = n => Math.round(n).toLocaleString('ko-KR') + '원';
+const fmtKRWd = n => (n >= 0 ? '+' : '−') + Math.abs(Math.round(n)).toLocaleString('ko-KR') + '원';
+const totalValue = () => SEED * battle.equity / 100;
+const roleValue = role => totalValue() * battle.party.weights[role] / 100;
+const roleStart = role => SEED * battle.party.weights[role] / 100;
+/** price of an instrument at the current bar, and its change vs the previous bar / raid start */
+function quote(id, bar = battle?.history.at(-1)?.bar ?? 0) {
+  const bars = currentTape.bars, p = bars[bar].prices[id], prev = bars[Math.max(0, bar - 1)].prices[id], p0 = bars[0].prices[id];
+  return { id, p, dBar: 100 * (p / prev - 1), dStart: 100 * (p / p0 - 1), cur: currentTape.instruments[id].currency, name: currentTape.instruments[id].name, kind: currentTape.instruments[id].kind };
+}
+function renderTicker(el, bar, flash = false) {
+  const ids = Object.keys(currentTape.instruments);
+  el.innerHTML = ids.map(id => { const q = quote(id, bar); const cls = q.dBar > 0 ? 'up' : q.dBar < 0 ? 'down' : '';
+    return `<span class="tk ${cls} ${flash && q.dBar !== 0 ? 'flash' : ''}" title="${q.name}"><b>${id}</b> <span class="tabular">${fmtMoney(q.p, q.cur)}</span> <em class="tabular">${fmtPct(q.dBar)}</em></span>`; }).join('');
+}
 const fmtTime = iso => iso.slice(11, 16);
 const fmtDate = iso => `${iso.slice(0, 4)}.${iso.slice(5, 7)}.${iso.slice(8, 10)}`;
+const WD = ['일', '월', '화', '수', '목', '금', '토'];
+/** Bar label: daily tapes print the trading date ("09/16(수)"), intraday tapes the KST clock time. */
+const fmtBar = (iso, tape = currentTape) => tape?.daily ? `${iso.slice(5, 7)}/${iso.slice(8, 10)}(${WD[new Date(iso.slice(0, 10) + 'T12:00:00Z').getUTCDay()]})` : iso.slice(11, 16);
+const unitNote = (tape = currentTape) => tape?.daily ? '뉴욕 종가' : 'KST';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const charOf = role => ({ name: ROLE_META[role].char, title: ROLE_META[role].title });
-const portrait = unit => 'assets/flare/portrait_' + unit + '.png';
-const cutArt = (unit, hit = false) => 'assets/flare/cut_' + unit + (hit ? '_hit' : '') + '.png';
+const portrait = unit => 'assets/anime/portrait_' + unit + '.png';
+const cutArt = (unit, hit = false) => `assets/anime/${unit}_${hit ? 'hurt' : 'idle'}.png`;
 const heroUnit = role => ({ tank: 'hero_tank', dealer: 'hero_dealer', healer: 'hero_healer', support: 'hero_support' })[role];
-const bossUnit = species => ({ minotaur: 'boss_minotaur', wyvern: 'boss_wyvern', fireant: 'boss_fireant', skeleton: 'boss_skeleton' })[species] || 'boss_minotaur';
+const bossUnit = species => ({ minotaur: 'boss_minotaur', wyvern: 'boss_wyvern', fireant: 'boss_fireant', skeleton: 'boss_skeleton', lich: 'boss_lich' })[species] || 'boss_minotaur';
 const ROLE_COLOR = { tank: 'var(--tank)', dealer: 'var(--dealer)', healer: 'var(--healer)', support: 'var(--support)' };
-const ROLE_HEX = { tank: 0x8EA0B8, dealer: 0x6E9BFF, healer: 0xF2C14E, support: 0x6FD39A };
+const ROLE_HEX = { tank: 0x5B7693, dealer: 0x2F6BD0, healer: 0xC8921A, support: 0x2E9A58 };
 const UNLOCKS = { 5: '폭주 돌진 (레버리지 ETF)', 10: '수호의 계약 (풋옵션)' };
-const BOSS_MOVES = { minotaur: ['긴축 압박', '할인율 내려치기', '매파의 도끼'], wyvern: ['기대치 깨물기', '설비투자 화염', '차익실현 꼬리치기'], fireant: ['물가 분열', '구매력 갉아먹기', '불개미 폭주'], skeleton: ['하락 포효', '뼈 내리치기'] };
+const BOSS_MOVES = { minotaur: ['금리 동결 발표', '매파 발언', '점도표 충격'], wyvern: ['기대치 상향 부담', '설비투자 발표', '차익실현 매물'], fireant: ['물가 서프라이즈', '구매력 하락', '금리 인하 지연'], skeleton: ['고용 쇼크', '실업률 상승'], lich: ['금리 인상', '긴축 장기화 발언', '인하 기대 후퇴'] };
+// a plain one-line description shown with the boss name
+const BOSS_DESC = { minotaur: '금리 결정이 보스가 된 모습. 동결 발표와 매파 발언으로 공격한다.', wyvern: '실적 발표가 보스가 된 모습. 기대치와 설비투자 뉴스로 공격한다.', fireant: '물가 지표가 보스가 된 모습. 예상보다 높은 숫자로 공격한다.', skeleton: '고용 지표가 보스가 된 모습.', lich: '금리 인상이 보스가 된 모습. 긴축 장기화 발언으로 공격한다.' };
 
 /* ------------------------------------------------------------------ */
 /* Profile (per-viewer convenience only; wrapped in try/catch)         */
@@ -34,17 +59,59 @@ const BOSS_MOVES = { minotaur: ['긴축 압박', '할인율 내려치기', '매�
 const PROFILE_KEY = 'invest-rpg.profile.v1';
 let profile = loadProfile();
 function loadProfile() {
-  try { const p = JSON.parse(localStorage.getItem(PROFILE_KEY)); if (p && p.level) return { plays: {}, ...p }; } catch {}
-  return { level: 1, exp: 0, unlockAll: false, plays: {} };
+  try { const p = JSON.parse(localStorage.getItem(PROFILE_KEY)); if (p && p.level) return { plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: false, ...p }; } catch {}
+  return { level: 1, exp: 0, unlockAll: false, plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: false };
 }
 function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch {} }
 function effectiveLevel() { return profile.unlockAll ? 99 : profile.level; }
+/* ---------- badges · boss collection · streak ---------- */
+const BADGES = [
+  { id: 'first', name: '첫 레이드', desc: '레이드를 한 번 완주했다.', test: ctx => true },
+  { id: 'slayer', name: '보스 격파', desc: '보스 HP를 0으로 만들었다.', test: ctx => ctx.r.bossDown },
+  { id: 'perfect', name: '완벽 방어', desc: '네 명 모두 HP 60 이상으로 완주.', test: ctx => ROLES.every(r => ctx.s.partyHp[r] >= 60) },
+  { id: 'srank', name: 'S 랭크', desc: 'S 등급을 받았다.', test: ctx => ctx.r.grade === 'S' },
+  { id: 'combo3', name: '3연속 반격', desc: '세 구간 연속으로 파티가 플러스.', test: ctx => ctx.drama.maxCombo >= 3 },
+  { id: 'guard', name: '가드 마스터', desc: '한 레이드에서 가드 타이밍 3회 성공.', test: ctx => ctx.drama.guards >= 3 },
+  { id: 'insurer', name: '보험 설계사', desc: '옵션·인버스 기술을 들고 플러스로 완주.', test: ctx => ROLES.some(r => { const k = ctx.s.party._bySkill[ctx.s.party.skills[r]]; return (k.blend || currentTape.instruments[k.instrument].kind === 'option'); }) && ctx.r.returnPct > 0 },
+  { id: 'lever', name: '레버리지 조련사', desc: '레버리지 기술로 A 이상.', test: ctx => ROLES.some(r => currentTape.instruments[ctx.s.party._bySkill[ctx.s.party.skills[r]].instrument].kind === 'lev') && 'SA'.includes(ctx.r.grade) },
+  { id: 'real', name: '실전 모험가', desc: '실제 종가 데이터 레이드를 완주.', test: ctx => !currentTape.example },
+  { id: 'streak3', name: '3일 연속 출석', desc: '사흘 연속으로 레이드.', test: ctx => profile.streak >= 3 },
+];
+const SPECIES_ALL = ['minotaur', 'wyvern', 'fireant', 'lich', 'skeleton'];
+const SPECIES_NAME = { minotaur: '동결이', wyvern: '불꽃이', fireant: '불개미', lich: '금리 마법사', skeleton: '뼈다귀' };
+const today = () => new Date().toISOString().slice(0, 10);
+function bumpStreak() {
+  const d = today(); if (profile.lastDay === d) return;
+  const y = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  profile.streak = profile.lastDay === y ? (profile.streak || 0) + 1 : 1; profile.lastDay = d;
+}
+/** returns the badges newly earned this raid */
+function awardBadges(ctx) {
+  const got = [];
+  BADGES.forEach(b => { if (!profile.badges[b.id] && b.test(ctx)) { profile.badges[b.id] = today(); got.push(b); } });
+  return got;
+}
+function recordBoss(species, grade, bossDown) {
+  const order = ['F', 'D', 'C', 'B', 'A', 'S'];
+  const e = profile.bosses[species] || { met: 0, down: 0, best: null };
+  e.met++; if (bossDown) e.down++; if (!e.best || order.indexOf(grade) > order.indexOf(e.best)) e.best = grade;
+  profile.bosses[species] = e;
+}
+function renderCollection() {
+  $('#dexBosses').innerHTML = SPECIES_ALL.map(sp => { const e = profile.bosses[sp];
+    return `<div class="dex ${e ? '' : 'unknown'}"><img src="${portrait(bossUnit(sp))}" alt=""><b>${e ? SPECIES_NAME[sp] : '???'}</b><span class="small muted">${e ? `조우 ${e.met} · 격파 ${e.down}` : '아직 만나지 못함'}</span>${e?.best ? `<i class="stamp-mini ${e.best}">${e.best}</i>` : ''}</div>`; }).join('');
+  $('#dexBadges').innerHTML = BADGES.map(b => `<div class="badge ${profile.badges[b.id] ? 'on' : ''}" title="${b.desc}"><i></i><b>${b.name}</b><span class="small muted">${profile.badges[b.id] ? profile.badges[b.id].replaceAll('-', '.') : b.desc}</span></div>`).join('');
+  const n = Object.keys(profile.badges).length, met = Object.keys(profile.bosses).length;
+  $('#dexSummary').textContent = `보스 도감 ${met} / ${SPECIES_ALL.length} · 배지 ${n} / ${BADGES.length} · 연속 출석 ${profile.streak || 0}일`;
+}
 function renderProfile() {
   $('#pLv').textContent = 'Lv.' + profile.level;
+  $('#pStreak').textContent = profile.streak >= 2 ? `연속 ${profile.streak}일` : ''; $('#pStreak').hidden = !(profile.streak >= 2);
+  $('#dexBtn').textContent = `도감 ${Object.keys(profile.badges).length}/${BADGES.length}`;
   $('#pExp').style.width = (100 * profile.exp / expNext(profile.level)) + '%';
   $('#pExpTxt').textContent = `${profile.exp} / ${expNext(profile.level)}`;
   $('#unlockBtn').setAttribute('aria-pressed', String(!!profile.unlockAll));
-  $('#unlockBtn').textContent = profile.unlockAll ? '전 기술 해금 중' : '전 기술 해금';
+  $('#unlockBtn').textContent = profile.unlockAll ? '체험 모드 ON' : '체험 모드';
 }
 
 /* ------------------------------------------------------------------ */
@@ -65,39 +132,67 @@ function toast(msg, ms = 1800) {
 let currentTape = null, party = null;
 function renderSelect() {
   $('#partyPreview').innerHTML = ROLES.map(r => `<img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}">`).join('');
-  $('#raids').innerHTML = '';
-  TAPES.forEach(t => {
+  $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
+  // real tapes first (most recent on top), then the hand-made training scenarios
+  const real = TAPES.filter(t => !t.example).slice().reverse(), examples = TAPES.filter(t => t.example);
+  [...real, ...examples].forEach(t => {
     const best = profile.plays[t.id]?.best;
     const b = document.createElement('button'); b.type = 'button'; b.className = 'raid';
+    const span = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)}` : fmtDate(t.bars[0].t);
     b.innerHTML = `<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
       <div class="meta"><h3>${t.title}</h3>
-      <div class="row" style="gap:6px"><span class="chip ${t.market === 'US' ? 'us' : 'kr'}">${t.market === 'US' ? '미국' : '국내'} · ${fmtDate(t.bars[0].t)}</span>${t.example ? '<span class="chip example">예시 데이터</span>' : ''}</div>
-      <span class="small muted">${t.bars.length - 1}구간 · 체크포인트 ${t.checkpoints.length}회${best ? ` · <span class="best">최고 ${best}</span>` : ''}</span></div>`;
+      <div class="row" style="gap:6px"><span class="chip ${t.market === 'US' ? 'us' : 'kr'}">${t.market === 'US' ? '미국' : '국내'} · ${span}</span>${t.example ? '<span class="chip example">예시 데이터</span>' : '<span class="chip real">실제 종가</span>'}</div>
+      <span class="small muted">${t.bars.length - 1}${t.daily ? '거래일' : '구간'} · 체크포인트 ${t.checkpoints.length}회${best ? ` · <span class="best">최고 ${best}</span>` : ''}</span></div>`;
     b.addEventListener('click', () => { unlock(); sfx.select(); openBrief(t.id); });
-    $('#raids').appendChild(b);
+    $(t.example ? '#raidsExample' : '#raids').appendChild(b);
   });
   UPCOMING.forEach(u => {
     const d = document.createElement('div'); d.className = 'raid upcoming';
-    d.innerHTML = `<img src="${portrait(bossUnit(u.species))}" alt="" class="pf" style="filter:brightness(.2) contrast(1.2)">
+    d.innerHTML = `<img src="${portrait(bossUnit(u.species))}" alt="" class="pf" style="filter:brightness(.25) contrast(1.2) sepia(.4)">
       <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)} 예정</span><span class="chip" style="color:var(--purple)">주간 라이브</span></div><span class="small muted">보스 ${u.boss} · ${u.note}</span></div>`;
-    $('#raids').appendChild(d);
+    $('#raidsUpcoming').appendChild(d);
   });
 }
 
+/* ---------- event facts (what a brokerage user expects to see next to the chart) ---------- */
+const visibleFacts = (tape, nextBar) => (tape.event?.facts || []).filter(f => f.at <= nextBar);
+function eventCardHTML(tape, nextBar, opts = {}) {
+  const ev = tape.event; if (!ev) return '';
+  const facts = visibleFacts(tape, nextBar);
+  const logos = ev.logos?.length ? ev.logos : ev.logo ? [{ src: ev.logo, name: ev.company }] : [];
+  const head = `<div class="eh">${logos.length ? `<span class="logos">${logos.map(l => `<img src="${l.src}" alt="${l.name}" title="${l.name}">`).join('')}</span>` : `<img src="${portrait(bossUnit(tape.bossSpecies))}" alt="">`}<div><b>${ev.company}</b><small>${ev.kind === 'earnings' ? '실적 발표' : ev.kind === 'fomc' ? '금리 결정' : '경제 지표'}${ev.example ? ' · 예시' : ''}${facts.length < (ev.facts || []).length ? ' · 발표 전' : ''}</small></div></div>`;
+  const body = `<div class="facts">${facts.map(f => `<div class="fact ${f.good === true ? 'good' : f.good === false ? 'bad' : ''} ${opts.newAt !== undefined && f.at === opts.newAt ? 'new' : ''}"><small>${f.label}</small><b>${f.value}</b>${f.note ? `<em>${f.note}</em>` : ''}</div>`).join('')}</div>`;
+  return head + body + (opts.source !== false && ev.source ? `<div class="src">출처 · ${ev.source}</div>` : '');
+}
+/** a one-line "속보" under the battle chart when a new fact becomes known at this bar */
+function renderNewsline(nextBar) {
+  const el = $('#newsline'); const ev = currentTape.event; if (!ev) { el.hidden = true; return; }
+  const fresh = (ev.facts || []).filter(f => f.at === nextBar);
+  if (!fresh.length) return;
+  const f = fresh[0];
+  el.innerHTML = `${ev.logo ? `<img src="${ev.logo}" alt="">` : ''}<b>속보</b><span>${f.label} <strong>${f.value}</strong>${f.note ? ` · ${f.note}` : ''}${fresh.length > 1 ? ` 외 ${fresh.length - 1}건` : ''}</span>`;
+  el.hidden = false; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+
 /* ---------- 2. briefing ---------- */
+let bChart = null;
 async function openBrief(id) {
   currentTape = await adapter.load(id);
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
   $('#bArt').alt = t.boss;
-  $('#bTag').textContent = `${t.market === 'US' ? '미국' : '국내'} 레이드${t.example ? ' · 예시 데이터' : ''}`;
-  $('#bDate').textContent = `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
-  $('#bTitle').textContent = `${t.boss} 출현!`;
-  $('#bBrief').innerHTML = `<b>[시스템]</b> ${t.briefing}`;
+  $('#bTag').textContent = `${t.market === 'US' ? '미국' : '국내'} 레이드 · ${t.example ? '예시 데이터' : '실제 종가 데이터'}`;
+  $('#bDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} · 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ' · 출처 ' + t.source : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
+  $('#bTitle').textContent = `${t.boss} 출현`;
+  $('#bBrief').textContent = t.briefing;
   // labels after the first checkpoint describe what happened; keep them hidden until the raid reaches them
   const reveal = Math.min(...t.checkpoints.map(c => c.bar), t.bars.length - 1);
-  $('#bTimeline').innerHTML = t.bars.map((b, i) => { const cp = t.checkpoints.find(c => c.bar === i); return `<span class="${cp ? 'cp' : ''}">${fmtTime(b.t)} ${cp ? cp.title : i <= reveal ? b.label : '???'}</span>`; }).join('');
+  $('#bEvent').innerHTML = eventCardHTML(t, reveal);
+  $('#bTimeline').innerHTML = t.bars.map((b, i) => { const cp = t.checkpoints.find(c => c.bar === i); return `<span class="${cp ? 'cp' : ''}">${fmtBar(b.t, t)} ${cp ? cp.title : i <= reveal ? b.label : '???'}</span>`; }).join('');
   $('#bConcepts').innerHTML = (t.concepts || []).map(c => `<span class="chip" style="color:var(--gold)">${c.name}</span>`).join('');
+  const main = mainInstrument(t);
+  $('#bChartTitle').innerHTML = `${main} ${t.instruments[main].name} <span class="muted">· ${t.example ? '예시 시세' : '실제 종가'} · 첫 체크포인트까지</span>`;
+  bChart?.remove(); bChart = new BattleChart($('#bChart'), t, 'price', { upto: reveal });
   showScreen('brief');
   gsap.fromTo('#bArt', { scale: .6, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .6, ease: 'back.out(1.6)' });
   if (!reduceMotion) gsap.fromTo('.boss-stage', { x: -6 }, { x: 6, duration: .06, repeat: 5, yoyo: true, clearProps: 'x', delay: .35 });
@@ -105,6 +200,75 @@ async function openBrief(id) {
 }
 
 /* ---------- 3. party setup ---------- */
+/** Four plain stats per instrument (0-5), read off its kind/name. 공격 = how much it moves with a rally,
+ *  방어 = how little it loses in a sell-off, 안정 = day-to-day calm, 보험 = pays out when things go wrong. */
+function instStats(ins) {
+  const n = ins.name || '', k = ins.kind;
+  if (k === 'cash') return { atk: 0, def: 5, stab: 5, ins: 1 };
+  if (k === 'lev') return /인버스/.test(n) ? { atk: 1, def: 2, stab: 1, ins: 4 } : { atk: 5, def: 0, stab: 1, ins: 0 };
+  if (k === 'option') return /인버스/.test(n) ? { atk: 1, def: 3, stab: 2, ins: 4 } : { atk: 0, def: 4, stab: 1, ins: 5 };
+  if (/반도체/.test(n)) return { atk: 4, def: 1, stab: 2, ins: 0 };
+  if (/장기채|국고채/.test(n)) return { atk: 2, def: 3, stab: 3, ins: 2 };
+  if (/단기채/.test(n)) return { atk: 0, def: 4, stab: 5, ins: 1 };
+  if (/금/.test(n) && !/금리/.test(n)) return { atk: 2, def: 4, stab: 3, ins: 3 };
+  if (/배당/.test(n)) return { atk: 2, def: 3, stab: 4, ins: 1 };
+  return { atk: 3, def: 2, stab: 3, ins: 0 };
+}
+function skillStats(sk) {
+  const parts = sk.blend ? Object.entries(sk.blend) : [[sk.instrument, 1]];
+  const out = { atk: 0, def: 0, stab: 0, ins: 0 };
+  parts.forEach(([id, w]) => { const st = instStats(currentTape.instruments[id]); for (const k in out) out[k] += st[k] * w; });
+  return out;
+}
+function partyStats(p = party) {
+  const out = { atk: 0, def: 0, stab: 0, ins: 0 };
+  ROLES.forEach(r => { const st = skillStats(p._bySkill[p.skills[r]]); for (const k in out) out[k] += st[k] * p.weights[r] / 100; });
+  return out;
+}
+function partyType(st) {
+  if (st.ins >= 2.2) return ['헤지형', '보험을 두껍게 든 파티. 급락 땐 빛나고 랠리 땐 비용이 든다.'];
+  if (st.atk >= 3.4) return ['공격형', '랠리를 크게 먹는 대신 한 방도 크게 맞는 파티.'];
+  if (st.def >= 3.0 && st.atk < 2.4) return ['안정형', '덜 벌고 덜 잃는 파티. 보스를 격파하긴 어렵다.'];
+  return ['균형형', '공격과 방어를 나눠 든 파티. 체크포인트에서 기울기를 정한다.'];
+}
+const STAT_LABEL = { atk: '공격', def: '방어', stab: '안정', ins: '보험' };
+function radarSVG(st, size = 150) {
+  const c = size / 2, R = c - 22, keys = ['atk', 'def', 'stab', 'ins'];
+  const pt = (i, v) => { const a = -Math.PI / 2 + i * Math.PI / 2; return [c + Math.cos(a) * R * v / 5, c + Math.sin(a) * R * v / 5]; };
+  const ring = v => keys.map((_, i) => pt(i, v).join(',')).join(' ');
+  const poly = keys.map((k, i) => pt(i, Math.max(.3, st[k])).join(',')).join(' ');
+  const labels = keys.map((k, i) => { const [x, y] = pt(i, 6.3); return `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="12" font-family="Jua, sans-serif" fill="#24405F">${STAT_LABEL[k]} ${st[k].toFixed(1)}</text>`; }).join('');
+  return `<svg viewBox="-28 0 ${size + 56} ${size}" width="${size + 56}" height="${size}" role="img" aria-label="파티 스탯">
+    ${[1, 2, 3, 4, 5].map(v => `<polygon points="${ring(v)}" fill="none" stroke="#D8C9A3" stroke-width="${v === 5 ? 1.5 : .8}"/>`).join('')}
+    ${keys.map((_, i) => `<line x1="${c}" y1="${c}" x2="${pt(i, 5)[0]}" y2="${pt(i, 5)[1]}" stroke="#D8C9A3" stroke-width=".8"/>`).join('')}
+    <polygon points="${poly}" fill="rgba(224,167,46,.35)" stroke="#E0A72E" stroke-width="2.5" stroke-linejoin="round"/>
+    ${labels}</svg>`;
+}
+/** one-tap formations; locked skills fall back to the role's default */
+const PRESETS = {
+  balanced: { name: '균형형', weights: { tank: 25, dealer: 40, healer: 20, support: 15 }, pick: {} },
+  safe: { name: '안정형', weights: { tank: 40, dealer: 20, healer: 20, support: 20 }, pick: { healer: ['cash'] } },
+  aggro: { name: '공격형', weights: { tank: 10, dealer: 60, healer: 10, support: 20 }, pick: { dealer: ['lev', 'sector'], healer: ['cash'] } },
+  hedge: { name: '헤지형', weights: { tank: 30, dealer: 30, healer: 25, support: 15 }, pick: { healer: ['option', 'gold'] } },
+};
+function pickSkill(role, prefs, lvl) {
+  const list = currentTape.skills.filter(k => k.role === role), open = k => !(k.unlockLevel && lvl < k.unlockLevel);
+  const by = { lev: k => currentTape.instruments[k.instrument].kind === 'lev', sector: k => /반도체/.test(currentTape.instruments[k.instrument].name), cash: k => currentTape.instruments[k.instrument].kind === 'cash', option: k => k.blend || currentTape.instruments[k.instrument].kind === 'option', gold: k => /금/.test(currentTape.instruments[k.instrument].name) };
+  for (const pref of prefs) { const hit = list.find(k => by[pref]?.(k) && open(k)); if (hit) return hit.id; }
+  return (list.find(k => k.default) || list[0]).id;
+}
+function applyPreset(key) {
+  const pr = PRESETS[key], lvl = effectiveLevel();
+  party = Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
+  party.weights = { ...pr.weights };
+  ROLES.forEach(r => { if (pr.pick[r]) party.skills[r] = pickSkill(r, pr.pick[r], lvl); });
+  renderPartyScreen(); toast(`${pr.name} 편성!`);
+}
+function renderPartyMeta() {
+  const st = partyStats(), [type, desc] = partyType(st);
+  $('#partyRadar').innerHTML = radarSVG(st);
+  $('#partyType').textContent = type; $('#partyTypeDesc').textContent = desc;
+}
 function openParty() {
   party = party && party._tapeId === currentTape.id ? party : Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
   renderPartyScreen();
@@ -118,14 +282,13 @@ function renderPartyScreen() {
     const card = document.createElement('div'); card.className = 'role'; card.style.setProperty('--rc', ROLE_COLOR[role]);
     card.innerHTML = `<img src="${cutArt(heroUnit(role))}" alt="${c.name}">
       <h3>${c.name} <small>${c.title} · ${m.name} · ${m.asset}</small></h3>
-      <div class="weight"><label for="w-${role}"><span>비중</span><output id="o-${role}">${party.weights[role]}%</output></label>
-      <input type="range" id="w-${role}" min="0" max="100" step="5" value="${party.weights[role]}" aria-label="${c.name} 비중"></div>
+      <div class="wctl"><button type="button" class="wbtn" data-w="${role}" data-d="-5" aria-label="${c.name} 비중 줄이기">−</button><output id="o-${role}">${party.weights[role]}%</output><button type="button" class="wbtn" data-w="${role}" data-d="5" aria-label="${c.name} 비중 늘리기">+</button></div>
       <div class="skills" id="sk-${role}"></div>`;
     $('#roles').appendChild(card);
-    card.querySelector('input').addEventListener('input', e => { party.weights[role] = +e.target.value; $('#o-' + role).value = party.weights[role] + '%'; renderSum(); });
+    card.querySelectorAll('.wbtn').forEach(b => b.addEventListener('click', () => { sfx.select(); stepWeight(party.weights, role, +b.dataset.d); ROLES.forEach(r => { $('#o-' + r).value = party.weights[r] + '%'; }); renderSum(); }));
     renderSkillList(card.querySelector('#sk-' + role), role, lvl);
   });
-  renderSum();
+  renderSum(); renderPartyMeta();
 }
 function renderSkillList(box, role, lvl) {
   box.innerHTML = '';
@@ -134,73 +297,115 @@ function renderSkillList(box, role, lvl) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; if (s.lesson) b.title = s.lesson;
     b.setAttribute('aria-pressed', String(party.skills[role] === s.id));
     const ins = currentTape.instruments[s.instrument];
-    b.innerHTML = `<span><span class="n">${s.name}</span><span class="i">${ins.name}${s.blend ? ' 25% + 현금 75%' : ''}</span></span>${locked ? `<span class="lock">Lv.${s.unlockLevel} 해금</span>` : ''}`;
+    const st = skillStats(s), blendNote = s.blend ? ' ' + Object.entries(s.blend).map(([id, w]) => `${id} ${Math.round(w * 100)}%`).join(' + ') : '';
+    const bars = ['atk', 'def', 'ins'].map(k => `<i title="${STAT_LABEL[k]} ${st[k].toFixed(1)}"><b style="width:${20 * st[k]}%"></b></i>`).join('');
+    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${ins.name}${blendNote}</span><span class="stat-mini">${bars}</span></span>${locked ? `<span class="lock">Lv.${s.unlockLevel} 해금</span>` : ''}`;
     b.addEventListener('click', () => {
-      if (locked) { sfx.back(); toast(`Lv.${s.unlockLevel}에 해금돼요. 상단 '전 기술 해금'으로 미리 써볼 수 있어요.`, 2600); return; }
+      if (locked) { sfx.back(); toast(`Lv.${s.unlockLevel}에 열려요. 상단 '체험 모드'로 미리 써볼 수 있어요.`, 2600); return; }
       sfx.select(); party.skills[role] = s.id;
       box.querySelectorAll('.skill').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true');
+      renderPartyMeta();
     });
     box.appendChild(b);
   });
 }
+/** ＋ takes 5 from whoever holds the most (so the total never exceeds 100); − frees 5 into a visible pool. */
+function stepWeight(w, role, d) {
+  if (d > 0) {
+    const pool = 100 - ROLES.reduce((a, r) => a + w[r], 0);
+    if (w[role] >= 100) return;
+    if (pool >= 5) { w[role] += 5; return; }
+    const donor = ROLES.filter(r => r !== role && w[r] >= 5).sort((a, b) => w[b] - w[a])[0];
+    if (!donor) return; w[donor] -= 5; w[role] += 5;
+  } else if (w[role] >= 5) w[role] -= 5;
+}
+function allocHTML(w) {
+  const pool = 100 - ROLES.reduce((a, r) => a + w[r], 0);
+  return ROLES.map(r => `<i style="width:${w[r]}%;background:${ROLE_COLOR[r]}" title="${charOf(r).name} ${w[r]}%"></i>`).join('') + (pool > 0 ? `<i class="pool-seg" style="width:${pool}%" title="미배정 ${pool}%"></i>` : '');
+}
 function renderSum() {
-  const sum = ROLES.reduce((a, r) => a + party.weights[r], 0);
-  const el = $('#sumTxt'); el.textContent = `${sum} / 100`; el.classList.toggle('bad', sum !== 100);
-  $('#alloc').innerHTML = ROLES.map(r => `<i style="width:${party.weights[r]}%;background:${ROLE_COLOR[r]}" title="${charOf(r).name} ${party.weights[r]}%"></i>`).join('');
+  const sum = ROLES.reduce((a, r) => a + party.weights[r], 0), pool = 100 - sum;
+  const el = $('#sumTxt'); el.innerHTML = pool > 0 ? `<span class="pool">남은 비중 ${pool}%</span>` : '비중 100%'; el.classList.toggle('bad', sum !== 100);
+  $('#alloc').innerHTML = allocHTML(party.weights);
   $('#startBattle').disabled = sum !== 100;
+  $$('.wbtn[data-d="-5"]').forEach(b => { b.disabled = party.weights[b.dataset.w] <= 0; });
+  if (sum === 100 && $('#partyRadar')) renderPartyMeta();
 }
 
 /* ------------------------------------------------------------------ */
-/* Phaser battle scene (Flare art: pre-rendered atlases, see assets/flare/CREDITS.txt) */
+/* Phaser battle scene — cute anime pose sprites (assets/anime, see CREDITS.txt)          */
+/* Each unit has 3 still poses (idle / attack / hurt) on a shared baseline; motion comes    */
+/* from tweens (bob, dash, knock-back, squash) + VFX sprites, creature-collector style.     */
 /* ------------------------------------------------------------------ */
 const W = 1280, H = 720;
-const ASSET = 'assets/flare/';
+const ASSET = 'assets/anime/';
 const UNIT_OF_ROLE = { tank: 'hero_tank', dealer: 'hero_dealer', healer: 'hero_healer', support: 'hero_support' };
-const UNIT_OF_BOSS = { minotaur: 'boss_minotaur', wyvern: 'boss_wyvern', fireant: 'boss_fireant', skeleton: 'boss_skeleton' };
-const ATTACK_ANIM = { tank: 'swing', dealer: 'swing', healer: 'cast', support: 'shoot' };
-const FORMATION = { tank: { x: 560, y: 590, s: 1.6 }, dealer: { x: 380, y: 495, s: 1.5 }, support: { x: 215, y: 600, s: 1.5 }, healer: { x: 390, y: 690, s: 1.6 } };
-const BOSS_POS = { x: 930, y: 640, s: 1.45 };
-const BOSS_SCALE = { minotaur: 1.45, wyvern: 1.5, fireant: 1.7, skeleton: 1.7 };
+const UNIT_OF_BOSS = { minotaur: 'boss_minotaur', wyvern: 'boss_wyvern', fireant: 'boss_fireant', skeleton: 'boss_skeleton', lich: 'boss_lich' };
+const POSES = ['idle', 'attack', 'hurt'];
+const FX = ['slash', 'burst', 'heal', 'shield', 'star', 'bolt'];
+const ATTACK_KIND = { tank: 'melee', dealer: 'melee', healer: 'cast', support: 'shoot' };
+// feet position + target height on the 1280x720 stage
+const FORMATION = { tank: { x: 575, y: 600, h: 300 }, dealer: { x: 395, y: 515, h: 285 }, support: { x: 225, y: 615, h: 285 }, healer: { x: 400, y: 705, h: 300 } };
+const BOSS_POS = { x: 950, y: 650, h: 400 };
+const BOSS_STYLE = { minotaur: { h: 420, float: 0, fx: 'slash', tint: 0x9fd8ff }, wyvern: { h: 400, float: 24, fx: 'burst', tint: 0xffa040 }, fireant: { h: 380, float: 0, fx: 'burst', tint: 0xff6a3a }, skeleton: { h: 360, float: 0, fx: 'slash', tint: 0xc9b9ff }, lich: { h: 400, float: 30, fx: 'bolt', tint: 0xffe066 } };
 
 class BattleScene extends Phaser.Scene {
   constructor() { super('battle'); this.sprites = {}; }
   preload() {
-    this.load.image('bg', ASSET + 'bg_dungeon.jpg');
+    const bar = $('#arenaLoadingBar'), txt = $('#arenaLoadingTxt');
+    this.load.on('progress', v => { if (bar) bar.style.width = Math.round(v * 100) + '%'; });
+    this.load.on('fileprogress', f => { if (txt) txt.textContent = `전장 불러오는 중… ${f.key}`; });
+    this.load.on('loaderror', f => { console.error('asset failed', f.key, f.src); if (txt) txt.textContent = `에셋을 불러오지 못했습니다: ${f.key}`; this.loadFailed = true; });
+    this.load.image('bg', ASSET + 'bg_meadow.jpg');
     this.load.json('manifest', ASSET + 'manifest.json');
-    [...Object.values(UNIT_OF_ROLE), ...Object.values(UNIT_OF_BOSS)].forEach(k => this.load.atlas(k, ASSET + k + '.png', ASSET + k + '.json'));
+    for (const u of [...Object.values(UNIT_OF_ROLE), ...Object.values(UNIT_OF_BOSS)]) for (const p of POSES) this.load.image(`${u}_${p}`, `${ASSET}${u}_${p}.png`);
+    for (const f of FX) this.load.image('fx_' + f, `${ASSET}fx_${f}.png`);
   }
   create() {
+    if (this.loadFailed || !this.cache.json.get('manifest')) { this.ready = 'failed'; return; }
     this.add.image(W / 2, H / 2, 'bg').setDisplaySize(W, H).setDepth(0);
-    const vignette = this.add.graphics().setDepth(1); vignette.fillStyle(0x000000, .35); vignette.fillRect(0, 0, W, 90); vignette.fillRect(0, H - 40, W, 40);
-    const m = this.cache.json.get('manifest'); this.manifest = m;
-    for (const [unit, u] of Object.entries(m.units)) for (const [an, a] of Object.entries(u.anims)) {
-      this.anims.create({ key: `${unit}/${an}`, frames: this.anims.generateFrameNames(unit, { prefix: an + '/', start: 0, end: a.frames - 1 }),
-        frameRate: Math.max(4, a.frames / Math.max(.2, a.duration / 1000)), repeat: an === 'stance' ? -1 : 0, yoyo: a.type === 'back_forth' && an === 'stance' });
-    }
+    const top = this.add.graphics().setDepth(1); top.fillGradientStyle(0x1E3A5F, 0x1E3A5F, 0x1E3A5F, 0x1E3A5F, .3, .3, 0, 0); top.fillRect(0, 0, W, 100);
+    $('#arenaLoading')?.remove();
+    this.manifest = this.cache.json.get('manifest');
     const g = this.make.graphics({ x: 0, y: 0, add: false });
     g.fillStyle(0xffffff, 1); g.fillCircle(8, 8, 8); g.generateTexture('spark', 16, 16); g.destroy();
     this.flashRect = this.add.rectangle(W / 2, H / 2, W, H, 0xffffff, 0).setDepth(50);
     this.ready = true;
   }
-  unit(key, x, y, s, flip = false) {
-    const u = this.manifest.units[key];
-    const sp = this.add.sprite(x, y, key, 'stance/0').setOrigin(u.origin[0], u.origin[1]).setScale(s).setDepth(10 + y / 100);
-    sp.setFlipX(flip); sp.unitKey = key; sp.home = { x, y, s }; sp.dead = false;
-    sp.play(`${key}/stance`);
-    sp.anims.setProgress(Math.random());
+  /** a pose-swapping unit anchored at the feet */
+  unit(key, x, y, targetH, float = 0) {
+    const m = this.manifest[key];
+    const s = targetH / m.h;
+    const sp = this.add.image(x, y - float, `${key}_idle`).setOrigin(.5, 1).setScale(s).setDepth(10 + y / 100);
+    sp.unitKey = key; sp.home = { x, y: y - float, s, float }; sp.dead = false; sp.pose = 'idle';
+    this.idle(sp);
     return sp;
   }
-  /** play a one-shot animation and return to stance (unless dead); resolves when done */
-  act(sp, an, speed = 1) {
-    return new Promise(res => {
-      const key = `${sp.unitKey}/${an}`;
-      if (!this.anims.exists(key)) { res(); return; }
-      sp.anims.timeScale = speed;
-      sp.play(key);
-      sp.once('animationcomplete', () => { sp.anims.timeScale = 1; if (!sp.dead) sp.play(`${sp.unitKey}/stance`); res(); });
-    });
+  /** idle loop: gentle bob (floaters hover higher and slower) */
+  idle(sp) {
+    sp.idleTw?.forEach(t => t.remove()); sp.idleTw = [];
+    if (reduceMotion || sp.dead) return;
+    const fl = sp.home.float > 0;
+    sp.idleTw.push(this.tweens.add({ targets: sp, y: sp.home.y - (fl ? 14 : 5), duration: fl ? 1400 : 700 + Math.random() * 200, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: Math.random() * 400 }));
+    if (!fl) sp.idleTw.push(this.tweens.add({ targets: sp, scaleY: sp.home.s * .975, scaleX: sp.home.s * 1.02, duration: 700, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: Math.random() * 400 }));
   }
-  shadow(x, y, w) { return this.add.ellipse(x, y + 4, w, w * .32, 0x000000, .35).setDepth(5); }
+  pose(sp, name) { sp.pose = name; sp.setTexture(`${sp.unitKey}_${name}`); }
+  /** show a pose for `ms`, then back to idle (unless dead) */
+  act(sp, name, ms) {
+    sp.idleTw?.forEach(t => t.remove()); sp.idleTw = [];
+    sp.setScale(sp.home.s); sp.y = sp.home.y;
+    this.pose(sp, name);
+    return new Promise(res => this.time.delayedCall(ms, () => { if (!sp.dead) { this.pose(sp, 'idle'); this.idle(sp); } res(); }));
+  }
+  /** VFX sprite: pops in with a bounce and fades */
+  fx(name, x, y, size = 160, opts = {}) {
+    const sp = this.add.image(x, y, 'fx_' + name).setDepth(opts.depth ?? 45).setAlpha(0);
+    const s = size / Math.max(sp.width, sp.height); sp.setScale(s * .4); if (opts.flipX) sp.setFlipX(true); if (opts.angle) sp.setAngle(opts.angle); if (opts.tint) sp.setTint(opts.tint);
+    this.tweens.add({ targets: sp, alpha: 1, scale: s, duration: opts.inMs ?? 120, ease: 'back.out(2.5)' });
+    this.tweens.add({ targets: sp, alpha: 0, scale: s * (opts.grow ?? 1.25), angle: (opts.angle ?? 0) + (opts.spin ?? 0), duration: opts.outMs ?? 260, delay: (opts.inMs ?? 120) + (opts.hold ?? 120), onComplete: () => sp.destroy() });
+    return sp;
+  }
+  shadow(x, y, w) { return this.add.ellipse(x, y + 4, w, w * .3, 0x1E3A2A, .22).setDepth(5); }
   async setup(tape) {
     this.tweens.killAll();
     Object.values(this.sprites).forEach(s => s.destroy()); this.sprites = {};
@@ -208,39 +413,82 @@ class BattleScene extends Phaser.Scene {
     this.emitter?.destroy(); this.emitter = null;
     ROLES.forEach(role => {
       const f = FORMATION[role];
-      this.shadows.push(this.shadow(f.x, f.y, 110));
-      this.sprites[role] = this.unit(UNIT_OF_ROLE[role], f.x, f.y, f.s);
+      this.shadows.push(this.shadow(f.x, f.y, f.h * .42));
+      this.sprites[role] = this.unit(UNIT_OF_ROLE[role], f.x, f.y, f.h);
     });
-    const bk = UNIT_OF_BOSS[tape.bossSpecies] || 'boss_minotaur', bs = BOSS_SCALE[tape.bossSpecies] || BOSS_POS.s;
-    this.shadows.push(this.shadow(BOSS_POS.x, BOSS_POS.y, 260));
-    const b = this.unit(bk, BOSS_POS.x, BOSS_POS.y, bs); b.setDepth(9); this.sprites.boss = b;
+    const bk = UNIT_OF_BOSS[tape.bossSpecies] || 'boss_minotaur', st = BOSS_STYLE[tape.bossSpecies] || BOSS_STYLE.minotaur;
+    this.shadows.push(this.shadow(BOSS_POS.x, BOSS_POS.y, st.h * .55));
+    const b = this.unit(bk, BOSS_POS.x, BOSS_POS.y, st.h, st.float); b.setDepth(9); b.style = st; this.sprites.boss = b;
     this.emitter = this.add.particles(0, 0, 'spark', { speed: { min: 90, max: 320 }, angle: { min: 0, max: 360 }, scale: { start: .8, end: 0 }, lifespan: { min: 300, max: 650 }, gravityY: 300, emitting: false }).setDepth(40);
-    b.alpha = 0; b.y = BOSS_POS.y - 40; this.tweens.add({ targets: b, alpha: 1, y: BOSS_POS.y, duration: 500, ease: 'back.out(1.4)' });
+    // entrance: drop in with a squash, sparkle ring
+    b.idleTw?.forEach(t => t.remove()); b.idleTw = [];
+    b.alpha = 0; b.y = b.home.y - 160; b.setScale(b.home.s * .6);
+    await this.tw({ targets: b, alpha: 1, y: b.home.y, scale: b.home.s, duration: 420, ease: 'bounce.out' });
+    this.fx('star', b.x - 110, this.top(b) + 40, 90, { spin: 40 }); this.fx('star', b.x + 120, this.top(b) + 120, 70, { spin: -40 });
+    this.idle(b);
   }
   tw(cfg) { return new Promise(res => this.tweens.add({ ...cfg, onComplete: () => { cfg.onComplete?.(); res(); } })); }
-  /** Top banner inside the arena: "05:00 매파 발언 · 긴축의 미노타우로스의 긴축 압박!" */
+  /** Top banner inside the arena: "05:00 매파 발언 · 동결이의 매파 발언!" */
   banner(main, sub, color, speed = 1) {
     this.bannerObjs?.forEach(o => o.destroy());
-    const bg = this.add.rectangle(W / 2, 54, W, 80, 0x08070A, .72).setDepth(70);
-    const t1 = this.add.text(W / 2, 40, main, { fontFamily: 'Song Myung, serif', fontSize: '32px', color }).setOrigin(.5).setDepth(71);
-    const t2 = this.add.text(W / 2, 74, sub, { fontFamily: 'Gowun Dodum, sans-serif', fontSize: '18px', color: '#E8E2D6' }).setOrigin(.5).setDepth(71);
+    const bg = this.add.rectangle(W / 2, 54, W, 80, 0x1E3A5F, .78).setDepth(70);
+    const t1 = this.add.text(W / 2, 40, main, { fontFamily: '"Jua", "Do Hyeon", sans-serif', fontSize: '32px', color, stroke: '#0E1C2E', strokeThickness: 3 }).setOrigin(.5).setDepth(71);
+    const t2 = this.add.text(W / 2, 74, sub, { fontFamily: '"Noto Sans KR", sans-serif', fontSize: '18px', color: '#F4F7FB' }).setOrigin(.5).setDepth(71);
     this.bannerObjs = [bg, t1, t2];
     this.bannerObjs.forEach(o => { o.alpha = 0; o.y -= 20; });
     this.tweens.add({ targets: this.bannerObjs, alpha: 1, y: '+=20', duration: 180 / speed, ease: 'power2.out' });
     this.time.delayedCall(1400 / speed, () => this.tweens.add({ targets: this.bannerObjs, alpha: 0, duration: 250 / speed }));
   }
   number(x, y, text, color, size = 34) {
-    const t = this.add.text(x, y, text, { fontFamily: 'Song Myung, serif', fontSize: size + 'px', color, stroke: '#0b0a0d', strokeThickness: 7 }).setOrigin(.5).setDepth(60);
+    const t = this.add.text(x, y, text, { fontFamily: '"Black Han Sans", "Do Hyeon", sans-serif', fontSize: size + 'px', color, stroke: '#17253A', strokeThickness: 7 }).setOrigin(.5).setDepth(60);
     this.tweens.add({ targets: t, y: y - 70, alpha: { from: 1, to: 0 }, scale: { from: .6, to: 1.15 }, duration: 950, ease: 'cubic.out', onComplete: () => t.destroy() });
   }
   flash(color, alpha, dur) { this.flashRect.setFillStyle(color, alpha); this.tweens.add({ targets: this.flashRect, fillAlpha: 0, duration: dur }); }
   shake(dur, intensity) { if (!reduceMotion) this.cameras.main.shake(dur, intensity); }
-  slash(x, y, color) {
-    const g = this.add.graphics().setDepth(45); g.lineStyle(7, color, 1);
-    for (let i = 0; i < 3; i++) g.lineBetween(x - 70 + i * 16, y - 60 + i * 12, x + 50 + i * 16, y + 50 + i * 12);
-    this.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
+  top(sp) { return sp.y - sp.displayHeight; }
+  mid(sp) { return sp.y - sp.displayHeight * .5; }
+  /** speech bubble above a unit (anime-style, 1 line) */
+  say(sp, text, ms = 1100, color = '#24405F') {
+    const x = sp.x, y = this.top(sp) - 26;
+    const t = this.add.text(0, 0, text, { fontFamily: '"Jua", sans-serif', fontSize: '22px', color }).setOrigin(.5).setDepth(66);
+    const w = t.width + 26, h = t.height + 14;
+    const g = this.add.graphics().setDepth(65);
+    g.fillStyle(0xffffff, .96); g.lineStyle(3, 0x24405F, 1);
+    g.fillRoundedRect(x - w / 2, y - h, w, h, 12); g.strokeRoundedRect(x - w / 2, y - h, w, h, 12);
+    g.fillTriangle(x - 8, y - 1, x + 8, y - 1, x, y + 10); g.lineStyle(3, 0x24405F, 1); g.lineBetween(x - 8, y - 1, x, y + 10); g.lineBetween(x + 8, y - 1, x, y + 10);
+    g.fillStyle(0xffffff, 1); g.fillRect(x - 7, y - 4, 14, 4);
+    t.setPosition(x, y - h / 2);
+    const objs = [g, t]; objs.forEach(o => { o.alpha = 0; o.scale = .6; });
+    this.tweens.add({ targets: objs, alpha: 1, scale: 1, duration: 160, ease: 'back.out(2)' });
+    this.time.delayedCall(ms, () => this.tweens.add({ targets: objs, alpha: 0, y: '-=12', duration: 200, onComplete: () => objs.forEach(o => o.destroy()) }));
   }
-  top(sp) { return sp.y - sp.displayHeight * sp.originY; }
+  /** big centre-stage callout: 콤보, 격노, 가드 */
+  callout(text, color = '#FFD54A', sub = '') {
+    const t = this.add.text(W / 2, H * .36, text, { fontFamily: '"Black Han Sans", "Jua", sans-serif', fontSize: '72px', color, stroke: '#24405F', strokeThickness: 10 }).setOrigin(.5).setDepth(80).setAngle(-5);
+    const s2 = sub ? this.add.text(W / 2, H * .36 + 54, sub, { fontFamily: '"Jua", sans-serif', fontSize: '26px', color: '#fff', stroke: '#24405F', strokeThickness: 6 }).setOrigin(.5).setDepth(80) : null;
+    const objs = s2 ? [t, s2] : [t];
+    objs.forEach(o => { o.alpha = 0; o.scale = 2.2; });
+    this.tweens.add({ targets: objs, alpha: 1, scale: 1, duration: 220, ease: 'back.out(2.5)' });
+    this.tweens.add({ targets: objs, alpha: 0, y: '-=40', duration: 300, delay: 900, onComplete: () => objs.forEach(o => o.destroy()) });
+  }
+  /** guard window: a big button over the arena; resolves true if tapped in time */
+  guardWindow(ms) {
+    return new Promise(res => {
+      const btn = $('#guardBtn'); if (!btn || reduceMotion) { res(false); return; }
+      let done = false; btn.hidden = false; btn.classList.remove('hit'); btn.style.setProperty('--ms', ms + 'ms'); void btn.offsetWidth; btn.classList.add('arm');
+      const finish = ok => { if (done) return; done = true; btn.hidden = true; btn.classList.remove('arm'); btn.onclick = null; res(ok); };
+      btn.onclick = () => { btn.classList.add('hit'); finish(true); };
+      setTimeout(() => finish(false), ms);
+    });
+  }
+  /** hero takes a hit: hurt pose, red flash, knock-back, small burst */
+  hurt(s, d, loss, mag) {
+    s.setTint(0xff8a8a); this.act(s, 'hurt', d(520)).then(() => s.clearTint());
+    this.tweens.add({ targets: s, x: s.home.x - 26, duration: d(80), yoyo: true, repeat: 1, ease: 'power1.out', onComplete: () => { s.x = s.home.x; } });
+    this.fx('burst', s.x + 30, this.mid(s), 110 + 80 * mag, { spin: 20 });
+    this.number(s.x, this.top(s) - 10, '-' + Math.max(1, loss), '#FF6B6B', 28 + 24 * Math.min(1, loss / 40));
+    this.emitter.explode(6 + Math.round(10 * mag), s.x, this.mid(s));
+  }
   /** Plays one engine turn. speed >= 1 shortens every duration. */
   async playTurn(turn, speed = 1, hooks = {}) {
     const d = ms => Math.max(30, ms / speed);
@@ -248,82 +496,102 @@ class BattleScene extends Phaser.Scene {
     const mag = Math.min(1, Math.abs(ret) / 1.5);
     const moves = BOSS_MOVES[currentTape.bossSpecies] || BOSS_MOVES.minotaur;
     const bossMove = moves[turn.bar % moves.length];
-    this.banner(`${fmtTime(turn.t)} ${turn.label}`, ret < 0 ? `${currentTape.boss}의 ${bossMove}! 파티 ${fmtPct(ret)}` : `모험단의 반격! 파티 ${fmtPct(ret)}`, ret < 0 ? '#FF8A8A' : '#F4C542', speed);
-    await sleep(d(380));
+    this.banner(turn.label, ret < 0 ? `${currentTape.boss}의 ${bossMove} · 파티 ${fmtPct(ret)}` : `모험단의 반격 · 파티 ${fmtPct(ret)}`, ret < 0 ? '#FF9A94' : '#FFD54A', speed);
+    await sleep(d(200));
+    await hooks.onMarket?.();   // the chart moves first; the characters answer the market
+    await sleep(d(120));
     if (ret < 0) {
-      // boss attack: charge in, swing, impact on party
+      // boss attack: wind-up squash, lunge toward the party, attack pose + species VFX, impact on party
       sfx.roar();
-      const lunge = this.tw({ targets: boss, x: boss.home.x - 120 - 80 * mag, duration: d(220), ease: 'power2.in' });
-      await lunge;
-      const swing = this.act(boss, 'swing', speed * 1.6);
-      await sleep(d(260));
-      this.shake(d(300), .005 + .02 * mag); this.flash(0xff4d4d, .18 + .25 * mag, d(300)); (mag > .5 ? sfx.bigHit : sfx.hit)();
+      if (mag > .5) this.say(boss, bossMove + '!', 900, '#B9343C');
+      boss.idleTw?.forEach(t => t.remove()); boss.idleTw = [];
+      // guard window opens with the wind-up; a tap in time = 가드 (경험치 보너스, 수익률은 그대로)
+      const guardP = (speed < 4 && hooks.onGuard) ? this.guardWindow(Math.round(d(900))) : Promise.resolve(false);
+      await this.tw({ targets: boss, scaleX: boss.home.s * 1.08, scaleY: boss.home.s * .9, duration: d(240), ease: 'sine.out' });
+      await this.tw({ targets: boss, x: boss.home.x - 150 - 90 * mag, scaleX: boss.home.s, scaleY: boss.home.s, duration: d(260), ease: 'power2.in' });
+      const swing = this.act(boss, 'attack', d(620));
+      await sleep(d(160));
+      const guarded = await guardP;
+      if (guarded) { const tk = this.sprites.tank.dead ? this.sprites.dealer : this.sprites.tank; this.fx('shield', 470, 520, 360, { inMs: 80, hold: 420, outMs: 240, depth: 46 }); this.callout('가드!', '#9FE8FF', '타이밍 성공 · 경험치 보너스'); this.say(tk, '막았다!', 900); sfx.shield(); hooks.onGuard?.(); }
+      const st = boss.style, hitX = 470, hitY = 520;
+      if (st.fx === 'slash') this.fx('slash', hitX + 40, hitY - 40, 300 + 120 * mag, { flipX: true, angle: -20, spin: -15, tint: st.tint });
+      else if (st.fx === 'bolt') { this.fx('bolt', hitX + 20, hitY - 140, 320, { angle: 25, spin: 0, inMs: 60, hold: 200 }); this.fx('bolt', hitX - 120, hitY - 60, 220, { angle: -15, inMs: 90, hold: 180 }); }
+      else { const ball = this.add.image(boss.x - 140, this.mid(boss), 'fx_burst').setDepth(44).setScale(.25).setTint(st.tint); await this.tw({ targets: ball, x: hitX + 40, y: hitY - 40, scale: .55, duration: d(170), ease: 'power1.in', onComplete: () => ball.destroy() }); this.fx('burst', hitX + 40, hitY - 40, 300 + 140 * mag, { spin: 30, grow: 1.5 }); }
+      this.shake(d(300), .004 + .016 * mag); if (mag > .4) this.flash(0xff4d4d, .12 + .2 * mag, d(300)); (mag > .5 ? sfx.bigHit : sfx.hit)();
       ROLES.forEach((role, i) => {
         const r = turn.roles[role], s = this.sprites[role];
         if (s.dead) return;
-        if (r.ret < 0) {
-          const loss = Math.round(r.hpBefore - r.hpAfter);
-          this.time.delayedCall(d(50 * i), () => {
-            s.setTint(0xff7070); this.act(s, 'hit', speed).then(() => s.clearTint());
-            this.tweens.add({ targets: s, x: s.home.x - 22, duration: d(70), yoyo: true, repeat: 1, onComplete: () => { s.x = s.home.x; } });
-            this.number(s.x, this.top(s) - 10, '-' + Math.max(1, loss), '#ff6b6b', 28 + 24 * Math.min(1, loss / 40));
-            this.emitter.explode(6 + Math.round(10 * mag), s.x, s.y - 80);
-          });
-        } else if (r.ret > 0) this.time.delayedCall(d(140), () => this.number(s.x, this.top(s) - 10, '+' + Math.max(1, Math.round(r.hpAfter - r.hpBefore)), '#4fd18b', 24));
+        if (r.ret < 0) this.time.delayedCall(d(50 * i), () => this.hurt(s, d, Math.round(r.hpBefore - r.hpAfter), mag));
+        else if (r.ret > 0) this.time.delayedCall(d(140), () => { this.fx('heal', s.x, this.mid(s), 120, { hold: 200, grow: 1.1 }); this.number(s.x, this.top(s) - 10, '+' + Math.max(1, Math.round(r.hpAfter - r.hpBefore)), '#5FE39A', 24); });
       });
       hooks.onImpact?.();
       await swing;
       await this.tw({ targets: boss, x: boss.home.x, duration: d(360), ease: 'power2.out' });
+      this.idle(boss);
     } else {
-      // party attack: each gaining role steps in and strikes; boss takes the portfolio gain
+      // party attack: each gaining role strikes in turn; boss takes the portfolio gain
       const attackers = ROLES.filter(r => turn.roles[r].ret > 0 && !this.sprites[r].dead);
+      const target = { x: boss.home.x - 40, y: this.mid(boss) };
+      const LINES = { tank: ['방패 돌격!', '내 차례!'], dealer: ['간다!', '한 방 더!', '베어버린다!'], healer: ['빛이여!', '모두 힘내!'], support: ['조준… 발사!', '맞아라!'] };
+      if (attackers.length) { const lead = attackers[0]; this.say(this.sprites[lead], LINES[lead][turn.bar % LINES[lead].length], 900); }
+      if (hooks.combo >= 3) this.time.delayedCall(d(300), () => this.callout(`${hooks.combo}연속!`, '#FFD54A', ''));
       for (let i = 0; i < attackers.length; i++) {
         const role = attackers[i], s = this.sprites[role], r = turn.roles[role];
-        const str = Math.min(1, r.ret / 1.2);
-        const an = ATTACK_ANIM[role];
-        const melee = an === 'swing';
-        if (melee) await this.tw({ targets: s, x: boss.home.x - 190, y: boss.home.y - 20, duration: d(170), ease: 'power2.in' });
-        const anim = this.act(s, an, speed * 1.4);
-        await sleep(d(melee ? 180 : 260));
-        sfx.slash(); this.slash(boss.home.x - 40, this.top(boss) + boss.displayHeight * .45, ROLE_HEX[role]);
-        if (!melee) { const p = this.add.circle(s.x + 40, this.top(s) + 60, 10, ROLE_HEX[role]).setDepth(44); this.tweens.add({ targets: p, x: boss.home.x - 30, y: this.top(boss) + boss.displayHeight * .45, duration: d(160), onComplete: () => p.destroy() }); await sleep(d(160)); }
-        this.emitter.explode(8 + Math.round(14 * str), boss.home.x - 30, this.top(boss) + boss.displayHeight * .45);
-        boss.setTint(0xffffff); this.act(boss, 'hit', speed * 1.5).then(() => boss.clearTint());
-        this.number(boss.home.x, this.top(boss) - 20, '+' + fmtPct(r.ret * r.weight / 100).replace('+', '').replace('%', ''), '#F4C542', 26 + 26 * str);
+        const str = Math.min(1, r.ret / 1.2), kind = ATTACK_KIND[role];
+        s.idleTw?.forEach(t => t.remove()); s.idleTw = [];
+        if (kind === 'melee') {
+          await this.tw({ targets: s, scaleY: s.home.s * .9, scaleX: s.home.s * 1.06, duration: d(90) });
+          await this.tw({ targets: s, x: boss.home.x - 230, y: boss.home.y - 10, scaleX: s.home.s, scaleY: s.home.s, duration: d(170), ease: 'power2.in' });
+        }
+        const anim = this.act(s, 'attack', d(kind === 'melee' ? 420 : 520));
+        await sleep(d(kind === 'melee' ? 120 : 220));
+        if (kind === 'melee') { sfx.slash(); this.fx('slash', target.x, target.y, 260 + 120 * str, { angle: 10, spin: 25, tint: ROLE_HEX[role] }); }
+        else if (kind === 'shoot') { sfx.slash(); const arrow = this.add.rectangle(s.x + 60, this.mid(s) - 10, 70, 6, 0xF2C14E).setDepth(44).setAngle(-8); await this.tw({ targets: arrow, x: target.x, y: target.y, duration: d(150), ease: 'power1.in', onComplete: () => arrow.destroy() }); this.fx('star', target.x, target.y, 150 + 80 * str, { spin: 90 }); }
+        else { sfx.crit(); this.fx('heal', s.x, this.mid(s) - 20, 170, { hold: 260, grow: 1.15 }); const orb = this.add.circle(s.x + 50, this.mid(s) - 40, 14, 0x7FE3D1).setDepth(44); await this.tw({ targets: orb, x: target.x, y: target.y, duration: d(200), ease: 'sine.in', onComplete: () => orb.destroy() }); this.fx('bolt', target.x, target.y - 40, 200 + 100 * str, { angle: 15, tint: 0x9FE8FF }); }
+        this.emitter.explode(8 + Math.round(14 * str), target.x, target.y);
+        boss.setTint(0xffffff); this.act(boss, 'hurt', d(380)).then(() => boss.clearTint());
+        this.tweens.add({ targets: boss, x: boss.home.x + 18, duration: d(70), yoyo: true, repeat: 1, onComplete: () => { boss.x = boss.home.x; } });
+        this.number(boss.home.x, this.top(boss) - 20, '+' + fmtPct(r.ret * r.weight / 100).replace('+', '').replace('%', ''), '#FFD54A', 26 + 26 * str);
         if (i === 0) hooks.onImpact?.();
         await anim;
-        if (melee) this.tw({ targets: s, x: s.home.x, y: s.home.y, duration: d(220), ease: 'power2.out' });
+        if (kind === 'melee') this.tw({ targets: s, x: s.home.x, y: s.home.y, duration: d(220), ease: 'power2.out' }).then(() => this.idle(s));
         await sleep(d(80));
       }
-      ROLES.filter(r => turn.roles[r].ret < 0 && !this.sprites[r].dead).forEach(role => { const s = this.sprites[role]; s.setTint(0xffa0a0); this.time.delayedCall(d(220), () => s.clearTint()); this.number(s.x, this.top(s) - 10, '-' + Math.max(1, Math.round(turn.roles[role].hpBefore - turn.roles[role].hpAfter)), '#ff9b9b', 22); });
+      ROLES.filter(r => turn.roles[r].ret < 0 && !this.sprites[r].dead).forEach(role => { const s = this.sprites[role]; s.setTint(0xffb0b0); this.time.delayedCall(d(220), () => s.clearTint()); this.number(s.x, this.top(s) - 10, '-' + Math.max(1, Math.round(turn.roles[role].hpBefore - turn.roles[role].hpAfter)), '#ff9b9b', 22); });
       if (attackers.length === 0) hooks.onImpact?.();
-      if (ret >= 1) { this.shake(d(200), .006); this.flash(0xF4C542, .25, d(300)); sfx.crit(); }
+      if (ret >= 1) { this.shake(d(200), .005); sfx.crit(); for (let k = 0; k < 2; k++) this.fx('star', boss.home.x - 120 + k * 200, this.top(boss) + 60 + k * 120, 90, { spin: 60, hold: 200 + k * 80 }); }
       await sleep(d(260));
     }
+    // 격노: the boss crosses half HP for the first time — darker tint, red aura, one-time callout
+    if (hooks.rageNow) { sfx.roar(); this.shake(d(350), .012); this.flash(0xB9343C, .35, d(400)); boss.setTint(0xffb0a0); this.callout('격노!', '#FF8A80', `${currentTape.boss}의 HP가 절반 아래로`); this.say(boss, '아직이다!', 1200, '#B9343C'); await sleep(d(600)); boss.clearTint(); boss.rage = true; }
     // shields and faints
+    const shielded = ROLES.filter(role => { const r = turn.roles[role]; return r.shield > 0 && r.hpAfter >= 100 && r.ret > 0 && !this.sprites[role].dead; });
+    if (shielded.length) { const s0 = this.sprites[shielded[0]]; this.fx('shield', s0.x, this.mid(s0), s0.displayHeight * .9, { inMs: 160, hold: 320, outMs: 260, grow: 1.08, depth: 30 }); sfx.shield(); }
     ROLES.forEach(role => {
       const r = turn.roles[role], s = this.sprites[role];
-      if (r.shield > 0 && r.hpAfter >= 100 && r.ret > 0) { const ring = this.add.circle(s.x, s.y - 80, 70).setStrokeStyle(5, 0xF4C542, .9).setDepth(30); this.tweens.add({ targets: ring, scale: 1.6, alpha: 0, duration: d(500), onComplete: () => ring.destroy() }); sfx.shield(); }
-      if (r.fainted && !s.dead) { s.dead = true; sfx.faint(); s.anims.timeScale = speed; s.play(`${s.unitKey}/die`); s.once('animationcomplete', () => { s.anims.timeScale = 1; s.setAlpha(.7); }); }
+      if (r.fainted && !s.dead) { s.dead = true; sfx.faint(); s.idleTw?.forEach(t => t.remove()); this.pose(s, 'hurt'); s.setTint(0xaab0c0); this.tweens.add({ targets: s, angle: -80, x: s.home.x - 40, alpha: .75, duration: d(500), ease: 'bounce.out' }); }
     });
     await sleep(d(200));
   }
   async bossDefeated(speed = 1) {
     const b = this.sprites.boss; sfx.win(); this.shake(400 / speed, .01); this.flash(0xffffff, .8, 600 / speed);
-    b.dead = true; b.anims.timeScale = speed; b.play(`${b.unitKey}/die`);
-    for (let i = 0; i < 6; i++) { this.emitter.explode(24, b.home.x - 120 + Math.random() * 240, this.top(b) + Math.random() * b.displayHeight); await sleep(110 / speed); }
-    await this.tw({ targets: b, alpha: 0, duration: 900 / speed, delay: 500 / speed });
+    b.dead = true; b.idleTw?.forEach(t => t.remove()); this.pose(b, 'hurt');
+    this.tweens.add({ targets: b, angle: 12, duration: 90 / speed, yoyo: true, repeat: 5 });
+    for (let i = 0; i < 6; i++) { this.emitter.explode(24, b.home.x - 120 + Math.random() * 240, this.top(b) + Math.random() * b.displayHeight); this.fx('star', b.home.x - 160 + Math.random() * 320, this.top(b) + Math.random() * b.displayHeight, 80 + Math.random() * 80, { spin: 120, hold: 150 }); await sleep(110 / speed); }
+    // creature-collector style faint: drop down and fade out
+    await this.tw({ targets: b, y: b.home.y + 120, alpha: 0, scaleY: b.home.s * .7, duration: 800 / speed, delay: 300 / speed, ease: 'sine.in' });
   }
-  async partyWiped(speed = 1) { sfx.lose(); this.flash(0x000000, .7, 900 / speed); await sleep(900 / speed); }
+  async partyWiped(speed = 1) { sfx.lose(); this.flash(0x000000, .6, 900 / speed); await sleep(900 / speed); }
 }
 
 let game = null, scene = null;
 async function ensureGame() {
   if (game) return scene;
-  try { await Promise.all([document.fonts.load('20px "Song Myung"'), document.fonts.load('16px "Gowun Dodum"')]); } catch {}
-  game = new Phaser.Game({ type: Phaser.AUTO, parent: 'arena', width: W, height: H, backgroundColor: '#07060A', scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, scene: [BattleScene], render: { antialias: true, pixelArt: false } });
+  try { await Promise.all([document.fonts.load('20px "Do Hyeon"'), document.fonts.load('20px "Black Han Sans"'), document.fonts.load('16px "Noto Sans KR"')]); } catch {}
+  game = new Phaser.Game({ type: Phaser.AUTO, parent: 'arena', width: W, height: H, backgroundColor: '#BFE1F7', scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, scene: [BattleScene], render: { antialias: true, pixelArt: false } });
   scene = game.scene.getScene('battle');
   while (!scene?.ready) { await sleep(30); scene = game.scene.getScene('battle'); }
+  if (scene.ready === 'failed') throw new Error('전장 에셋(assets/anime)을 불러오지 못했습니다. 페이지를 새로고침하거나 네트워크를 확인해 주세요.');
   return scene;
 }
 
@@ -350,25 +618,25 @@ function cutIn({ text, sub, bg, artL, artR, hit }, speed = 1) {
 }
 function cutForTurn(turn) {
   const cut = turn.cut; if (!cut) return null;
-  const sub = `${fmtTime(turn.t)} ${turn.label} · 파티 ${fmtPct(turn.boss.portfolioRet)}`;
+  const sub = `${fmtBar(turn.t)} ${turn.label} · 파티 ${fmtPct(turn.boss.portfolioRet)}`;
   const bossArt = cutArt(bossUnit(currentTape.bossSpecies)), roleArt = cutArt(heroUnit(cut.role)), hurtArt = cutArt(heroUnit(cut.role), true);
-  if (cut.kind === 'critical_hit') return { text: cut.text, sub, bg: '#4A1522', artL: hurtArt, artR: bossArt, hit: true };
-  if (cut.kind === 'role_crushed') return { text: cut.text, sub, bg: '#3A1A2E', artL: hurtArt, artR: bossArt, hit: true };
-  if (cut.kind === 'critical_deal') return { text: cut.text, sub, bg: '#0F3A2E', artL: roleArt, artR: null };
-  return { text: cut.text, sub, bg: '#1F3A14', artL: roleArt, artR: null };
+  if (cut.kind === 'critical_hit') return { text: cut.text, sub, bg: '#B9343C', artL: hurtArt, artR: bossArt, hit: true };
+  if (cut.kind === 'role_crushed') return { text: cut.text, sub, bg: '#8E3A7C', artL: hurtArt, artR: bossArt, hit: true };
+  if (cut.kind === 'critical_deal') return { text: cut.text, sub, bg: '#1F9663', artL: roleArt, artR: null };
+  return { text: cut.text, sub, bg: '#4C9A2E', artL: roleArt, artR: null };
 }
 
 /* ------------------------------------------------------------------ */
 /* Battle flow                                                         */
 /* ------------------------------------------------------------------ */
-let battle = null, speed = 1, userPaused = false, aborted = false, chart = null, series = null, resumeWaiters = [];
+let battle = null, speed = 1, userPaused = false, aborted = false, resumeWaiters = [];
 const speedFactor = () => reduceMotion ? Math.max(4, speed) : speed;
 
 $$('.seg [data-speed]').forEach(b => b.addEventListener('click', () => { speed = +b.dataset.speed; $$('.seg [data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); sfx.select(); }));
 $('#pauseBtn').addEventListener('click', () => { userPaused = !userPaused; $('#pauseBtn').textContent = userPaused ? '계속' : '일시정지'; if (!userPaused) { resumeWaiters.splice(0).forEach(r => r()); } sfx.select(); });
 let abortArmed = 0;
 $('#abortBtn').addEventListener('click', () => {
-  if (Date.now() - abortArmed < 3000) { aborted = true; userPaused = false; resumeWaiters.splice(0).forEach(r => r()); $('#abortBtn').textContent = '레이드 포기'; stopBgm(); showScreen('select'); return; }
+  if (Date.now() - abortArmed < 3000) { aborted = true; userPaused = false; clearInterval(cpTimer); $('#cp').hidden = true; resumeWaiters.splice(0).forEach(r => r()); $('#abortBtn').textContent = '레이드 포기'; stopBgm(); showScreen('select'); return; }
   abortArmed = Date.now(); $('#abortBtn').textContent = '정말 포기? (한 번 더)'; setTimeout(() => { $('#abortBtn').textContent = '레이드 포기'; }, 3000);
 });
 const waitResume = () => userPaused ? new Promise(r => resumeWaiters.push(r)) : Promise.resolve();
@@ -383,71 +651,181 @@ function renderPartyHud(turn) {
       <div class="t"><b>${charOf(role).name}</b>${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</div>
       <div class="sk">${sk.name} · ${s.party.weights[role]}%</div>
       <div class="hp"><i class="${hpClass(hp)}" style="width:${hp}%"></i><em style="width:${Math.min(100, sh)}%"></em></div>
-      <div class="num"><span>HP <b class="tabular">${Math.round(hp)}</b>${sh > 0 ? ` <span style="color:var(--gold)">+${Math.round(sh)}</span>` : ''}</span><span class="tabular">${currentTape.instruments[sk.instrument].name}</span></div></div>`;
+      <div class="num"><span>HP <b class="tabular">${Math.round(hp)}</b>${sh > 0 ? ` <span style="color:var(--gold)">+${Math.round(sh)}</span>` : ''}</span><span class="tabular">${(() => { const q = quote(sk.instrument); return `${sk.instrument} ${fmtMoney(q.p, q.cur)}`; })()}</span></div>
+      <div class="num"><span class="muted">평가금</span><b class="tabular">${fmtKRW(roleValue(role))}</b></div></div>`;
   }).join('');
 }
 function renderBossHud() {
-  $('#hBossName').textContent = currentTape.boss;
+  $('#hBossName').textContent = (drama.rage && battle.bossHp > 0 ? '격노한 ' : '') + currentTape.boss; $('#hBossPf').src = portrait(bossUnit(currentTape.bossSpecies));
   $('#hBossHp').style.width = battle.bossHp + '%'; $('#hBossHpTxt').textContent = Math.round(battle.bossHp);
   const need = Math.max(0, battle.bossHp / battle.bossScale);
   $('#hBreak').textContent = battle.bossHp <= 0 ? '격파!' : `격파선까지 누적 +${need.toFixed(2)}%`;
 }
 function renderTurnLine(turn) {
-  if (!turn) { $('#hLabel').textContent = `${fmtTime(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '—'; $('#hRet').className = 'ret tabular'; $('#hCum').textContent = '0.00%'; $('#hCum').className = 'ret tabular'; return; }
-  $('#hLabel').textContent = turn.label; $('#hTime').textContent = fmtTime(turn.t) + ' KST';
+  const renderBalance = () => { const c = battle.equity - 100, v = totalValue(); $('#hBal').textContent = fmtKRW(v); $('#hBalD').textContent = `${fmtKRWd(v - SEED)} (${fmtPct(c)})`; $('#hBalD').className = 'ret tabular ' + (c >= 0 ? 'up' : 'down'); };
+  if (!turn) { $('#hLabel').textContent = `${fmtBar(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '—'; $('#hRet').className = 'ret tabular'; renderBalance(); renderTicker($('#ticker'), 0); return; }
+  $('#hLabel').textContent = turn.label; $('#hTime').textContent = `${fmtBar(turn.t)} ${unitNote()}`;
   const r = turn.boss.portfolioRet; $('#hRet').textContent = fmtPct(r); $('#hRet').className = 'ret tabular ' + (r >= 0 ? 'up' : 'down');
-  const c = battle.equity - 100; $('#hCum').textContent = fmtPct(c); $('#hCum').className = 'ret tabular ' + (c >= 0 ? 'up' : 'down');
+  renderBalance(); renderTicker($('#ticker'), turn.bar, true);
 }
 
-function makeChart(container, withBoss) {
-  const c = LightweightCharts.createChart(container, {
-    autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#A6AEBE', fontFamily: 'Gowun Dodum, sans-serif', fontSize: 11 },
-    grid: { vertLines: { color: '#232A38' }, horzLines: { color: '#232A38' } }, rightPriceScale: { borderColor: '#343D4F' }, leftPriceScale: { visible: withBoss, borderColor: '#343D4F' },
-    timeScale: { borderColor: '#343D4F', timeVisible: true, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true }, crosshair: { mode: 0 }, handleScroll: false, handleScale: false,
-  });
-  const pct = { type: 'custom', formatter: v => fmtPct(v), minMove: .01 };
-  const eq = c.addLineSeries({ color: '#F4C542', lineWidth: 3, priceScaleId: 'right', lastValueVisible: true, priceLineVisible: false, priceFormat: pct });
-  const bm = c.addLineSeries({ color: '#7C8597', lineWidth: 2, lineStyle: 2, priceScaleId: 'right', lastValueVisible: false, priceLineVisible: false, priceFormat: pct });
-  const bo = withBoss ? c.addAreaSeries({ priceScaleId: 'left', lineColor: '#FF6B6B', topColor: 'rgba(255,107,107,.22)', bottomColor: 'rgba(255,107,107,0)', lineWidth: 1, lastValueVisible: false, priceLineVisible: false,
-    priceFormat: { type: 'custom', formatter: v => 'HP ' + Math.round(v), minMove: 1 }, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }) }) : null;
-  if (bo) c.priceScale('left').applyOptions({ scaleMargins: { top: .05, bottom: 0 } });
-  c.priceScale('right').applyOptions({ scaleMargins: { top: .15, bottom: .15 } });
-  return { c, eq, bm, bo };
+/* ------------------------------------------------------------------ */
+/* Battle chart — the centre of every turn. One class, three views:                       */
+/*   price   : the raid's main instrument, real closes (what a brokerage user recognises)  */
+/*   compare : every instrument the party has equipped, % from raid start                 */
+/*   equity  : party % vs default party, boss HP area, 격파선                               */
+/* A transparent "ghost" series spans the whole raid so the axis always shows the full     */
+/* timeline (past, now, hidden future) and carries the checkpoint / action markers.        */
+/* ------------------------------------------------------------------ */
+const INS_COLORS = ['#C8921A', '#2F6BD0', '#2E9A58', '#7458C9', '#D6453F', '#5B7693'];
+const mainInstrument = tape => (tape.skills.find(k => k.role === 'dealer' && k.default) || tape.skills[0]).instrument;
+// intraday: shift so the axis prints KST clock times; daily: plain UTC date of the New York close
+const tsOf = (iso, tape) => Math.floor(Date.parse(iso) / 1000) + (tape?.daily ? 0 : 9 * 3600);
+const fmtMoney = (v, cur) => cur === 'KRW' ? Math.round(v).toLocaleString('ko-KR') + '원' : '$' + v.toFixed(2);
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+class BattleChart {
+  /** @param mode 'price' | 'compare' | 'equity'  @param opts { ids, state, upto, height } */
+  constructor(container, tape, mode, opts = {}) {
+    this.tape = tape; this.mode = mode; this.container = container; this.state = opts.state || null;
+    this.ids = mode === 'price' ? [opts.main || mainInstrument(tape)] : mode === 'compare' ? (opts.ids || [mainInstrument(tape)]) : [];
+    this.upto = opts.upto ?? 0;
+    const withLeft = mode === 'equity';
+    this.c = LightweightCharts.createChart(container, {
+      autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#5A5244', fontFamily: '"Noto Sans KR", sans-serif', fontSize: 13 },
+      grid: { vertLines: { visible: false }, horzLines: { color: '#EFE8D6', style: 0 } },
+      rightPriceScale: { borderColor: '#D9CDAE', scaleMargins: { top: .18, bottom: .2 }, ticksVisible: false }, leftPriceScale: { visible: withLeft, borderColor: '#D9CDAE', scaleMargins: { top: .06, bottom: 0 } },
+      timeScale: { borderColor: '#D9CDAE', timeVisible: !tape.daily, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, rightOffset: 0, ticksVisible: false },
+      crosshair: { vertLine: { visible: false, labelVisible: false }, horzLine: { visible: false, labelVisible: false } }, handleScroll: false, handleScale: false, localization: { locale: 'ko-KR', dateFormat: 'MM-dd' },
+    });
+    const pct = { type: 'custom', formatter: v => fmtPct(v), minMove: .01 };
+    const cur = tape.instruments[this.ids[0]]?.currency || 'USD';
+    const money = { type: 'custom', formatter: v => fmtMoney(v, cur), minMove: .01 };
+    // ghost: full timeline, invisible, excluded from autoscale, carries markers
+    this.ghost = this.c.addLineSeries({ color: 'rgba(0,0,0,0)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null, priceFormat: mode === 'price' ? money : pct });
+    this.series = [];
+    if (mode === 'equity') {
+      this.boss = this.c.addAreaSeries({ priceScaleId: 'left', lineColor: '#D6453F', topColor: 'rgba(214,69,63,.22)', bottomColor: 'rgba(214,69,63,0)', lineWidth: 2, lastValueVisible: true, priceLineVisible: false,
+        priceFormat: { type: 'custom', formatter: v => 'HP ' + Math.round(v), minMove: 1 }, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }) });
+      this.c.priceScale('left').applyOptions({ scaleMargins: { top: .06, bottom: 0 } });
+      this.bm = this.c.addLineSeries({ color: '#8A8F99', lineWidth: 2, lineStyle: 2, lastValueVisible: false, priceLineVisible: false, priceFormat: pct });
+      this.eq = this.c.addLineSeries({ color: '#C8921A', lineWidth: 4, lastValueVisible: true, priceLineVisible: false, priceFormat: pct });
+      this.series = [this.eq, this.bm, this.boss];
+      const breakPct = this.state ? 100 / this.state.bossScale : 100 / (tape.scale?.bossHpPerPct || 40);
+      this.eq.createPriceLine({ price: breakPct, color: '#D6453F', lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title: '격파선' });
+      this.eq.createPriceLine({ price: 0, color: '#B9AE91', lineWidth: 1, lineStyle: 3, axisLabelVisible: false, title: '' });
+    } else {
+      this.lines = this.ids.map((id, i) => (mode === 'price' && i === 0)
+        ? this.c.addAreaSeries({ lineColor: '#E0A72E', topColor: 'rgba(224,167,46,.28)', bottomColor: 'rgba(224,167,46,0)', lineWidth: 4, lastValueVisible: true, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: money })
+        : this.c.addLineSeries({ color: INS_COLORS[i % INS_COLORS.length], lineWidth: i === 0 ? 4 : 3, lastValueVisible: true, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: mode === 'price' ? money : pct }));
+      this.series = this.lines;
+      if (mode === 'price') this.lines[0].createPriceLine({ price: tape.bars[0].prices[this.ids[0]], color: '#B9AE91', lineWidth: 1, lineStyle: 3, axisLabelVisible: true, title: '시작' });
+      else this.lines[0].createPriceLine({ price: 0, color: '#B9AE91', lineWidth: 1, lineStyle: 3, axisLabelVisible: false, title: '' });
+    }
+    this.draw();
+  }
+  t(i) { return tsOf(this.tape.bars[i].t, this.tape); }
+  /** value of a series at bar i (from the tape, or from battle history for equity) */
+  valueAt(kind, i) {
+    const b = this.tape.bars[i];
+    if (kind === 'eq' || kind === 'bm' || kind === 'boss') {
+      if (i === 0) return kind === 'boss' ? 100 : 0;
+      const h = this.state?.history.find(p => p.bar === i); if (!h) return null;
+      return kind === 'eq' ? h.equity - 100 : kind === 'bm' ? h.benchmark - 100 : h.bossHp;
+    }
+    const p = b.prices[kind]; return this.mode === 'price' ? p : 100 * (p / this.tape.bars[0].prices[kind] - 1);
+  }
+  kinds() { return this.mode === 'equity' ? ['eq', 'bm', 'boss'] : this.ids; }
+  draw() {
+    const n = this.tape.bars.length, up = Math.min(this.upto, n - 1);
+    const ghostVal = this.mode === 'price' ? this.tape.bars[0].prices[this.ids[0]] : 0;
+    this.ghost.setData(this.tape.bars.map((b, i) => ({ time: this.t(i), value: ghostVal })));
+    this.kinds().forEach((k, j) => {
+      const pts = []; for (let i = 0; i <= up; i++) { const v = this.valueAt(k, i); if (v !== null && v !== undefined) pts.push({ time: this.t(i), value: v }); }
+      this.series[j].setData(pts);
+    });
+    this.markers(); this.c.timeScale().fitContent();
+  }
+  markers() {
+    const up = this.upto, cps = this.tape.checkpoints || [], acts = this.state?.actions || [];
+    const m = [];
+    cps.forEach(cp => { if (cp.bar > up) m.push({ time: this.t(cp.bar), position: 'inBar', color: '#7458C9', shape: 'circle', text: '', size: 1.4 }); });
+    acts.filter(a => a.type !== 'hold').forEach(a => m.push({ time: this.t(a.at), position: 'belowBar', color: '#C8921A', shape: 'arrowUp', text: a.type === 'equip' ? '교체' : '비중' }));
+    if (up > 0 && up < this.tape.bars.length - 1) m.push({ time: this.t(up), position: 'aboveBar', color: '#24405F', shape: 'arrowDown', text: '지금' });
+    if (this.state) (this.state.log || []).forEach(h => { const r = h.boss.portfolioRet; if (h.bar < up && Math.abs(r) >= 1) m.push({ time: this.t(h.bar), position: r < 0 ? 'aboveBar' : 'belowBar', color: r < 0 ? '#D6453F' : '#2E9A58', shape: r < 0 ? 'arrowDown' : 'arrowUp', text: fmtPct(r) }); });
+    m.sort((a, b) => a.time - b.time);
+    this.ghost.setMarkers(m);
+  }
+  setUpto(upto) { this.upto = upto; this.draw(); }
+  /** animate the newest bar growing from the previous value — the "market moves" beat of a turn */
+  reveal(bar, ms = 420) {
+    return new Promise(res => {
+      this.upto = bar;
+      const kinds = this.kinds();
+      const from = kinds.map(k => this.valueAt(k, bar - 1)), to = kinds.map(k => this.valueAt(k, bar));
+      const time = this.t(bar), start = performance.now();
+      const frame = now => {
+        const p = Math.min(1, (now - start) / ms), e = easeOut(p);
+        kinds.forEach((k, j) => { if (to[j] === null || from[j] === null) return; this.series[j].update({ time, value: from[j] + (to[j] - from[j]) * e }); });
+        if (p < 1) requestAnimationFrame(frame); else { this.markers(); this.c.timeScale().fitContent(); res(); }
+      };
+      requestAnimationFrame(frame);
+    });
+  }
+  legend() {
+    const up = Math.min(this.upto, this.tape.bars.length - 1);
+    if (this.mode === 'equity') return `<span><i style="background:#C8921A"></i>내 파티</span><span><i style="background:#8A8F99"></i>기본 파티</span><span><i style="background:#D6453F"></i>보스 HP</span>`;
+    return this.ids.map((id, i) => { const p0 = this.tape.bars[0].prices[id], p = this.tape.bars[up].prices[id], ins = this.tape.instruments[id];
+      return `<span><i style="background:${INS_COLORS[i % INS_COLORS.length]}"></i>${id} ${ins.name} <b class="tabular">${fmtMoney(p, ins.currency)}</b> <span class="${p >= p0 ? 'ret up' : 'ret down'} tabular" style="font-size:12px">${fmtPct(100 * (p / p0 - 1))}</span></span>`; }).join('');
+  }
+  remove() { try { this.c.remove(); } catch {} }
 }
-const ts = iso => Math.floor(Date.parse(iso) / 1000) + 9 * 3600;   // shift so the axis prints KST clock times
-function feedChart(S, s) {
-  const pts = [{ bar: 0, t: s.tape.bars[0].t, equity: 100, benchmark: 100, bossHp: 100 }, ...s.history];
-  S.eq.setData(pts.map(p => ({ time: ts(p.t), value: p.equity - 100 })));
-  S.bm.setData(pts.map(p => ({ time: ts(p.t), value: p.benchmark - 100 })));
-  S.bo?.setData(pts.map(p => ({ time: ts(p.t), value: p.bossHp })));
-  const marks = (s.actions || []).filter(a => a.type !== 'hold').map(a => ({ time: ts(s.tape.bars[a.at].t), position: 'aboveBar', color: '#F4C542', shape: 'arrowDown', text: a.type === 'equip' ? '교체' : '비중' }));
-  S.eq.setMarkers(marks);
-  S.c.timeScale().fitContent();
+
+let chartMode = 'price', battleChart = null;
+function battleInstruments() { return [...new Set([mainInstrument(currentTape), ...ROLES.map(r => battle.party._bySkill[battle.party.skills[r]]).flatMap(k => k.blend ? Object.keys(k.blend) : [k.instrument])])].slice(0, 6); }
+function rebuildBattleChart() {
+  battleChart?.remove();
+  const upto = battle.history.length ? battle.history.at(-1).bar : 0;
+  battleChart = new BattleChart($('#chart'), currentTape, chartMode, { state: battle, upto, ids: battleInstruments() });
+  $('#chartLegend').innerHTML = battleChart.legend();
 }
+function flashChart(ret) { const box = $('#battleChartBox'); box.classList.remove('flash-up', 'flash-down'); void box.offsetWidth; box.classList.add(ret >= 0 ? 'flash-up' : 'flash-down'); }
+$$('#chartMode [data-mode]').forEach(b => b.addEventListener('click', () => { chartMode = b.dataset.mode; $$('#chartMode [data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); sfx.select(); if (battle) rebuildBattleChart(); }));
 
 async function startBattle() {
   const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
   unlock(); sfx.select();
   battle = createBattle(currentTape, party); aborted = false; userPaused = false; $('#pauseBtn').textContent = '일시정지';
   showScreen('battle');
-  const sc = await ensureGame(); game.scale.refresh();
+  let sc; try { sc = await ensureGame(); } catch (e) { toast(e.message, 5000); try { game?.destroy(true); } catch {} game = null; scene = null; showScreen('party'); return; }
+  game.scale.refresh();
   await sc.setup(currentTape);
   renderBossHud(); renderPartyHud(); renderTurnLine(null);
-  chart?.c.remove(); chart = makeChart($('#chart'), true); feedChart(chart, battle);
-  $('#chartNote').textContent = `${currentTape.bars.length - 1}구간 · 30분~1시간 단위${currentTape.example ? ' · 예시 데이터' : ''}`;
+  rebuildBattleChart(); $('#newsline').hidden = true; renderNewsline(0);
+  $('#chartNote').textContent = currentTape.daily ? `${currentTape.bars.length - 1}거래일 · 일별 종가 · 실제 데이터` : `${currentTape.bars.length - 1}구간 · 30분~1시간 단위${currentTape.example ? ' · 예시 데이터' : ''}`;
   startBgm(.3);
-  await cutIn({ text: `${currentTape.boss} 출현!`, sub: `${fmtDate(currentTape.bars[0].t)} · ${currentTape.bars.length - 1}구간 레이드`, bg: '#2A1A3A', artL: null, artR: cutArt(bossUnit(currentTape.bossSpecies)) }, Math.max(1, speedFactor() / 2));
+  await cutIn({ text: `${currentTape.boss} 출현!`, sub: `${fmtDate(currentTape.bars[0].t)} · ${currentTape.bars.length - 1}${currentTape.daily ? '거래일' : '구간'} 레이드`, bg: '#5B3FA8', artL: null, artR: cutArt(bossUnit(currentTape.bossSpecies)) }, Math.max(1, speedFactor() / 2));
   await sleep(300 / speedFactor());
   await raidLoop();
 }
+let drama = { combo: 0, maxCombo: 0, guards: 0, rage: false };
 async function raidLoop() {
+  drama = { combo: 0, maxCombo: 0, guards: 0, rage: false };
   while (!battle.done && !aborted) {
     await waitResume(); if (aborted) return;
     const turn = step(battle);
     if (!turn) { if (battle.paused) { await showCheckpoint(battle.paused); continue; } break; }
     const sp = speedFactor();
-    await scene.playTurn(turn, sp, { onImpact: () => { renderPartyHud(turn); renderBossHud(); renderTurnLine(turn); } });
-    feedChart(chart, battle);
+    const ret = turn.boss.portfolioRet;
+    drama.combo = ret > 0 ? drama.combo + 1 : 0; drama.maxCombo = Math.max(drama.maxCombo, drama.combo);
+    const rageNow = !drama.rage && battle.bossHp > 0 && battle.bossHp <= 50; if (rageNow) drama.rage = true;
+    await scene.playTurn(turn, sp, {
+      combo: drama.combo, rage: drama.rage && !rageNow, rageNow,
+      onMarket: async () => { flashChart(ret); await battleChart.reveal(turn.bar, 520 / sp); $('#chartLegend').innerHTML = battleChart.legend(); renderTurnLine(turn); renderNewsline(turn.bar + 1); },
+      onImpact: () => { renderPartyHud(turn); renderBossHud(); },
+      onGuard: () => { drama.guards++; },
+    });
+    battleChart.markers();
     const cut = cutForTurn(turn);
     if (cut && speed < 4) await cutIn(cut, sp);
     if (battle.bossHp <= 0 && !battle._bossShown) { battle._bossShown = true; startBgm(.8); }
@@ -460,20 +838,51 @@ async function raidLoop() {
 }
 
 /* ---------- checkpoint modal ---------- */
+const CP_SECONDS = 30;
+/** what each hero says at a checkpoint — reacts to their own HP and the last bar */
+function heroLines(cp) {
+  const last = battle.history.at(-1), lvl = effectiveLevel();
+  const hp = r => battle.partyHp[r], ret = r => last?.roles?.[r]?.ret ?? 0;
+  const lockedOpt = currentTape.skills.find(k => k.role === 'healer' && k.unlockLevel && k.unlockLevel > lvl);
+  return [
+    ['tank', hp('tank') <= 0 ? '…(기절)' : hp('tank') < 50 ? '방패가 무거워… 그래도 버틴다!' : ret('tank') < 0 ? '다음 공격은 내가 막을게.' : '이대로 가도 괜찮아 보여.'],
+    ['dealer', hp('dealer') <= 0 ? '…(기절)' : ret('dealer') > 0 ? '기세 좋아! 더 밀어붙이자!' : ret('dealer') < 0 ? '한 방 맞았지만 역전 가능해.' : '시장이 조용하네. 다음은 크게 움직일걸?'],
+    ['healer', hp('healer') <= 0 ? '…(기절)' : lockedOpt ? `${lockedOpt.name}은 Lv.${lockedOpt.unlockLevel}부터 쓸 수 있어.` : '보험을 들지 말지는 네 선택이야.'],
+    ['support', `체크포인트는 딱 한 번. ${CP_SECONDS}초 안에 정하자.`],
+  ];
+}
+let cpChart = null, cpTimer = null;
 async function showCheckpoint(cp) {
-  if (speed < 4) await cutIn({ text: '체크포인트!', sub: `${fmtTime(currentTape.bars[cp.bar].t)} ${cp.title}`, bg: '#14243F', artL: null, artR: null }, Math.max(1.6, speedFactor()));
+  if (speed < 4) await cutIn({ text: '체크포인트!', sub: `${fmtBar(currentTape.bars[cp.bar].t)} ${cp.title}`, bg: '#2F6BD0', artL: null, artR: null }, Math.max(1.6, speedFactor()));
   return new Promise(resolve => {
     sfx.pause();
     const m = $('#cp'); m.hidden = false;
-    $('#cpTitle span:last-child').textContent = `${fmtTime(currentTape.bars[cp.bar].t)} ${cp.title}`;
+    $('#cpTitle span:last-child').textContent = `${fmtBar(currentTape.bars[cp.bar].t)} ${cp.title}`;
     const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
-    $('#cpHint').innerHTML = `<b>[시스템]</b> ${cp.hint}<br><span class="muted">지금까지 파티 <b style="color:${cum >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(cum)}</b> · 다음 구간 <b>${fmtTime(next.t)} ${next.label}</b> · 체크포인트마다 한 가지 행동만 할 수 있어요.</span>`;
+    $('#cpHint').innerHTML = `${cp.hint} <span class="muted">다음 구간 <b>${fmtBar(next.t)} ${next.label}</b></span>`;
+    // the chart is the question: real closes up to now, the rest still hidden
+    const main = mainInstrument(currentTape);
+    $('#cpChartTitle').innerHTML = `${main} ${currentTape.instruments[main].name} <span class="muted">· 지금까지 · 보라 점 = 다음 체크포인트</span>`;
+    cpChart?.remove(); cpChart = new BattleChart($('#cpChart'), currentTape, 'price', { state: battle, upto: cp.bar - 1 });
+    const v = totalValue();
+    $('#cpBalance').innerHTML = `<div class="bal-top"><span class="muted small">모험단 자금 평가</span><b class="tabular">${fmtKRW(v)}</b><span class="ret tabular ${v >= SEED ? 'up' : 'down'}">${fmtKRWd(v - SEED)} (${fmtPct(cum)})</span></div>
+      <div class="bal-roles">${ROLES.map(role => { const sk = battle.party._bySkill[battle.party.skills[role]], q = quote(sk.instrument), rv = roleValue(role), r0 = roleStart(role);
+        return `<div style="--rc:${ROLE_COLOR[role]}" title="${sk.name}"><img src="${portrait(heroUnit(role))}" alt=""><div><b>${charOf(role).name}</b> <span class="muted">${battle.party.weights[role]}% · ${sk.instrument} ${fmtMoney(q.p, q.cur)} <em class="${q.dStart >= 0 ? 'ret up' : 'ret down'}">${fmtPct(q.dStart)}</em></span></div><div class="tabular v">${fmtKRW(rv)} <em class="${rv >= r0 ? 'ret up' : 'ret down'}">${fmtKRWd(rv - r0)}</em></div></div>`; }).join('')}</div>`;
+    renderTicker($('#cpTicker'), cp.bar - 1);
+    $('#cpBull').textContent = cp.bull || '좋은 쪽으로 가면 공격적인 기술이 보상받는다.';
+    $('#cpBear').textContent = cp.bear || '나쁜 쪽으로 가면 현금·채권·보험이 방패가 된다.';
+    $('#cpEvent').innerHTML = eventCardHTML(currentTape, cp.bar, { source: false, newAt: cp.bar });
+    $('#cpSay').innerHTML = heroLines(cp).slice(0, 2).map(([r, line]) => `<span><img src="${portrait(heroUnit(r))}" alt=""><b>${charOf(r).name}</b> ${line}</span>`).join('');
+    // countdown: time out = hold (a decision not taken is still a decision)
+    clearInterval(cpTimer); let left = CP_SECONDS; const tEl = $('#cpTimer');
+    const tick = () => { $('#cpTimerTxt').textContent = left; $('#cpTimerBar').style.width = (100 * left / CP_SECONDS) + '%'; tEl.classList.toggle('hot', left <= 10); if (left <= 10 && left > 0) sfx.select(); if (left <= 0) { clearInterval(cpTimer); done({ type: 'hold' }, '시간 초과 — 버티기로 진행'); } left--; };
+    tick(); cpTimer = setInterval(tick, 1000);
     const tabs = $$('#cp .tabs [data-tab]');
     const setTab = name => { tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpHold').hidden = name !== 'hold'; $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
     tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
     setTab('hold');
-    const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } m.hidden = true; if (msg) toast(msg); renderPartyHud(); resolve(); };
-    $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '버틴다!'); };
+    const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); resolve(); };
+    $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip
     const lvl = effectiveLevel();
     $('#cpEquip').innerHTML = '';
@@ -495,9 +904,10 @@ async function showCheckpoint(cp) {
     // rebalance
     const w = { ...battle.party.weights };
     const renderSl = () => {
-      $('#cpSliders').innerHTML = ROLES.map(role => `<div class="weight" style="--rc:${ROLE_COLOR[role]}"><label for="cw-${role}"><span>${charOf(role).name}</span><output>${w[role]}%</output></label><input type="range" id="cw-${role}" min="0" max="100" step="5" value="${w[role]}" aria-label="${charOf(role).name} 비중"></div>`).join('');
-      ROLES.forEach(role => $('#cw-' + role).addEventListener('input', e => { w[role] = +e.target.value; e.target.previousElementSibling.querySelector('output').value = w[role] + '%'; const sum = ROLES.reduce((a, r) => a + w[r], 0); $('#cpSum').textContent = `${sum} / 100`; $('#cpSum').classList.toggle('bad', sum !== 100); $('#cpRebalBtn').disabled = sum !== 100; }));
-      $('#cpSum').textContent = '100 / 100'; $('#cpSum').classList.remove('bad'); $('#cpRebalBtn').disabled = false;
+      $('#cpSliders').innerHTML = ROLES.map(role => `<div class="weight" style="--rc:${ROLE_COLOR[role]}"><label><span><img src="${portrait(heroUnit(role))}" alt="" style="width:22px;height:22px;border-radius:50%;vertical-align:middle;margin-right:4px">${charOf(role).name} · ${battle.party._bySkill[battle.party.skills[role]].name}</span></label><div class="wctl"><button type="button" class="wbtn" data-cw="${role}" data-d="-5" aria-label="${charOf(role).name} 비중 줄이기">−</button><output id="cw-${role}">${w[role]}%</output><button type="button" class="wbtn" data-cw="${role}" data-d="5" aria-label="${charOf(role).name} 비중 늘리기">+</button></div></div>`).join('');
+      const sync = () => { ROLES.forEach(r => { $('#cw-' + r).value = w[r] + '%'; }); const sum = ROLES.reduce((a, r) => a + w[r], 0), pool = 100 - sum; $('#cpSum').innerHTML = pool > 0 ? `<span class="pool">남은 비중 ${pool}%</span>` : '비중 100%'; $('#cpSum').classList.toggle('bad', sum !== 100); $('#cpRebalBtn').disabled = sum !== 100; $$('#cpSliders .wbtn[data-d="-5"]').forEach(b => { b.disabled = w[b.dataset.cw] <= 0; }); };
+      $$('#cpSliders .wbtn').forEach(b => b.addEventListener('click', () => { sfx.select(); stepWeight(w, b.dataset.cw, +b.dataset.d); sync(); }));
+      sync();
     };
     renderSl();
     $('#cpRebalBtn').onclick = () => { sfx.select(); done({ type: 'rebalance', weights: w }, '비중 조정!'); };
@@ -508,17 +918,23 @@ async function showCheckpoint(cp) {
 /* ------------------------------------------------------------------ */
 /* Result                                                              */
 /* ------------------------------------------------------------------ */
-let rChart = null;
+let rChart = null, rPriceChart = null;
 async function showResult() {
   const s = battle, r = s.result;
   showScreen('result');
-  // persist play & exp
+  // persist play & exp (+ drama bonus: combos and guards add exp, never return)
+  const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
-  const after = applyExp(profile, r.exp);
+  bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown);
+  const newBadges = awardBadges({ s, r, drama });
+  const after = applyExp(profile, r.exp + bonus);
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
   play.count++; if (!play.best || order.indexOf(r.grade) > order.indexOf(play.best)) play.best = r.grade;
-  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play } }; saveProfile();
+  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
+  $('#rBadges').innerHTML = newBadges.length ? newBadges.map(b => `<div class="badge on pop"><i></i><b>${b.name}</b><span class="small muted">${b.desc}</span></div>`).join('') : '';
+  $('#rBadgesWrap').hidden = !newBadges.length;
+  $('#rBonus').textContent = bonus ? `연출 보너스 +${bonus} (연속 ${drama.maxCombo} · 가드 ${drama.guards})` : '';
 
   const stamp = $('#rStamp'); stamp.textContent = r.grade; stamp.className = 'stamp ' + r.grade;
   $('#rVerdict').textContent = r.bossDown ? `${currentTape.boss} 격파!` : r.alive === 0 ? '파티 전멸…' : r.returnPct >= 0 ? '레이드 생존 · 보스는 버텼다' : '보스에게 밀렸다';
@@ -531,8 +947,8 @@ async function showResult() {
   const acts = (s.actions || []);
   $('#rDecisions').innerHTML = acts.length ? acts.map(a => {
     const bar = currentTape.bars[a.at]; const after = s.log.filter(t => t.bar >= a.at).reduce((x, t) => x + t.boss.portfolioRet, 0);
-    const what = a.type === 'hold' ? '버티기' : a.type === 'equip' ? `${charOf(ROLES.find(r => s.party._bySkill[a.to]?.role === r) || 'dealer').name} → ${s.party._bySkill[a.to].name}` : '비중 조정 ' + ROLES.map(r => a.to[r]).join('/');
-    return `<div><span class="t">${fmtTime(bar.t)}</span><span>${what}</span><span class="muted">· 이후 파티 ${fmtPct(after)}</span></div>`;
+    const what = a.type === 'hold' ? '그대로' : a.type === 'equip' ? `${charOf(ROLES.find(r => s.party._bySkill[a.to]?.role === r) || 'dealer').name} → ${s.party._bySkill[a.to].name}` : '비중 조정 ' + ROLES.map(r => a.to[r]).join('/');
+    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">· 이후 파티 ${fmtPct(after)}</span></div>`;
   }).join('') : '<span class="muted">체크포인트 없음</span>';
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
@@ -540,12 +956,14 @@ async function showResult() {
   const row = (k, cls, a, v) => `<div><span class="k ${cls}">${k}</span><span>${a}</span><span class="v" style="color:${v >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(v)}</span></div>`;
   const lockNote = a => a.detail.unlockLevel > lvl ? `<span class="lock">Lv.${a.detail.unlockLevel}</span>` : '';
   $('#rWhatIf').innerHTML = [
-    row('내 선택', 'me', acts.some(a => a.type !== 'hold') ? '위 체크포인트 선택대로' : '모두 버티기', r.returnPct),
+    row('내 선택', 'me', acts.some(a => a.type !== 'hold') ? '체크포인트 선택대로' : '끝까지 그대로', r.returnPct),
     row('최고', 'best', best.label + lockNote(best), best.returnPct),
     row('최악', 'worst', worst.label + lockNote(worst), worst.returnPct),
   ].join('');
   $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
-  rChart?.c.remove(); rChart = makeChart($('#rChart'), false); feedChart(rChart, s);
+  rChart?.remove(); rChart = new BattleChart($('#rChart'), currentTape, 'equity', { state: s, upto: currentTape.bars.length - 1 });
+  rPriceChart?.remove(); rPriceChart = new BattleChart($('#rPriceChart'), currentTape, 'compare', { state: s, upto: currentTape.bars.length - 1, ids: battleInstruments().slice(0, 5) });
+  $('#rPriceLegend').innerHTML = rPriceChart.legend();
   $('#coachAv').src = portrait('hero_healer');
   // animations
   sfx.stamp();
@@ -556,7 +974,8 @@ async function showResult() {
   const lines = coachText(s);
   (async () => { for (const line of lines) { const p = document.createElement('p'); p.className = 'typing'; bubble.appendChild(p); for (const ch of line) { p.textContent += ch; if (!reduceMotion) await sleep(14); } p.classList.remove('typing'); await sleep(200); } })();
   // exp
-  const expEl = $('#rExp'); const o = { v: 0 }; gsap.to(o, { v: r.exp, duration: 1, onUpdate: () => { expEl.textContent = '+' + Math.round(o.v); } });
+  const expEl = $('#rExp'); const o = { v: 0 }; gsap.to(o, { v: r.exp + bonus, duration: 1, onUpdate: () => { expEl.textContent = '+' + Math.round(o.v); } });
+  if (newBadges.length) { await sleep(600); sfx.level(); toast(`배지 획득: ${newBadges.map(b => b.name).join(', ')}`, 3000); }
   const bar = $('#rExpBar'); bar.style.width = (100 * before.exp / expNext(before.level)) + '%';
   $('#rExpTxt').textContent = `Lv.${before.level} ${before.exp} / ${expNext(before.level)}`;
   await sleep(500);
@@ -576,21 +995,35 @@ function animBar(el, pct, ms) { return new Promise(res => { el.style.transition 
 $('#toParty').addEventListener('click', () => { sfx.select(); openParty(); });
 $('#backToSelect').addEventListener('click', () => { sfx.back(); showScreen('select'); });
 $('#backToBrief').addEventListener('click', () => { sfx.back(); showScreen('brief'); });
-$('#presetBtn').addEventListener('click', () => { sfx.select(); party = Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id }); renderPartyScreen(); });
+$$('[data-preset]').forEach(b => b.addEventListener('click', () => { sfx.select(); applyPreset(b.dataset.preset); }));
 $('#startBattle').addEventListener('click', startBattle);
 $('#retryBtn').addEventListener('click', () => { sfx.select(); openParty(); });
 $('#otherBtn').addEventListener('click', () => { sfx.select(); renderSelect(); showScreen('select'); });
 $('#etfBtn').addEventListener('click', () => { sfx.select(); $('#etfAlloc').innerHTML = ROLES.map(r => `<i style="width:${battle.party.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); $('#etfModal').hidden = false; });
 $('#etfClose').addEventListener('click', () => { sfx.back(); $('#etfModal').hidden = true; });
-$('#muteBtn').addEventListener('click', () => { unlock(); const m = !isMuted(); setMuted(m); $('#muteBtn').textContent = m ? '소리 꺼짐' : '소리 켜짐'; $('#muteBtn').setAttribute('aria-pressed', String(m)); });
+$('#dexBtn').addEventListener('click', () => { sfx.select(); renderCollection(); $('#dex').hidden = false; });
+$('#dexClose').addEventListener('click', () => { sfx.back(); $('#dex').hidden = true; });
+let tutStep = 0;
+const TUT = [
+  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '방패기사·대검사·사제·궁수에게 비중을 나눠요. 기술은 전부 실제 ETF·채권·금·옵션이에요. 비중을 어떻게 나누느냐가 곧 투자 포트폴리오예요.' },
+  { art: 'boss_lich', title: '보스 = 실제 시장 이벤트', text: 'FOMC, 실적 발표, 물가 지표가 보스로 나타나요. 데미지는 전부 그날 실제 가격 변동으로 계산돼요. 난수는 없어요.' },
+  { art: 'hero_healer', title: '체크포인트에서 개입', text: '레이드는 자동으로 흘러가다 중요한 순간에 멈춰요. 30초 안에 버티기·기술 교체·비중 조정 중 하나를 고르세요. 차트와 자금 평가를 보고 결정하면 돼요.' },
+];
+function renderTut() { const t = TUT[tutStep]; $('#tutArt').src = cutArt(t.art); $('#tutTitle').textContent = t.title; $('#tutText').textContent = t.text; $('#tutDots').innerHTML = TUT.map((_, i) => `<i class="${i === tutStep ? 'on' : ''}"></i>`).join(''); $('#tutNext').textContent = tutStep === TUT.length - 1 ? '시작하기' : '다음'; }
+function openTutorial() { tutStep = 0; renderTut(); $('#tut').hidden = false; }
+$('#tutNext').addEventListener('click', () => { sfx.select(); if (tutStep < TUT.length - 1) { tutStep++; renderTut(); } else { $('#tut').hidden = true; profile.seenTutorial = true; saveProfile(); } });
+$('#tutSkip').addEventListener('click', () => { sfx.back(); $('#tut').hidden = true; profile.seenTutorial = true; saveProfile(); });
+$('#helpBtn').addEventListener('click', () => { sfx.select(); openTutorial(); });
+if (!profile.seenTutorial) setTimeout(openTutorial, 400);
+$('#muteBtn').addEventListener('click', () => { unlock(); const m = !isMuted(); setMuted(m); $('#muteBtn').textContent = m ? '소리 끔' : '소리'; $('#muteBtn').setAttribute('aria-pressed', String(m)); });
 $('#resetBtn').addEventListener('click', () => {
-  if (Date.now() - (window.__resetArmed || 0) < 3000) { profile = { level: 1, exp: 0, unlockAll: false, plays: {} }; saveProfile(); renderProfile(); renderSelect(); toast('진행 상황을 초기화했어요'); $('#resetBtn').textContent = '진행 초기화'; return; }
+  if (Date.now() - (window.__resetArmed || 0) < 3000) { profile = { level: 1, exp: 0, unlockAll: false, plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: true }; saveProfile(); renderProfile(); renderSelect(); toast('진행 상황을 초기화했어요'); $('#resetBtn').textContent = '진행 초기화'; return; }
   window.__resetArmed = Date.now(); $('#resetBtn').textContent = '정말 초기화? (한 번 더)'; setTimeout(() => { $('#resetBtn').textContent = '진행 초기화'; }, 3000);
 });
-$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '데모 모드: 모든 기술을 쓸 수 있어요' : '레벨 제한을 다시 켰어요'); if (!$('#screen-party').hidden) renderPartyScreen(); });
+$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '체험 모드: 모든 상품을 쓸 수 있어요' : '레벨 제한을 다시 켰어요'); if (!$('#screen-party').hidden) renderPartyScreen(); });
 document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-battle').hidden && $('#cp').hidden && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); $('#pauseBtn').click(); } });
 
 renderProfile(); renderSelect(); showScreen('select');
 
 // test/automation hooks (not used by the UI)
-window.__rpg = { TAPES, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작 · 파티 +1.24%', bg: '#0F3A2E', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언 · 파티 -1.20%', bg: '#4A1522', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; }, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
+window.__rpg = { TAPES, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작 · 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언 · 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; }, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };

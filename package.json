@@ -5,12 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test test/engine.test.mjs test/tape-from-bars.test.mjs",
-    "tapes": "node scripts/make-tapes.mjs",
+    "tapes": "node scripts/make-tapes.mjs && node scripts/make-real-tapes.mjs",
     "build": "node scripts/build.mjs",
     "play": "node test/play.mjs",
     "play:shots": "node test/play.mjs --shots",
     "all": "npm run tapes && npm test && npm run build && npm run play",
-    "art": "python3 scripts/flare-import.py"
+    "art": "python3 scripts/anime-import.py"
   },
   "keywords": [],
   "author": "",
@@ -22,5 +22,10 @@
     "phaser": "^3.80.1"
   },
   "type": "module",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@fontsource/black-han-sans": "^5.3.0",
+    "@fontsource/jua": "^5.3.0",
+    "@fontsource/noto-sans-kr": "^5.3.1"
+  }
 }

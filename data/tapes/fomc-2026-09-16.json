@@ -1,0 +1,369 @@
+{
+ "id": "fomc-2026-09-16",
+ "title": "9월 FOMC 레이드",
+ "boss": "금리 마법사",
+ "bossSpecies": "lich",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "source": "stockanalysis.com 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 15
+ },
+ "event": {
+  "kind": "fomc",
+  "company": "미국 연준 FOMC",
+  "ticker": "FOMC",
+  "logo": null,
+  "source": "연준 성명서(2026-09-16) · Advisor Perspectives",
+  "facts": [
+   {
+    "at": 0,
+    "label": "회의 일정",
+    "value": "9/15~16 · 결정 9/16 14:00 뉴욕"
+   },
+   {
+    "at": 0,
+    "label": "현재 기준금리",
+    "value": "3.50~3.75%"
+   },
+   {
+    "at": 0,
+    "label": "관전 포인트",
+    "value": "25bp 인상 여부 · 점도표(연말 금리 전망)"
+   },
+   {
+    "at": 5,
+    "label": "결정",
+    "value": "25bp 인상 → 3.75~4.00%",
+    "note": "만장일치 12-0",
+    "good": false
+   },
+   {
+    "at": 5,
+    "label": "성명서",
+    "value": "\"물가가 여전히 높다. 이번 조치가 2% 복귀를 앞당길 것\""
+   },
+   {
+    "at": 5,
+    "label": "점도표 · 2026년 말",
+    "value": "4.1~4.4%",
+    "note": "직전 3.6~4.1%에서 상향",
+    "good": false
+   },
+   {
+    "at": 5,
+    "label": "당일 QQQ",
+    "value": "+0.03%",
+    "note": "이미 반영된 결정"
+   }
+  ]
+ },
+ "briefing": "9월 FOMC(9/15~16). 시장은 인상 가능성을 저울질하며 한 주 내내 밀려 왔다. 결정은 9/16 뉴욕 장중에 나온다. 실제 종가로 판정되는 레이드다.",
+ "lesson": "인상 결정이 나온 뒤 시장은 오히려 올랐어요. 흔히 \"불확실성 해소\"로 설명하지만 원인은 하나가 아니에요. 확실한 건, 이미 반영된 뉴스는 발표 순간 힘을 잃는다는 거예요.",
+ "concepts": [
+  {
+   "name": "이미 가격에 반영된 뉴스",
+   "text": "발표 전 일주일 동안 지수가 먼저 밀렸어요. 발표 당일엔 거의 움직이지 않았고, 그다음부터 올랐어요."
+  },
+  {
+   "name": "금리와 성장주",
+   "text": "성장주는 금리 전망에 민감하지만, 전망이 바뀌지 않으면 결정 자체에는 둔감해요."
+  },
+  {
+   "name": "레버리지의 양면",
+   "text": "3배 레버리지는 이 주에 +17%를 벌었지만, 발표 전 사흘은 -4%를 먼저 맞았어요. 버틸 수 있어야 벌어요."
+  },
+  {
+   "name": "인버스 ETF의 비용",
+   "text": "하락에 베팅하는 인버스 ETF는 방향이 틀리면 매일 깎여요. 보험이 아니라 베팅에 가까워요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "PSQ": {
+   "name": "나스닥100 인버스 (PSQ)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "장기채 방패",
+   "default": true,
+   "lesson": "장기채는 금리 전망이 바뀔 때 크게 움직여요. 이 주에는 조용했어요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "단기채 벽",
+   "lesson": "단기채는 거의 안 흔들리지만 공격력도 없어요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "질주 베기",
+   "default": true,
+   "lesson": "성장주는 발표 전엔 밀리고 발표 뒤엔 달렸어요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "반도체 돌격",
+   "lesson": "반도체는 지수보다 두 배쯤 크게 움직여요. 양쪽 다요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "폭주 돌진",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 같은 방향이면 3배, 반대면 반동도 3배예요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "황금 가호",
+   "default": true,
+   "lesson": "금은 이 주에 큰 역할이 없었어요. 늘 버텨주는 건 아니에요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금 대기",
+   "lesson": "현금은 안 다치지만 보스도 못 때려요."
+  },
+  {
+   "id": "healer_psq",
+   "role": "healer",
+   "instrument": "PSQ",
+   "blend": {
+    "PSQ": 0.5,
+    "BIL": 0.5
+   },
+   "name": "역방향 부적",
+   "unlockLevel": 10,
+   "lesson": "슬롯의 절반을 인버스 ETF에 뒀어요. 시장이 오르면 매일 깎여요. 하락 보험은 타이밍이 전부예요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "배당의 축복",
+   "default": true,
+   "lesson": "배당주는 성장주 랠리 땐 뒤처지고, 급락 땐 덜 빠져요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "bar": 4,
+   "title": "금리 결정일 아침",
+   "hint": "오늘 뉴욕 장중에 결정이 나온다. 시장은 한 주 내내 밀려 왔다. 방어할까, 반등을 노릴까?",
+   "bull": "\"악재는 이미 가격에\" — 한 주 내내 밀렸으니 결정 자체는 소화되고 반등할 수 있다.",
+   "bear": "인상 + 매파 기자회견이면 추가 하락. 인버스·단기채로 방어.",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  },
+  {
+   "bar": 5,
+   "title": "결정 다음 날",
+   "hint": "인상이 결정됐다. 그런데 결정 당일 지수는 거의 움직이지 않았다. 이제 어느 쪽으로 갈까?",
+   "bull": "불확실성 해소 랠리. 결정이 나온 뒤 매수세가 돌아오는 전형적 패턴.",
+   "bear": "하루 늦게 반응하는 \"지연 매도\". 긴축 장기화가 재평가되면 성장주 추가 하락.",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "t": "2026-09-10T16:00:00-04:00",
+   "label": "발표 4거래일 전",
+   "prices": {
+    "QQQ": 708.69,
+    "TQQQ": 69.21,
+    "SOXX": 517.43,
+    "TLT": 80.78,
+    "SHY": 81.42,
+    "GLD": 396.36,
+    "BIL": 91.47,
+    "PSQ": 26.16,
+    "SCHD": 33.99
+   }
+  },
+  {
+   "t": "2026-09-11T16:00:00-04:00",
+   "label": "주말 전 관망",
+   "prices": {
+    "QQQ": 714.88,
+    "TQQQ": 70.98,
+    "SOXX": 527.07,
+    "TLT": 80.87,
+    "SHY": 81.37,
+    "GLD": 398.77,
+    "BIL": 91.5,
+    "PSQ": 25.93,
+    "SCHD": 34.12
+   }
+  },
+  {
+   "t": "2026-09-14T16:00:00-04:00",
+   "label": "FOMC 주간 시작",
+   "prices": {
+    "QQQ": 709.18,
+    "TQQQ": 69.27,
+    "SOXX": 497.4,
+    "TLT": 80.93,
+    "SHY": 81.34,
+    "GLD": 392.84,
+    "BIL": 91.5,
+    "PSQ": 26.14,
+    "SCHD": 34.34
+   }
+  },
+  {
+   "t": "2026-09-15T16:00:00-04:00",
+   "label": "회의 1일차",
+   "prices": {
+    "QQQ": 704.54,
+    "TQQQ": 67.9,
+    "SOXX": 498.85,
+    "TLT": 80.71,
+    "SHY": 81.31,
+    "GLD": 394.15,
+    "BIL": 91.51,
+    "PSQ": 26.32,
+    "SCHD": 34.33
+   }
+  },
+  {
+   "t": "2026-09-16T16:00:00-04:00",
+   "label": "금리 결정 발표",
+   "prices": {
+    "QQQ": 704.72,
+    "TQQQ": 67.93,
+    "SOXX": 502.06,
+    "TLT": 80.88,
+    "SHY": 81.24,
+    "GLD": 391.74,
+    "BIL": 91.51,
+    "PSQ": 26.32,
+    "SCHD": 33.84
+   }
+  },
+  {
+   "t": "2026-09-17T16:00:00-04:00",
+   "label": "결정 소화",
+   "prices": {
+    "QQQ": 716.92,
+    "TQQQ": 71.38,
+    "SOXX": 519.1,
+    "TLT": 81.78,
+    "SHY": 81.36,
+    "GLD": 398.36,
+    "BIL": 91.53,
+    "PSQ": 25.86,
+    "SCHD": 33.89
+   }
+  },
+  {
+   "t": "2026-09-18T16:00:00-04:00",
+   "label": "주말 전 반등",
+   "prices": {
+    "QQQ": 721.45,
+    "TQQQ": 72.64,
+    "SOXX": 533.07,
+    "TLT": 81.25,
+    "SHY": 81.24,
+    "GLD": 401.17,
+    "BIL": 91.55,
+    "PSQ": 25.72,
+    "SCHD": 33.68
+   }
+  },
+  {
+   "t": "2026-09-21T16:00:00-04:00",
+   "label": "랠리",
+   "prices": {
+    "QQQ": 741.47,
+    "TQQQ": 78.91,
+    "SOXX": 559.34,
+    "TLT": 81.8,
+    "SHY": 81.29,
+    "GLD": 398.38,
+    "BIL": 91.57,
+    "PSQ": 24.98,
+    "SCHD": 33.72
+   }
+  },
+  {
+   "t": "2026-09-22T16:00:00-04:00",
+   "label": "랠리 지속",
+   "prices": {
+    "QQQ": 747.46,
+    "TQQQ": 80.83,
+    "SOXX": 572.78,
+    "TLT": 81.75,
+    "SHY": 81.32,
+    "GLD": 400.07,
+    "BIL": 91.57,
+    "PSQ": 24.78,
+    "SCHD": 33.74
+   }
+  }
+ ]
+}

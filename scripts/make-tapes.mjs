@@ -3,7 +3,7 @@
 // Replace with real intraday bars from the data adapter when available; the shape stays identical.
 import { writeFileSync, mkdirSync } from 'node:fs';
 
-function build({ id, title, boss, bossSpecies, market, example, start, labels, instruments, skills, checkpoints, lesson, briefing, concepts = [] }) {
+function build({ id, title, boss, bossSpecies, market, example, start, labels, instruments, skills, checkpoints, lesson, briefing, concepts = [], event }) {
   // instruments: { ID: { name, kind, start, path: [pct per bar...] } }
   const n = labels.length;
   const bars = labels.map((label, i) => ({ t: start[i], label, prices: {} }));
@@ -14,7 +14,7 @@ function build({ id, title, boss, bossSpecies, market, example, start, labels, i
     ins.path.forEach((pct, i) => { p = p * (1 + pct / 100); bars[i + 1].prices[iid] = round(p, ins.dp ?? 2); });
   }
   const insMeta = Object.fromEntries(Object.entries(instruments).map(([k, v]) => [k, { name: v.name, kind: v.kind, currency: v.currency || (market === 'KR' ? 'KRW' : 'USD') }]));
-  return { id, title, boss, bossSpecies, market, example, settled: true, briefing, lesson, concepts, instruments: insMeta, skills, checkpoints, bars };
+  return { id, title, boss, bossSpecies, market, example, settled: true, event, briefing, lesson, concepts, instruments: insMeta, skills, checkpoints, bars };
 }
 const round = (v, dp) => Math.round(v * 10 ** dp) / 10 ** dp;
 const kst = (d, hm) => `${d}T${hm}:00+09:00`;
@@ -24,7 +24,10 @@ const kst = (d, hm) => `${d}T${hm}:00+09:00`;
 /* ------------------------------------------------------------------ */
 const D1 = '2026-10-29';
 const fomc = build({
-  id: 'fomc-2026-10-29', title: '긴축의 미노타우로스 레이드', boss: '긴축의 미노타우로스', bossSpecies: 'minotaur', market: 'US', example: true,
+  id: 'fomc-2026-10-29', title: '10월 FOMC 레이드', boss: '동결이',
+  event: { kind: 'fomc', company: '미국 연준 FOMC', ticker: 'FOMC', logo: null, example: true, source: '일정은 실제, 시세 흐름은 예시 시나리오',
+    facts: [{ at: 0, label: '회의 일정', value: '10/28~29 · 결정 10/30 03:00 한국시간' }, { at: 0, label: '현재 기준금리', value: '3.75~4.00%' }, { at: 0, label: '시나리오(예시)', value: '동결 + 매파 기자회견' }] },
+  bossSpecies: 'minotaur', market: 'US', example: true,
   briefing: 'FOMC 결정은 동결이 90% 예상. 진짜 공격은 2페이즈 기자회견에서 온다. "앞으로 더 올릴 수 있다"는 한마디가 필살기다.',
   lesson: '시장은 결과 자체가 아니라 예상과의 차이에 반응해요. 동결은 이미 가격에 있었고, 기자회견의 톤이 새 정보였어요.',
   concepts: [
@@ -57,8 +60,8 @@ const fomc = build({
     { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '배당의 축복',    default: true,  lesson: '배당주도 주식이라 하락장에선 같이 밀려요. 대신 덜 밀려요.' },
   ],
   checkpoints: [
-    { bar: 3, title: '금리 결정 발표 1분 전', hint: '시장은 동결을 90% 예상하고 있다. 지금 바꿀까, 버틸까?', allow: ['hold', 'equip', 'rebalance'] },
-    { bar: 5, title: '기자회견 시작', hint: '의장의 첫 마디가 곧 나온다. 매파일까, 비둘기일까?', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 3, title: '금리 결정 발표 1분 전', hint: '시장은 동결을 90% 예상하고 있다. 지금 바꿀까, 버틸까?', bull: '동결 + 비둘기 문구면 안도 랠리. 레버리지가 가장 크게 먹는다.', bear: '점도표가 매파로 나오면 성장주부터 밀린다. 장기채·현금이 방패.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 5, title: '기자회견 시작', hint: '의장의 첫 마디가 곧 나온다. 매파일까, 비둘기일까?', bull: '"인하 논의 시작" 한마디면 지수가 튄다. 성장주·레버리지 유리.', bear: '"서두르지 않겠다"면 발표 전 상승분을 토해낸다. 배당·현금이 덜 맞는다.', allow: ['hold', 'equip', 'rebalance'] },
   ],
 });
 
@@ -67,7 +70,10 @@ const fomc = build({
 /* ------------------------------------------------------------------ */
 const D2 = '2026-10-28';
 const semi = build({
-  id: 'semi-earnings-2026-10-28', title: '반도체 와이번 레이드', boss: '반도체 와이번', bossSpecies: 'wyvern', market: 'KR', example: true,
+  id: 'semi-earnings-2026-10-28', title: '반도체 실적 레이드', boss: '불꽃이',
+  event: { kind: 'earnings', company: '반도체 대형주 실적 (예시 시나리오)', ticker: 'KSEMI', logo: 'assets/logos/samsung.png', example: true, logos: [{ src: 'assets/logos/samsung.png', name: '삼성전자' }, { src: 'assets/logos/skhynix.png', name: 'SK하이닉스' }], source: 'ETF 주요 구성 종목은 실제, 실적 숫자와 시세 흐름은 예시',
+    facts: [{ at: 0, label: 'ETF 주요 구성', value: '삼성전자 · SK하이닉스' }, { at: 0, label: '시나리오(예시)', value: '영업이익 컨센서스 상회, 가이던스는 유지' }, { at: 1, label: '시초가 반응(예시)', value: '반도체 ETF +2.6%', good: true }] },
+  bossSpecies: 'wyvern', market: 'KR', example: true,
   briefing: 'SK하이닉스 3분기 실적이 장 시작 전에 나온다. 컨센서스는 이미 높다. 좋은 실적이 아니라 "기대보다 좋은" 실적이어야 오른다.',
   lesson: '기대치가 이미 높을 때는 좋은 뉴스도 차익실현의 빌미가 돼요. 반도체 ETF는 결국 한 업종에 모여 있어서 함께 움직여요.',
   concepts: [
@@ -99,8 +105,8 @@ const semi = build({
     { id: 'support_kdiv',role: 'support', instrument: 'KDIV',  name: '배당의 축복',    default: true,  lesson: '고배당주는 성장주보다 덜 흔들려요.' },
   ],
   checkpoints: [
-    { bar: 1, title: '장 시작 직전', hint: '실적은 기대치를 넘었다. 그런데 기대치가 원래 높았다. 반도체로 몰아줄까?', allow: ['hold', 'equip', 'rebalance'] },
-    { bar: 4, title: '차익실현 조짐', hint: '첫 급등 뒤 매물이 나오기 시작했다. 이익을 지킬까, 더 갈까?', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 1, title: '장 시작 직전', hint: '실적은 기대치를 넘었다. 그런데 기대치가 원래 높았다. 반도체로 몰아줄까?', bull: '어닝 서프라이즈 + 가이던스 상향이면 반도체·레버리지가 갭 상승을 끌고 간다.', bear: '"이미 반영된 호재"면 시초가 급등 뒤 차익실현. 배당·채권이 완충.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 4, title: '차익실현 조짐', hint: '첫 급등 뒤 매물이 나오기 시작했다. 이익을 지킬까, 더 갈까?', bull: '외국인 순매수가 이어지면 눌림 뒤 재상승. 반도체 유지.', bear: '단기 과열 해소 구간이면 오후까지 밀린다. 현금·배당으로 이익 잠그기.', allow: ['hold', 'equip', 'rebalance'] },
   ],
 });
 
@@ -109,7 +115,10 @@ const semi = build({
 /* ------------------------------------------------------------------ */
 const D3 = '2026-10-29';
 const pce = build({
-  id: 'pce-2026-10-29', title: '인플레 불개미 떼 레이드', boss: '인플레 불개미 떼', bossSpecies: 'fireant', market: 'US', example: true,
+  id: 'pce-2026-10-29', title: '물가 지표(PCE) 레이드', boss: '불개미',
+  event: { kind: 'macro', company: '미국 9월 PCE 물가', ticker: 'PCE', logo: null, example: true, source: '일정은 실제, 숫자와 시세 흐름은 예시 시나리오',
+    facts: [{ at: 0, label: '발표 일정', value: '10/29(목) 21:30 한국시간' }, { at: 0, label: '예상치(예시)', value: '전년 대비 3.7%' }, { at: 1, label: '발표(예시)', value: '3.9% · 예상 상회', good: false }] },
+  bossSpecies: 'fireant', market: 'US', example: true,
   briefing: '9월 PCE 물가가 미국 장 시작 1시간 전에 나온다. 예상은 전년 대비 3.7%. 숫자가 예상보다 높으면 불개미 떼가 불어난다. 현금의 회복력이 떨어지고, 금만 버틴다.',
   lesson: '현금은 가격이 안 변해서 안전해 보이지만, 물가가 오르면 같은 돈으로 살 수 있는 게 줄어요. 금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요.',
   concepts: [
@@ -141,8 +150,8 @@ const pce = build({
     { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '배당의 축복',    default: true,  lesson: '배당주는 성장주보다 덜 밀리고 덜 올라요. 꾸준함이 무기예요.' },
   ],
   checkpoints: [
-    { bar: 1, title: 'PCE 발표 직전', hint: '예상은 3.7%. 지난달보다 높은 숫자가 예고돼 있다. 보험을 들까, 금을 믿을까?', allow: ['hold', 'equip', 'rebalance'] },
-    { bar: 3, title: '장 시작 직전', hint: '프리마켓에서 이미 많이 밀렸다. 여기서 더 방어할까, 반등을 노릴까?', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 1, title: 'PCE 발표 직전', hint: '예상은 3.7%. 지난달보다 높은 숫자가 예고돼 있다. 보험을 들까, 금을 믿을까?', bull: '예상치 이하로 나오면 "인플레 둔화" 안도감에 성장주 반등.', bear: '예상치 상회면 금리 인하 기대가 밀리며 나스닥·장기채 동반 약세. 풋옵션·현금이 보험.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 3, title: '장 시작 직전', hint: '프리마켓에서 이미 많이 밀렸다. 여기서 더 방어할까, 반등을 노릴까?', bull: '"악재 소화" 심리면 개장 후 저가 매수 유입. 레버리지가 반등을 크게 탄다.', bear: '프리마켓 낙폭이 본장에서 확대되는 날도 많다. 금·현금 비중이 생존선.', allow: ['hold', 'equip', 'rebalance'] },
   ],
 });
 

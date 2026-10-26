@@ -6,7 +6,7 @@
 ```
 npm install          # phaser, gsap, lightweight-charts (로컬 테스트용 사본)
 npm test             # 엔진 자동 테스트 (node:test)
-npm run tapes        # data/tapes/*.json 재생성 (예시 테이프)
+npm run tapes        # data/tapes/*.json 재생성 (예시 + 실제 종가 테이프)
 npm run build        # dist/index.html (CDN 라이브러리, 배포용) + dist/local.html (로컬 테스트용)
 npm run play         # Playwright 헤드리스 플레이스루 (한 판 끝까지 + 모바일 폭 점검)
 npm run play:shots   # 위와 같되 shots/ 에 스크린샷 저장
@@ -17,13 +17,16 @@ npm run play:shots   # 위와 같되 shots/ 에 스크린샷 저장
 ```
 src/
   engine.js      순수 로직. 테이프 검증, 어댑터, 파티, 전투 상태기계, 판정, 등급/경험치, 코치 해설, what-if
-  art.js         오리지널 캐릭터/보스 SVG (코드로 그림). 아픈 표정 변형 생성기 포함
   audio.js       WebAudio 합성 효과음·BGM (오디오 파일 없음)
-  game.js        화면 흐름, Phaser 전투 씬, 컷인, 체크포인트 모달, 차트, 리포트, 프로필
+  game.js        화면 흐름, Phaser 전투 씬(포즈+트윈), 차트(BattleChart), 체크포인트, 이벤트 자료, 도감·배지, 결과
   template.html  마크업 + CSS. 빌드 시 라이브러리·테이프·게임 코드가 삽입됨
 scripts/
-  make-tapes.mjs 예시 테이프 생성기 (이벤트 모양을 손으로 설계한 데이터)
-  build.mjs      단일 HTML 빌드
+  make-tapes.mjs       예시 테이프 생성기 (이벤트 모양을 손으로 설계한 데이터)
+  make-real-tapes.mjs  실제 일별 종가(stockanalysis.com)로 만든 실전 테이프 2개
+  tape-from-bars.mjs   분봉/일봉 파일 → 테이프 변환기
+  anime-import.py      AI 생성 시트 → 게임 스프라이트
+  build.mjs            단일 HTML 빌드
+art-src/         생성 원본 시트(크로마키 배경)
 data/tapes/      테이프 JSON (레이드 1개 = 파일 1개)
 test/
   engine.test.mjs 엔진 테스트
@@ -100,25 +103,36 @@ node scripts/tape-from-bars.mjs spec.json > data/tapes/<id>.json
 현재 `coachText()`는 규칙 기반(결정적)이다. LLM으로 바꿀 때는 같은 입력(파티 구성, 턴 로그, 체크포인트 선택, 개념 카드)을
 프롬프트로 넘기고 출력 형식만 맞추면 된다. 가드레일: 개념 설명만, 특정 상품 매수·매도 판단과 수익 전망 금지.
 
-## 아트 파이프라인 (Flare)
+## 아트 파이프라인 (AI 생성 치비 아트)
 
-캐릭터·보스·배경은 오픈소스 RPG [Flare](https://github.com/flareteam/flare-game)의 프리렌더 아트(CC-BY-SA 3.0)를 가져와 쓴다.
+캐릭터 4종·보스 5종·배경·이펙트는 이 프로젝트를 위해 생성한 **오리지널 디자인**이다 (Figma AI 이미지 생성, Gemini 모델, 총 12장).
+생성 원본 시트는 `art-src/`에, 게임용 스프라이트는 `dist/assets/anime/`에 있다.
 
 ```
-git clone --filter=blob:none --sparse https://github.com/flareteam/flare-game.git /tmp/flare
-cd /tmp/flare && git sparse-checkout set mods/fantasycore/images mods/fantasycore/animations mods/fantasycore/engine
-python3 scripts/flare-import.py /tmp/flare/mods/fantasycore     # -> dist/assets/flare/*
+python3 scripts/anime-import.py      # art-src/sheet_*.png -> dist/assets/anime/*  (크로마키 → 포즈 분리 → 공통 기준선 크롭 → 초상화)
 ```
 
-- `scripts/flare.py`: Flare 애니메이션 정의(`frame=index,dir,x,y,w,h,offX,offY`) 파서 + 레이어 합성 + Phaser JSON-hash 아틀라스 패커.
-- `scripts/flare-import.py`: 영웅 4종(갑옷·무기 레이어 조합, 방향 SE)과 보스(방향 SW)의 stance/swing/cast/shoot/hit/die 아틀라스, 초상화, 컷인용 전신 PNG, 던전 배경을 만든다.
-- 영웅 장비 구성과 보스 매핑은 `flare-import.py` 상단 `HEROES` / `BOSSES`에서 바꾼다. Flare에는 고블린, 스켈레톤(기사/마법사/궁수), 좀비, 개미지옥, 와이번(불/물/공중) 등이 더 있다.
-- 배포 시 `dist/assets/flare/`를 페이지와 함께 올린다(아티팩트는 `files`로, 서버는 정적 경로로). 상대 경로 `assets/flare/...`로 로드한다.
+- 한 시트 = 한 캐릭터의 3포즈(idle / attack / hurt). 같은 시트의 포즈는 같은 높이·발 위치로 잘라서 Phaser에서 텍스처만 바꿔도 발이 땅에 붙어 있다.
+- 전투 연출은 스프라이트 시트 애니메이션이 아니라 **정지 포즈 + 트윈**(바운스·돌진·넉백·스쿼시) + VFX 스프라이트(`fx_*.png`)로 만든다. 포켓몬류 연출 방식.
+- 새 보스를 추가하려면: 같은 프롬프트 규칙(3포즈, 왼쪽 보기, #00FF00 배경)으로 시트를 만들어 `art-src/sheet_boss_<이름>.png`로 두고 `anime-import.py`의 `SHEETS`, `game.js`의 `UNIT_OF_BOSS`/`BOSS_STYLE`/`BOSS_MOVES`에 한 줄씩 추가한다.
+- 기업 로고(`dist/assets/logos/`)는 Brandfetch에서 받은 각 사 등록상표로, 해당 기업의 실적·이벤트를 설명하는 자리에만 쓴다.
+
+## 이벤트 자료 (테이프 `event`)
+
+```jsonc
+"event": { "kind": "earnings|fomc|macro", "company": "Meta Platforms", "logo": "assets/logos/meta.png",
+  "logos": [{ "src": "...", "name": "Meta" }], "source": "출처",
+  "facts": [ { "at": 0, "label": "시장 예상 매출", "value": "$63.2B" },                     // at = 이 사실이 공개되는 bar 인덱스
+             { "at": 6, "label": "매출", "value": "$64.6B (+26%)", "note": "예상 상회", "good": true } ] }
+```
+
+브리핑에는 첫 체크포인트 이전(`at <= 첫 cp bar`) 사실만, 체크포인트에는 `at <= cp.bar`, 전투 중엔 턴이 지날 때 새로 공개되는 사실이 "속보"로 뜬다. 발표 전 스포일러가 나가지 않도록 `at`을 정확히 적는다.
 
 ## 라이선스·고지
 
-- 캐릭터·보스·배경 아트: Flare (flareteam/flare-game) CC-BY-SA 3.0. 저작자: Clint Bellanger, Justin Nichol, Justin Jacobs 외 (`dist/assets/flare/CREDITS.txt`). 화면 하단에 출처를 표기한다. 아트를 수정해 배포하면 같은 라이선스를 따라야 한다.
-- 효과음: 이 저장소에서 코드로 합성한 오리지널. `src/art.js`의 SVG 캐릭터는 초기 러프로, 현재 빌드에는 포함되지 않는다.
+- 캐릭터·보스·배경·이펙트: 이 프로젝트를 위해 AI로 생성한 오리지널 디자인 (`dist/assets/anime/CREDITS.txt`). 유명 캐릭터·실존 인물을 본뜨지 않는다.
+- 기업 로고: 각 사의 등록상표(Brandfetch 경유). 교육 목적의 사실 설명에만 쓰고, 상표권은 각 회사에 있다 (`dist/assets/logos/CREDITS.txt`).
+- 효과음: 이 저장소에서 코드로 합성한 오리지널.
 - 차트: [TradingView Lightweight Charts](https://github.com/tradingview/lightweight-charts) (Apache 2.0). 화면의 TradingView 로고 표기는 라이선스 조건이므로 지우지 말 것.
 - Phaser(MIT), GSAP(표준 라이선스, 무료 사용 범위 확인).
 - 예시 테이프의 가격은 실제 시세가 아니다. 특정 상품의 투자권유가 아니다.

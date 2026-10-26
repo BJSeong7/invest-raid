@@ -181,8 +181,9 @@ export function portfolioReturnPct(tape, party, i) {
 export function createBattle(tape, party, opts = {}) {
   const errs = [...validateTape(tape), ...validateParty(party, tape)];
   if (errs.length) throw new Error(errs.join('; '));
-  const hpScale = opts.hpPerPct ?? HP_PER_PCT;
-  const bossScale = opts.bossHpPerPct ?? BOSS_HP_PER_PCT;
+  // scale can be set per tape (daily bars move more than 30-minute bars)
+  const hpScale = opts.hpPerPct ?? tape.scale?.hpPerPct ?? HP_PER_PCT;
+  const bossScale = opts.bossHpPerPct ?? tape.scale?.bossHpPerPct ?? BOSS_HP_PER_PCT;
   return {
     tape, party: clone(party), hpScale, bossScale,
     bar: 0,                                   // index of the last processed bar

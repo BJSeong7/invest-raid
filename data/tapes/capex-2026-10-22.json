@@ -1,0 +1,379 @@
+{
+ "id": "capex-2026-10-22",
+ "title": "빅테크 실적 레이드",
+ "boss": "불꽃이",
+ "bossSpecies": "wyvern",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "source": "stockanalysis.com 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 15
+ },
+ "event": {
+  "kind": "earnings",
+  "company": "Meta Platforms",
+  "ticker": "META",
+  "logo": "assets/logos/meta.png",
+  "logos": [
+   {
+    "src": "assets/logos/meta.png",
+    "name": "Meta"
+   },
+   {
+    "src": "assets/logos/nvidia.png",
+    "name": "NVIDIA · 반도체 체인"
+   }
+  ],
+  "source": "Meta 3분기 실적 보도자료(2026-10-21) · TradingKey 마감 리뷰(2026-10-22)",
+  "facts": [
+   {
+    "at": 0,
+    "label": "발표 일정",
+    "value": "10/21(화) 뉴욕 장 마감 후"
+   },
+   {
+    "at": 0,
+    "label": "시장 예상 매출",
+    "value": "$63.2B"
+   },
+   {
+    "at": 0,
+    "label": "관전 포인트",
+    "value": "2026년 설비투자 가이던스 $130~145B 상향 여부"
+   },
+   {
+    "at": 6,
+    "label": "매출",
+    "value": "$64.6B (+26%)",
+    "note": "예상 $63.2B 상회",
+    "good": true
+   },
+   {
+    "at": 6,
+    "label": "주당순이익",
+    "value": "$3.83",
+    "note": "일회성 소송비 $9.9B 제외 시 $7.40"
+   },
+   {
+    "at": 6,
+    "label": "설비투자 가이던스",
+    "value": "$135~145B",
+    "note": "하단 상향 · 임차·계약 약정 약 $825B",
+    "good": false
+   },
+   {
+    "at": 6,
+    "label": "시간외 주가",
+    "value": "한때 +4%",
+    "good": true
+   },
+   {
+    "at": 7,
+    "label": "다음 날 주가",
+    "value": "−6.98%",
+    "note": "AI 투자 자금 조달 우려",
+    "good": false
+   },
+   {
+    "at": 7,
+    "label": "필라델피아 반도체",
+    "value": "−6.72%",
+    "note": "30개 종목 전부 하락 · 나스닥 −2.6%",
+    "good": false
+   }
+  ]
+ },
+ "briefing": "빅테크 실적 시즌. 10월 들어 반도체가 크게 밀렸다. 10/21 장 마감 후 메타 실적이 나오고, 시장의 관심은 실적보다 AI 설비투자 계획에 쏠려 있다. 실제 종가로 판정되는 레이드다.",
+ "lesson": "실적 숫자보다 설비투자 계획에 시장이 반응했어요. 돈을 많이 쓰면 \"수익성 부담\", 덜 쓰면 \"AI 수요 둔화\"로 읽히는 딜레마 구간이었어요.",
+ "concepts": [
+  {
+   "name": "기대치 대비 실적",
+   "text": "기대가 이미 높으면 좋은 실적도 매물의 빌미가 돼요. 이번 주 성장주와 반도체가 그랬어요."
+  },
+  {
+   "name": "업종 집중의 위험",
+   "text": "반도체 ETF는 여러 종목이지만 결국 한 업종이에요. 10월 한 달 반도체 지수는 지수보다 훨씬 크게 빠졌어요."
+  },
+  {
+   "name": "분산의 효과",
+   "text": "같은 주에 배당주와 장기채는 올랐어요. 역할을 나눠둔 파티가 버틴 이유예요."
+  },
+  {
+   "name": "3배 인버스의 성격",
+   "text": "3배 인버스는 하락 때 크게 벌지만 반등 하루에 크게 잃어요. 짧게, 소액으로만 쓰는 도구예요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SQQQ": {
+   "name": "나스닥100 3배 인버스 (SQQQ)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "장기채 방패",
+   "default": true,
+   "lesson": "주식이 흔들린 주에 장기채는 올랐어요. 방패가 제 역할을 한 주예요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "단기채 벽",
+   "lesson": "단기채는 거의 안 흔들리지만 공격력도 없어요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "질주 베기",
+   "default": true,
+   "lesson": "성장주는 설비투자 우려에 가장 먼저 밀렸어요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "반도체 돌격",
+   "lesson": "반도체는 이 주 가장 크게 흔들린 업종이에요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "폭주 돌진",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 하루 -2.9%를 -8.5%로 맞아요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "황금 가호",
+   "default": true,
+   "lesson": "금도 이 주엔 같이 빠졌어요. 안전자산이 늘 반대로 가는 건 아니에요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금 대기",
+   "lesson": "현금은 안 다치지만 보스도 못 때려요."
+  },
+  {
+   "id": "healer_sqqq",
+   "role": "healer",
+   "instrument": "SQQQ",
+   "blend": {
+    "SQQQ": 0.25,
+    "BIL": 0.75
+   },
+   "name": "역방향 부적",
+   "unlockLevel": 10,
+   "lesson": "슬롯의 25%만 3배 인버스에 뒀어요. 쇼크 당일엔 파티를 구했지만, 반등 날엔 거꾸로 맞아요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "배당의 축복",
+   "default": true,
+   "lesson": "배당주는 이 주에 오히려 올랐어요. 성장주에서 빠진 돈이 옮겨간 자리예요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "bar": 5,
+   "title": "메타 실적 발표 전날",
+   "hint": "내일 장 마감 후 메타 실적. 시장은 숫자보다 설비투자 계획을 본다. 늘리면 부담, 줄이면 수요 둔화. 어느 쪽이든 성장주엔 불편한 뉴스다.",
+   "bull": "광고 매출 서프라이즈 + 투자 효율 확인이면 AI 수혜주 전반 랠리.",
+   "bear": "설비투자 가이던스 상향은 \"비용 폭탄\"으로 읽힌다. 반도체·레버리지가 가장 크게 맞는다.",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  },
+  {
+   "bar": 6,
+   "title": "실적 발표 다음 날 아침",
+   "hint": "매출은 예상을 넘겼고 시간외에선 올랐다. 그런데 설비투자 가이던스 하단이 올라갔다. 오늘 하루 시장이 이 숫자를 어떻게 읽을까?",
+   "bull": "프리마켓 낙폭을 본장에서 되돌리는 \"딥 바잉\" 가능성. 반도체 유지가 보상받는다.",
+   "bear": "설비투자 부담이 섹터 전체로 번지면 하루 종일 밀린다. 인버스·현금으로 피하기.",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "t": "2026-10-14T16:00:00-04:00",
+   "label": "실적 시즌 대기",
+   "prices": {
+    "QQQ": 728.95,
+    "TQQQ": 74.12,
+    "SOXX": 519.42,
+    "TLT": 78.89,
+    "SHY": 81.17,
+    "GLD": 375.99,
+    "BIL": 91.52,
+    "SQQQ": 36,
+    "SCHD": 33.71
+   }
+  },
+  {
+   "t": "2026-10-15T16:00:00-04:00",
+   "label": "관망",
+   "prices": {
+    "QQQ": 728,
+    "TQQQ": 73.82,
+    "SOXX": 514.71,
+    "TLT": 79.97,
+    "SHY": 81.29,
+    "GLD": 382.71,
+    "BIL": 91.54,
+    "SQQQ": 36.14,
+    "SCHD": 34.1
+   }
+  },
+  {
+   "t": "2026-10-16T16:00:00-04:00",
+   "label": "반도체 급락",
+   "prices": {
+    "QQQ": 709.8,
+    "TQQQ": 68.21,
+    "SOXX": 493.39,
+    "TLT": 80.05,
+    "SHY": 81.36,
+    "GLD": 382.01,
+    "BIL": 91.57,
+    "SQQQ": 38.9,
+    "SCHD": 34.35
+   }
+  },
+  {
+   "t": "2026-10-19T16:00:00-04:00",
+   "label": "반등 시도",
+   "prices": {
+    "QQQ": 718.36,
+    "TQQQ": 70.64,
+    "SOXX": 501.93,
+    "TLT": 79.46,
+    "SHY": 81.31,
+    "GLD": 379.69,
+    "BIL": 91.57,
+    "SQQQ": 37.52,
+    "SCHD": 34.24
+   }
+  },
+  {
+   "t": "2026-10-20T16:00:00-04:00",
+   "label": "관망",
+   "prices": {
+    "QQQ": 717.63,
+    "TQQQ": 70.41,
+    "SOXX": 500.01,
+    "TLT": 80.13,
+    "SHY": 81.3,
+    "GLD": 377.65,
+    "BIL": 91.58,
+    "SQQQ": 37.68,
+    "SCHD": 34.69
+   }
+  },
+  {
+   "t": "2026-10-21T16:00:00-04:00",
+   "label": "메타 실적 발표일",
+   "prices": {
+    "QQQ": 725.2,
+    "TQQQ": 72.61,
+    "SOXX": 510.36,
+    "TLT": 80.24,
+    "SHY": 81.29,
+    "GLD": 378.95,
+    "BIL": 91.6,
+    "SQQQ": 36.48,
+    "SCHD": 34.66
+   }
+  },
+  {
+   "t": "2026-10-22T16:00:00-04:00",
+   "label": "AI 투자 비용 우려",
+   "prices": {
+    "QQQ": 704.47,
+    "TQQQ": 66.42,
+    "SOXX": 475.69,
+    "TLT": 81.74,
+    "SHY": 81.52,
+    "GLD": 369,
+    "BIL": 91.6,
+    "SQQQ": 39.6,
+    "SCHD": 35.4
+   }
+  },
+  {
+   "t": "2026-10-23T16:00:00-04:00",
+   "label": "주말 전",
+   "prices": {
+    "QQQ": 704.4,
+    "TQQQ": 66.29,
+    "SOXX": 478.2,
+    "TLT": 81.34,
+    "SHY": 81.5,
+    "GLD": 366.61,
+    "BIL": 91.63,
+    "SQQQ": 39.68,
+    "SCHD": 35.27
+   }
+  }
+ ]
+}

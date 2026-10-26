@@ -1,0 +1,1 @@
+캐릭터·보스·배경·이펙트: 이 프로젝트를 위해 AI(Figma AI 이미지 생성, Gemini 모델)로 생성한 오리지널 디자인. 프롬프트와 가공 파이프라인: scripts/anime-import.py

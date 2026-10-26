@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('/opt/npm-tools/node_modules/playwright/index.js');
 
 const root = new URL('../dist/', import.meta.url);
-const types = { html: 'text/html; charset=utf-8', js: 'text/javascript', json: 'application/json', png: 'image/png', jpg: 'image/jpeg' };
+const types = { html: 'text/html; charset=utf-8', js: 'text/javascript', json: 'application/json', png: 'image/png', jpg: 'image/jpeg', woff2: 'font/woff2' };
 const server = createServer((req, res) => {
   const p = decodeURIComponent(req.url.split('?')[0]).replace(/^\//, '') || 'local.html';
   const f = new URL(p, root);
@@ -28,11 +28,16 @@ try {
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   await page.goto(`http://127.0.0.1:${port}/local.html`);
   await page.waitForFunction(() => window.__rpg && document.querySelectorAll('.raid').length > 0);
-  check((await page.$$('.raid:not(.upcoming)')).length === 3 && (await page.$$('.raid.upcoming')).length === 2, 'raid select shows 3 raids + 2 upcoming');
+  await page.waitForSelector('#tut:not([hidden])', { timeout: 5000 });
+  check(true, 'first-visit tutorial opens');
+  await page.click('#tutNext'); await page.click('#tutNext'); await page.click('#tutNext');
+  await page.waitForSelector('#tut', { state: 'hidden' });
+  check((await page.$$('#raids .raid')).length === 2 && (await page.$$('#raidsExample .raid')).length === 3 && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'raid select shows 2 real + 3 training + 3 upcoming');
+  check((await page.textContent('#raids .raid:first-child')).includes('실제 종가'), 'real raids carry the real-data chip');
   await shot(page, '1-select');
 
   // brief
-  await page.click('.raid:has-text("미노타우로스")');
+  await page.click('#raidsExample .raid:has-text("10월 FOMC")');
   await page.waitForSelector('#screen-brief:not([hidden])');
   check(await page.textContent('#bTitle') !== '', 'briefing title filled');
   await shot(page, '2-brief');
@@ -40,12 +45,12 @@ try {
   // party: push dealer to 60, tank 10 (sum stays 100 via explicit set)
   await page.click('#toParty');
   await page.waitForSelector('#screen-party:not([hidden])');
-  await page.fill('#w-dealer', '60'); await page.dispatchEvent('#w-dealer', 'input');
-  await page.fill('#w-tank', '0'); await page.dispatchEvent('#w-tank', 'input');   // 60+0+20+15 = 95
-  check(await page.isDisabled('#startBattle') === true, 'start disabled while weights != 100');
-  await page.fill('#w-tank', '10'); await page.dispatchEvent('#w-tank', 'input');
-  await page.fill('#w-healer', '15'); await page.dispatchEvent('#w-healer', 'input');
-  check(await page.isDisabled('#startBattle') === false, 'start enabled at 100');
+  for (let i = 0; i < 4; i++) await page.click('.wbtn[data-w="dealer"][data-d="5"]');   // 40 -> 60, taken from the largest other role
+  check((await page.evaluate(() => Object.values(window.__rpg.profile ? 1 : 1))) !== null && (await page.textContent('#o-dealer')) === '60%', 'dealer stepped to 60% and total stays 100');
+  await page.click('.wbtn[data-w="tank"][data-d="-5"]');
+  check(await page.isDisabled('#startBattle') === true && (await page.textContent('#sumTxt')).includes('남은 비중 5%'), 'freed weight shows as 남은 비중 and start waits');
+  await page.click('.wbtn[data-w="healer"][data-d="5"]');
+  check(await page.isDisabled('#startBattle') === false, 'start enabled once the pool is reassigned');
   // locked skill shows toast, not equip
   const lockedBtn = await page.$('#sk-dealer .skill .lock');
   check(!!lockedBtn, 'leverage skill is locked at Lv.1');
@@ -85,13 +90,17 @@ try {
   const coach = await page.textContent('#coachBubble');
   check(coach.length > 20, 'coach text typed');
   const decisions = await page.textContent('#rDecisions');
-  check(decisions.includes('버티기') && decisions.includes('→'), 'decision log lists hold + equip');
+  check(decisions.includes('그대로') && decisions.includes('→'), 'decision log lists hold + equip');
   await shot(page, '6-result');
 
   // profile persisted
   const prof = await page.evaluate(() => JSON.parse(localStorage.getItem('invest-rpg.profile.v1')));
   check(prof && prof.exp >= 0 && prof.plays['fomc-2026-10-29']?.count === 1, 'profile saved with play count');
 
+  // collection
+  await page.click('#dexBtn'); await page.waitForSelector('#dex:not([hidden])');
+  check((await page.$$('#dexBosses .dex:not(.unknown)')).length === 1 && (await page.$$('#dexBadges .badge.on')).length >= 1, '도감 shows the met boss and earned badges');
+  await page.click('#dexClose');
   // retry flow goes back to party screen
   await page.click('#retryBtn');
   await page.waitForSelector('#screen-party:not([hidden])');
@@ -99,15 +108,13 @@ try {
 
   // second raid quickly at 4x with default party (KR tape)
   await page.click('#backToBrief'); await page.click('#backToSelect');
-  await page.click('.raid:has-text("와이번")');
-  await page.click('#toParty'); await page.click('#presetBtn'); await page.click('#startBattle');
+  await page.click('#raidsExample .raid:has-text("반도체 실적")');
+  await page.click('#toParty'); await page.click('[data-preset="balanced"]'); await page.click('#startBattle');
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
   await page.click('#cp [data-tab="rebalance"]');
-  await page.fill('#cw-dealer', '70'); await page.dispatchEvent('#cw-dealer', 'input');
-  check(await page.isDisabled('#cpRebalBtn') === true, 'rebalance confirm disabled when sum != 100');
-  await page.fill('#cw-tank', '0'); await page.dispatchEvent('#cw-tank', 'input');
-  await page.fill('#cw-healer', '15'); await page.dispatchEvent('#cw-healer', 'input');
-  await page.fill('#cw-support', '15'); await page.dispatchEvent('#cw-support', 'input');
+  await page.click('#cpSliders .wbtn[data-cw="tank"][data-d="-5"]');
+  check(await page.isDisabled('#cpRebalBtn') === true, 'rebalance confirm disabled while weight is unassigned');
+  await page.click('#cpSliders .wbtn[data-cw="dealer"][data-d="5"]');
   check(await page.isDisabled('#cpRebalBtn') === false, 'rebalance confirm enabled at 100');
   await page.click('#cpRebalBtn');
   await page.waitForSelector('#cp', { state: 'hidden' });
@@ -116,19 +123,43 @@ try {
   await page.waitForSelector('#screen-result:not([hidden])', { timeout: 60000 });
   check(true, 'KR raid completed: ' + (await page.textContent('#rStamp')).trim() + ' ' + (await page.textContent('#rRet')).trim());
 
+  // third raid: real daily-close tape (lich boss) — date labels, chart without clock times, hedge equip at checkpoint 1
+  await page.click('#otherBtn');
+  await page.waitForSelector('#screen-select:not([hidden])');
+  await page.click('#raids .raid:has-text("9월 FOMC")');
+  await page.waitForSelector('#screen-brief:not([hidden])');
+  check((await page.textContent('#bDate')).includes('뉴욕 종가'), 'daily tape briefing says 뉴욕 종가: ' + (await page.textContent('#bDate')).trim());
+  check(/\d\d\/\d\d\(.\)/.test(await page.textContent('#bTimeline')), 'daily timeline shows dates, not clock times');
+  await page.click('#toParty'); await page.click('[data-preset="balanced"]'); await page.click('#startBattle');
+  await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
+  check(/\d\d\/\d\d/.test(await page.textContent('#cpTitle')), 'daily checkpoint title carries the date: ' + (await page.textContent('#cpTitle')).trim());
+  await page.click('#cp [data-tab="equip"]');
+  const healerOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:not(:disabled)');
+  const lockedOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:disabled');
+  check(healerOpts.length >= 1 && lockedOpts.length >= 1, `daily tape healer has ${healerOpts.length} open + ${lockedOpts.length} locked alternatives`);
+  await healerOpts[0].click();
+  await page.waitForSelector('#cp', { state: 'hidden' });
+  await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
+  await page.click('#cpHoldBtn');
+  await page.waitForSelector('#screen-result:not([hidden])', { timeout: 60000 });
+  check(/^[SABCDF]$/.test((await page.textContent('#rStamp')).trim()), 'real-data raid completed: ' + (await page.textContent('#rStamp')).trim() + ' ' + (await page.textContent('#rRet')).trim());
+  check((await page.textContent('#hTime')).includes('뉴욕 종가'), 'battle HUD unit note says 뉴욕 종가');
+  await shot(page, '6b-result-real');
+
   await page.close();   // free the software GPU before the next Phaser instance
   // phone width sanity: no horizontal overflow on select screen
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await phone.goto(`http://127.0.0.1:${port}/local.html`);
   await phone.waitForFunction(() => document.querySelectorAll('.raid').length > 0);
+  await phone.waitForSelector('#tut:not([hidden])'); await phone.click('#tutSkip'); await phone.waitForSelector('#tut', { state: 'hidden' });
   const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(overflow <= 0, 'no horizontal overflow at 390px (' + overflow + ')');
-  await phone.click('.raid'); await phone.click('#toParty');
+  await phone.click('#raids .raid'); await phone.click('#toParty');
   const ov2 = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(ov2 <= 0, 'no horizontal overflow on party screen at 390px (' + ov2 + ')');
   await shot(phone, '7-phone-party');
   await phone.evaluate(() => window.__rpg.setSpeed(4));
-  await phone.click('#presetBtn');
+  await phone.click('[data-preset="balanced"]');
   const t0 = Date.now();
   await phone.evaluate(() => document.querySelector('#startBattle').click());   // don't block on the (heavy) Phaser boot
   await phone.waitForSelector('#cp:not([hidden])', { timeout: 60000 });
@@ -143,6 +174,7 @@ try {
   const cutPage = await browser.newPage({ viewport: { width: 1000, height: 700 } });
   await cutPage.goto(`http://127.0.0.1:${port}/local.html`);
   await cutPage.waitForFunction(() => window.__rpg);
+  await cutPage.waitForSelector('#tut:not([hidden])'); await cutPage.click('#tutSkip');
   const cutDone = cutPage.evaluate(() => window.__rpg.previewCut('hit'));
   await cutPage.waitForTimeout(520);
   await shot(cutPage, '8-cutin');

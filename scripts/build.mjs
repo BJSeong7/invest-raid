@@ -21,6 +21,10 @@ mkdirSync(new URL('../dist/vendor/', import.meta.url), { recursive: true });
 copyFileSync(new URL('../node_modules/phaser/dist/phaser.min.js', import.meta.url), new URL('../dist/vendor/phaser.min.js', import.meta.url));
 copyFileSync(new URL('../node_modules/gsap/dist/gsap.min.js', import.meta.url), new URL('../dist/vendor/gsap.min.js', import.meta.url));
 copyFileSync(new URL('../node_modules/lightweight-charts/dist/lightweight-charts.standalone.production.js', import.meta.url), new URL('../dist/vendor/lightweight-charts.standalone.production.js', import.meta.url));
+mkdirSync(new URL('../dist/vendor/fonts/', import.meta.url), { recursive: true });
+for (const [src, dst] of [['@fontsource/jua/files/jua-korean-400-normal.woff2', 'jua.woff2'], ['@fontsource/black-han-sans/files/black-han-sans-korean-400-normal.woff2', 'bhs.woff2'], ['@fontsource/noto-sans-kr/files/noto-sans-kr-korean-400-normal.woff2', 'nskr-400.woff2'], ['@fontsource/noto-sans-kr/files/noto-sans-kr-korean-500-normal.woff2', 'nskr-500.woff2'], ['@fontsource/noto-sans-kr/files/noto-sans-kr-korean-700-normal.woff2', 'nskr-700.woff2']]) {
+  try { copyFileSync(new URL('../node_modules/' + src, import.meta.url), new URL('../dist/vendor/fonts/' + dst, import.meta.url)); } catch (e) { console.warn('font missing', src); }
+}
 
 const tpl = read('src/template.html');
 for (const [variant, libs] of Object.entries(LIBS)) {
@@ -29,7 +33,12 @@ for (const [variant, libs] of Object.entries(LIBS)) {
     .replace('<!--LIBS-->', () => libs.map(u => `<script src="${u}"></script>`).join('\n'))
     .replace('<!--TAPES-->', () => `<script>window.__TAPES__ = ${JSON.stringify(tapes)};</script>`)
     .replace('<!--GAME-->', () => `<script type="module">\n${inline}\n</script>`);
-  if (variant === 'local') html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>${html}</body></html>`;
+  if (variant === 'local') {
+    // headless tests cannot reach Google Fonts: serve the same faces from node_modules (@fontsource)
+    const face = (fam, file, w = 400) => `@font-face{font-family:'${fam}';font-style:normal;font-weight:${w};src:url(vendor/fonts/${file}) format('woff2')}`;
+    const fonts = `<style>${face('Jua', 'jua.woff2')}${face('Black Han Sans', 'bhs.woff2')}${face('Noto Sans KR', 'nskr-400.woff2', 400)}${face('Noto Sans KR', 'nskr-500.woff2', 500)}${face('Noto Sans KR', 'nskr-700.woff2', 700)}</style>`;
+    html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">${fonts}</head><body>${html.replace(/<link rel="stylesheet" href="https:\/\/fonts.googleapis.com[^>]*>/, '')}</body></html>`;
+  }
   writeFileSync(new URL(`../dist/${variant === 'cdn' ? 'index' : 'local'}.html`, import.meta.url), html);
   console.log(`dist/${variant === 'cdn' ? 'index' : 'local'}.html`, (html.length / 1024).toFixed(0) + ' KB');
 }

@@ -30,7 +30,7 @@ test('replay adapter lists and loads', async () => {
   const list = await ad.list();
   assert.equal(list.length, 2);
   const t = await ad.load('fomc-2026-10-29');
-  assert.equal(t.boss, '긴축의 미노타우로스');
+  assert.equal(t.boss, '동결이');
   await assert.rejects(ad.load('nope'));
 });
 

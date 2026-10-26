@@ -1,11 +1,47 @@
 {
  "id": "semi-earnings-2026-10-28",
- "title": "반도체 와이번 레이드",
- "boss": "반도체 와이번",
+ "title": "반도체 실적 레이드",
+ "boss": "불꽃이",
  "bossSpecies": "wyvern",
  "market": "KR",
  "example": true,
  "settled": true,
+ "event": {
+  "kind": "earnings",
+  "company": "반도체 대형주 실적 (예시 시나리오)",
+  "ticker": "KSEMI",
+  "logo": "assets/logos/samsung.png",
+  "example": true,
+  "logos": [
+   {
+    "src": "assets/logos/samsung.png",
+    "name": "삼성전자"
+   },
+   {
+    "src": "assets/logos/skhynix.png",
+    "name": "SK하이닉스"
+   }
+  ],
+  "source": "ETF 주요 구성 종목은 실제, 실적 숫자와 시세 흐름은 예시",
+  "facts": [
+   {
+    "at": 0,
+    "label": "ETF 주요 구성",
+    "value": "삼성전자 · SK하이닉스"
+   },
+   {
+    "at": 0,
+    "label": "시나리오(예시)",
+    "value": "영업이익 컨센서스 상회, 가이던스는 유지"
+   },
+   {
+    "at": 1,
+    "label": "시초가 반응(예시)",
+    "value": "반도체 ETF +2.6%",
+    "good": true
+   }
+  ]
+ },
  "briefing": "SK하이닉스 3분기 실적이 장 시작 전에 나온다. 컨센서스는 이미 높다. 좋은 실적이 아니라 \"기대보다 좋은\" 실적이어야 오른다.",
  "lesson": "기대치가 이미 높을 때는 좋은 뉴스도 차익실현의 빌미가 돼요. 반도체 ETF는 결국 한 업종에 모여 있어서 함께 움직여요.",
  "concepts": [
@@ -137,6 +173,8 @@
    "bar": 1,
    "title": "장 시작 직전",
    "hint": "실적은 기대치를 넘었다. 그런데 기대치가 원래 높았다. 반도체로 몰아줄까?",
+   "bull": "어닝 서프라이즈 + 가이던스 상향이면 반도체·레버리지가 갭 상승을 끌고 간다.",
+   "bear": "\"이미 반영된 호재\"면 시초가 급등 뒤 차익실현. 배당·채권이 완충.",
    "allow": [
     "hold",
     "equip",
@@ -147,6 +185,8 @@
    "bar": 4,
    "title": "차익실현 조짐",
    "hint": "첫 급등 뒤 매물이 나오기 시작했다. 이익을 지킬까, 더 갈까?",
+   "bull": "외국인 순매수가 이어지면 눌림 뒤 재상승. 반도체 유지.",
+   "bear": "단기 과열 해소 구간이면 오후까지 밀린다. 현금·배당으로 이익 잠그기.",
    "allow": [
     "hold",
     "equip",
