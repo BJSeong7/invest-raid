@@ -1,0 +1,361 @@
+{
+ "credits": "Art: Flare (flareteam/flare-game), CC-BY-SA 3.0. Clint Bellanger, Justin Nichol, Justin Jacobs and contributors.",
+ "units": {
+  "hero_tank": {
+   "anims": {
+    "stance": {
+     "frames": 4,
+     "duration": 800,
+     "type": "back_forth"
+    },
+    "swing": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "cast": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "shoot": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "block": {
+     "frames": 2,
+     "duration": 66,
+     "type": "play_once"
+    },
+    "hit": {
+     "frames": 2,
+     "duration": 133,
+     "type": "play_once"
+    },
+    "die": {
+     "frames": 6,
+     "duration": 800,
+     "type": "play_once"
+    }
+   },
+   "origin": [
+    0.5,
+    0.8125
+   ],
+   "canvas": [
+    256,
+    256
+   ]
+  },
+  "hero_dealer": {
+   "anims": {
+    "stance": {
+     "frames": 4,
+     "duration": 800,
+     "type": "back_forth"
+    },
+    "swing": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "cast": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "shoot": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "block": {
+     "frames": 2,
+     "duration": 66,
+     "type": "play_once"
+    },
+    "hit": {
+     "frames": 2,
+     "duration": 133,
+     "type": "play_once"
+    },
+    "die": {
+     "frames": 6,
+     "duration": 800,
+     "type": "play_once"
+    }
+   },
+   "origin": [
+    0.5,
+    0.8125
+   ],
+   "canvas": [
+    256,
+    256
+   ]
+  },
+  "hero_healer": {
+   "anims": {
+    "stance": {
+     "frames": 4,
+     "duration": 800,
+     "type": "back_forth"
+    },
+    "swing": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "cast": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "shoot": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "block": {
+     "frames": 2,
+     "duration": 66,
+     "type": "play_once"
+    },
+    "hit": {
+     "frames": 2,
+     "duration": 133,
+     "type": "play_once"
+    },
+    "die": {
+     "frames": 6,
+     "duration": 800,
+     "type": "play_once"
+    }
+   },
+   "origin": [
+    0.5,
+    0.8125
+   ],
+   "canvas": [
+    256,
+    256
+   ]
+  },
+  "hero_support": {
+   "anims": {
+    "stance": {
+     "frames": 4,
+     "duration": 800,
+     "type": "back_forth"
+    },
+    "swing": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "cast": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "shoot": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "block": {
+     "frames": 2,
+     "duration": 66,
+     "type": "play_once"
+    },
+    "hit": {
+     "frames": 2,
+     "duration": 133,
+     "type": "play_once"
+    },
+    "die": {
+     "frames": 6,
+     "duration": 800,
+     "type": "play_once"
+    }
+   },
+   "origin": [
+    0.5,
+    0.8125
+   ],
+   "canvas": [
+    256,
+    256
+   ]
+  },
+  "boss_minotaur": {
+   "anims": {
+    "stance": {
+     "frames": 8,
+     "duration": 1600,
+     "type": "looped"
+    },
+    "swing": {
+     "frames": 8,
+     "duration": 1066,
+     "type": "play_once"
+    },
+    "cast": {
+     "frames": 8,
+     "duration": 800,
+     "type": "play_once"
+    },
+    "hit": {
+     "frames": 3,
+     "duration": 200,
+     "type": "back_forth"
+    },
+    "die": {
+     "frames": 8,
+     "duration": 1066,
+     "type": "back_forth"
+    },
+    "run": {
+     "frames": 8,
+     "duration": 533,
+     "type": "looped"
+    }
+   },
+   "origin": [
+    0.5,
+    0.8461538461538461
+   ],
+   "canvas": [
+    520,
+    520
+   ]
+  },
+  "boss_wyvern": {
+   "anims": {
+    "stance": {
+     "frames": 8,
+     "duration": 800,
+     "type": "looped"
+    },
+    "swing": {
+     "frames": 8,
+     "duration": 1066,
+     "type": "play_once"
+    },
+    "cast": {
+     "frames": 8,
+     "duration": 800,
+     "type": "play_once"
+    },
+    "hit": {
+     "frames": 8,
+     "duration": 533,
+     "type": "play_once"
+    },
+    "die": {
+     "frames": 8,
+     "duration": 1066,
+     "type": "play_once"
+    },
+    "run": {
+     "frames": 8,
+     "duration": 533,
+     "type": "looped"
+    }
+   },
+   "origin": [
+    0.5,
+    0.8461538461538461
+   ],
+   "canvas": [
+    520,
+    520
+   ]
+  },
+  "boss_fireant": {
+   "anims": {
+    "stance": {
+     "frames": 4,
+     "duration": 533,
+     "type": "back_forth"
+    },
+    "swing": {
+     "frames": 4,
+     "duration": 266,
+     "type": "play_once"
+    },
+    "cast": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "hit": {
+     "frames": 2,
+     "duration": 133,
+     "type": "back_forth"
+    },
+    "die": {
+     "frames": 6,
+     "duration": 800,
+     "type": "play_once"
+    },
+    "run": {
+     "frames": 8,
+     "duration": 533,
+     "type": "looped"
+    }
+   },
+   "origin": [
+    0.5,
+    0.8461538461538461
+   ],
+   "canvas": [
+    520,
+    520
+   ]
+  },
+  "boss_skeleton": {
+   "anims": {
+    "stance": {
+     "frames": 4,
+     "duration": 533,
+     "type": "back_forth"
+    },
+    "swing": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "cast": {
+     "frames": 4,
+     "duration": 400,
+     "type": "play_once"
+    },
+    "hit": {
+     "frames": 2,
+     "duration": 133,
+     "type": "back_forth"
+    },
+    "die": {
+     "frames": 6,
+     "duration": 800,
+     "type": "play_once"
+    },
+    "run": {
+     "frames": 8,
+     "duration": 533,
+     "type": "looped"
+    }
+   },
+   "origin": [
+    0.5,
+    0.8461538461538461
+   ],
+   "canvas": [
+    520,
+    520
+   ]
+  }
+ }
+}

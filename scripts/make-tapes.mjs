@@ -24,7 +24,7 @@ const kst = (d, hm) => `${d}T${hm}:00+09:00`;
 /* ------------------------------------------------------------------ */
 const D1 = '2026-10-29';
 const fomc = build({
-  id: 'fomc-2026-10-29', title: '동결의 골렘 레이드', boss: '동결의 골렘', bossSpecies: 'golem', market: 'US', example: true,
+  id: 'fomc-2026-10-29', title: '긴축의 미노타우로스 레이드', boss: '긴축의 미노타우로스', bossSpecies: 'minotaur', market: 'US', example: true,
   briefing: 'FOMC 결정은 동결이 90% 예상. 진짜 공격은 2페이즈 기자회견에서 온다. "앞으로 더 올릴 수 있다"는 한마디가 필살기다.',
   lesson: '시장은 결과 자체가 아니라 예상과의 차이에 반응해요. 동결은 이미 가격에 있었고, 기자회견의 톤이 새 정보였어요.',
   concepts: [
@@ -53,8 +53,8 @@ const fomc = build({
     { id: 'dealer_tqqq',role: 'dealer',  instrument: 'TQQQ',  name: '폭주 돌진',    unlockLevel: 5, lesson: '3배 레버리지는 같은 방향이면 3배, 반대면 반동도 3배예요.' },
     { id: 'healer_gld', role: 'healer',  instrument: 'GLD',   name: '황금 가호',    default: true,  lesson: '금은 금리가 오를 땐 이자를 못 줘서 약해지기도 해요.' },
     { id: 'healer_cash',role: 'healer',  instrument: 'BIL',   name: '현금 대기',                   lesson: '현금은 안 다치지만 보스도 못 때려요.' },
-    { id: 'healer_put', role: 'healer',  instrument: 'QQQ_P', blend: { QQQ_P: 0.25, BIL: 0.75 }, name: '도토리 보험',  unlockLevel: 10, lesson: '보험은 소액이 원칙이에요. 슬롯의 25%만 풋옵션에 쓰고 나머지는 현금으로 뒀어요. 평소엔 보험료가 녹지만 급락 땐 파티를 구해요.' },
-    { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '꿀 모으기',    default: true,  lesson: '배당주도 주식이라 하락장에선 같이 밀려요. 대신 덜 밀려요.' },
+    { id: 'healer_put', role: 'healer',  instrument: 'QQQ_P', blend: { QQQ_P: 0.25, BIL: 0.75 }, name: '수호의 계약',  unlockLevel: 10, lesson: '보험은 소액이 원칙이에요. 슬롯의 25%만 풋옵션에 쓰고 나머지는 현금으로 뒀어요. 평소엔 보험료가 녹지만 급락 땐 파티를 구해요.' },
+    { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '배당의 축복',    default: true,  lesson: '배당주도 주식이라 하락장에선 같이 밀려요. 대신 덜 밀려요.' },
   ],
   checkpoints: [
     { bar: 3, title: '금리 결정 발표 1분 전', hint: '시장은 동결을 90% 예상하고 있다. 지금 바꿀까, 버틸까?', allow: ['hold', 'equip', 'rebalance'] },
@@ -67,7 +67,7 @@ const fomc = build({
 /* ------------------------------------------------------------------ */
 const D2 = '2026-10-28';
 const semi = build({
-  id: 'semi-earnings-2026-10-28', title: '반도체 쌍두 히드라 레이드', boss: '반도체 쌍두 히드라', bossSpecies: 'hydra', market: 'KR', example: true,
+  id: 'semi-earnings-2026-10-28', title: '반도체 와이번 레이드', boss: '반도체 와이번', bossSpecies: 'wyvern', market: 'KR', example: true,
   briefing: 'SK하이닉스 3분기 실적이 장 시작 전에 나온다. 컨센서스는 이미 높다. 좋은 실적이 아니라 "기대보다 좋은" 실적이어야 오른다.',
   lesson: '기대치가 이미 높을 때는 좋은 뉴스도 차익실현의 빌미가 돼요. 반도체 ETF는 결국 한 업종에 모여 있어서 함께 움직여요.',
   concepts: [
@@ -95,8 +95,8 @@ const semi = build({
     { id: 'dealer_k200l',role: 'dealer',  instrument: 'K200L', name: '폭주 돌진',    unlockLevel: 5, lesson: '레버리지는 하루 안에서도 반동이 두 배예요.' },
     { id: 'healer_kgold',role: 'healer',  instrument: 'KGOLD', name: '황금 가호',    default: true,  lesson: '금은 주식이 흔들릴 때 조용히 버텨줘요.' },
     { id: 'healer_kcash',role: 'healer',  instrument: 'KCASH', name: '현금 대기',                   lesson: '현금은 안 다치지만 보스도 못 때려요.' },
-    { id: 'healer_kput', role: 'healer',  instrument: 'K200_P', blend: { K200_P: 0.25, KCASH: 0.75 }, name: '도토리 보험',  unlockLevel: 10, lesson: '슬롯의 25%만 풋옵션, 나머지는 현금이에요. 급등 땐 보험료가 빠르게 녹아요. 타이밍이 전부예요.' },
-    { id: 'support_kdiv',role: 'support', instrument: 'KDIV',  name: '꿀 모으기',    default: true,  lesson: '고배당주는 성장주보다 덜 흔들려요.' },
+    { id: 'healer_kput', role: 'healer',  instrument: 'K200_P', blend: { K200_P: 0.25, KCASH: 0.75 }, name: '수호의 계약',  unlockLevel: 10, lesson: '슬롯의 25%만 풋옵션, 나머지는 현금이에요. 급등 땐 보험료가 빠르게 녹아요. 타이밍이 전부예요.' },
+    { id: 'support_kdiv',role: 'support', instrument: 'KDIV',  name: '배당의 축복',    default: true,  lesson: '고배당주는 성장주보다 덜 흔들려요.' },
   ],
   checkpoints: [
     { bar: 1, title: '장 시작 직전', hint: '실적은 기대치를 넘었다. 그런데 기대치가 원래 높았다. 반도체로 몰아줄까?', allow: ['hold', 'equip', 'rebalance'] },
@@ -109,8 +109,8 @@ const semi = build({
 /* ------------------------------------------------------------------ */
 const D3 = '2026-10-29';
 const pce = build({
-  id: 'pce-2026-10-29', title: '인플레 슬라임 레이드', boss: '인플레 슬라임', bossSpecies: 'slime', market: 'US', example: true,
-  briefing: '9월 PCE 물가가 미국 장 시작 1시간 전에 나온다. 예상은 전년 대비 3.7%. 숫자가 예상보다 높으면 슬라임이 분열한다. 현금의 회복력이 떨어지고, 금만 버틴다.',
+  id: 'pce-2026-10-29', title: '인플레 불개미 떼 레이드', boss: '인플레 불개미 떼', bossSpecies: 'fireant', market: 'US', example: true,
+  briefing: '9월 PCE 물가가 미국 장 시작 1시간 전에 나온다. 예상은 전년 대비 3.7%. 숫자가 예상보다 높으면 불개미 떼가 불어난다. 현금의 회복력이 떨어지고, 금만 버틴다.',
   lesson: '현금은 가격이 안 변해서 안전해 보이지만, 물가가 오르면 같은 돈으로 살 수 있는 게 줄어요. 금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요.',
   concepts: [
     { name: '인플레이션과 구매력', text: '물가가 오르면 현금의 실질 가치는 줄어요. 금융이해력 조사에서 가장 크게 떨어진 바로 그 문항이에요.' },
@@ -135,10 +135,10 @@ const pce = build({
     { id: 'tank_shy',   role: 'tank',    instrument: 'SHY',   name: '단기채 벽',                   lesson: '단기채는 거의 안 흔들리지만 공격력도 없어요.' },
     { id: 'dealer_qqq', role: 'dealer',  instrument: 'QQQ',   name: '질주 베기',    default: true,  lesson: '성장주는 금리 기대가 올라가면 먼저 밀려요. 대신 회복도 빨라요.' },
     { id: 'dealer_tqqq',role: 'dealer',  instrument: 'TQQQ',  name: '폭주 돌진',    unlockLevel: 5, lesson: '3배 레버리지는 반등 구간에선 영웅, 급락 구간에선 반동이에요.' },
-    { id: 'healer_gld', role: 'healer',  instrument: 'GLD',   name: '황금 가호',    default: true,  lesson: '금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요. 슬라임 앞에서 버틴 이유예요.' },
-    { id: 'healer_cash',role: 'healer',  instrument: 'BIL',   name: '현금 대기',                   lesson: '현금은 숫자는 안 변하지만, 물가가 오르면 살 수 있는 게 줄어요. 슬라임의 진짜 공격이에요.' },
-    { id: 'healer_put', role: 'healer',  instrument: 'QQQ_P', blend: { QQQ_P: 0.25, BIL: 0.75 }, name: '도토리 보험',  unlockLevel: 10, lesson: '발표 전에 든 보험은 비쌌지만 분열 구간에서 값을 했어요. 반등이 오면 보험료는 다시 녹아요.' },
-    { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '꿀 모으기',    default: true,  lesson: '배당주는 성장주보다 덜 밀리고 덜 올라요. 꾸준함이 무기예요.' },
+    { id: 'healer_gld', role: 'healer',  instrument: 'GLD',   name: '황금 가호',    default: true,  lesson: '금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요. 불개미 떼 앞에서 버틴 이유예요.' },
+    { id: 'healer_cash',role: 'healer',  instrument: 'BIL',   name: '현금 대기',                   lesson: '현금은 숫자는 안 변하지만, 물가가 오르면 살 수 있는 게 줄어요. 불개미 떼의 진짜 공격이에요.' },
+    { id: 'healer_put', role: 'healer',  instrument: 'QQQ_P', blend: { QQQ_P: 0.25, BIL: 0.75 }, name: '수호의 계약',  unlockLevel: 10, lesson: '발표 전에 든 보험은 비쌌지만 분열 구간에서 값을 했어요. 반등이 오면 보험료는 다시 녹아요.' },
+    { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '배당의 축복',    default: true,  lesson: '배당주는 성장주보다 덜 밀리고 덜 올라요. 꾸준함이 무기예요.' },
   ],
   checkpoints: [
     { bar: 1, title: 'PCE 발표 직전', hint: '예상은 3.7%. 지난달보다 높은 숫자가 예고돼 있다. 보험을 들까, 금을 믿을까?', allow: ['hold', 'equip', 'rebalance'] },

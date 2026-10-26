@@ -30,7 +30,7 @@ test('replay adapter lists and loads', async () => {
   const list = await ad.list();
   assert.equal(list.length, 2);
   const t = await ad.load('fomc-2026-10-29');
-  assert.equal(t.boss, '동결의 골렘');
+  assert.equal(t.boss, '긴축의 미노타우로스');
   await assert.rejects(ad.load('nope'));
 });
 
@@ -179,7 +179,7 @@ test('coach text is produced and mentions the worst role', () => {
   const s = runToEnd(createBattle(fomc, defaultParty(fomc)));
   const lines = coachText(s);
   assert.ok(lines.length >= 2);
-  assert.ok(lines.join(' ').includes('쌩쌩이'));
+  assert.ok(lines.join(' ').includes('카일'));
 });
 
 test('KR tape: semiconductor concentration is punished by the profit-taking leg', () => {
@@ -198,7 +198,7 @@ test('alternatives enumerate single-action strategies and are sorted best first'
   const expected = 1 + fomc.checkpoints.length * ROLES.reduce((a, r) => a + fomc.skills.filter(s => s.role === r).length - 1, 0);
   assert.equal(alts.length, expected);
   for (let i = 1; i < alts.length; i++) assert.ok(alts[i - 1].returnPct >= alts[i].returnPct);
-  assert.ok(alts[0].label.includes('도토리 보험'), 'best move in a hawkish surprise is the hedge: ' + alts[0].label);
+  assert.ok(alts[0].label.includes('수호의 계약'), 'best move in a hawkish surprise is the hedge: ' + alts[0].label);
   assert.ok(alts.at(-1).label.includes('폭주 돌진'), 'worst move is leverage before the drop: ' + alts.at(-1).label);
   const hold = alts.find(a => a.detail.type === 'hold');
   assert.ok(Math.abs(hold.returnPct - runToEnd(createBattle(fomc, defaultParty(fomc))).result.returnPct) < 1e-9);

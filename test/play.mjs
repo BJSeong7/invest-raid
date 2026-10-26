@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('/opt/npm-tools/node_modules/playwright/index.js');
 
 const root = new URL('../dist/', import.meta.url);
-const types = { html: 'text/html; charset=utf-8', js: 'text/javascript', json: 'application/json' };
+const types = { html: 'text/html; charset=utf-8', js: 'text/javascript', json: 'application/json', png: 'image/png', jpg: 'image/jpeg' };
 const server = createServer((req, res) => {
   const p = decodeURIComponent(req.url.split('?')[0]).replace(/^\//, '') || 'local.html';
   const f = new URL(p, root);
@@ -32,7 +32,7 @@ try {
   await shot(page, '1-select');
 
   // brief
-  await page.click('.raid:has-text("골렘")');
+  await page.click('.raid:has-text("미노타우로스")');
   await page.waitForSelector('#screen-brief:not([hidden])');
   check(await page.textContent('#bTitle') !== '', 'briefing title filled');
   await shot(page, '2-brief');
@@ -99,7 +99,7 @@ try {
 
   // second raid quickly at 4x with default party (KR tape)
   await page.click('#backToBrief'); await page.click('#backToSelect');
-  await page.click('.raid:has-text("히드라")');
+  await page.click('.raid:has-text("와이번")');
   await page.click('#toParty'); await page.click('#presetBtn'); await page.click('#startBattle');
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
   await page.click('#cp [data-tab="rebalance"]');

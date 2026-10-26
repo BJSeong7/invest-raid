@@ -1,8 +1,8 @@
 {
  "id": "semi-earnings-2026-10-28",
- "title": "반도체 쌍두 히드라 레이드",
- "boss": "반도체 쌍두 히드라",
- "bossSpecies": "hydra",
+ "title": "반도체 와이번 레이드",
+ "boss": "반도체 와이번",
+ "bossSpecies": "wyvern",
  "market": "KR",
  "example": true,
  "settled": true,
@@ -119,7 +119,7 @@
     "K200_P": 0.25,
     "KCASH": 0.75
    },
-   "name": "도토리 보험",
+   "name": "수호의 계약",
    "unlockLevel": 10,
    "lesson": "슬롯의 25%만 풋옵션, 나머지는 현금이에요. 급등 땐 보험료가 빠르게 녹아요. 타이밍이 전부예요."
   },
@@ -127,7 +127,7 @@
    "id": "support_kdiv",
    "role": "support",
    "instrument": "KDIV",
-   "name": "꿀 모으기",
+   "name": "배당의 축복",
    "default": true,
    "lesson": "고배당주는 성장주보다 덜 흔들려요."
   }

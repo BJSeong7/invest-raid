@@ -4,7 +4,7 @@
   "description": "모험단 레이드: 실제 시장 이벤트가 보스가 되는 투자 교육 웹게임 엔진",
   "main": "index.js",
   "scripts": {
-    "test": "node --test test/engine.test.mjs",
+    "test": "node --test test/engine.test.mjs test/tape-from-bars.test.mjs",
     "tapes": "node scripts/make-tapes.mjs",
     "build": "node scripts/build.mjs",
     "play": "node test/play.mjs",

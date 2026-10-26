@@ -82,6 +82,16 @@ const live = new LiveAdapter('https://api.example/raids', url => fetch(url).then
 // 두 어댑터 모두 list() -> [{id,title,boss,date,market,settled}], load(id) -> tape
 ```
 
+### 실제 분봉으로 테이프 만들기
+
+```
+node scripts/tape-from-bars.mjs spec.json > data/tapes/<id>.json
+```
+
+`spec.json`에 컷 시각(`cuts`)과 심볼별 분봉 파일 경로(`instruments.*.bars`, JSON `[{t,c}]` 또는 CSV)를 적으면,
+각 컷 시각 **이전의 마지막 종가**를 샘플링해 테이프를 만든다(미래 참조 없음). 옵션 계약도 같은 방식으로 한 심볼로 넣는다.
+결과는 `validateTape`를 통과해야 저장된다. 자세한 형식은 스크립트 상단 주석 참고.
+
 라이브 서버가 할 일: 이번 주 이벤트 일정 → 보스 생성(LLM, 사람 검수) → 발표 전엔 `settled:false` 테이프, 발표 후 실제 분봉으로 bars 채움.
 실제 데이터 후보: 미국 ETF·옵션 분봉(Alpaca 등 시세 API), 국내 ETF 분봉(사내 시세). 사용 조건은 서비스 노출 전 확인.
 
