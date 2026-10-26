@@ -20,6 +20,14 @@ const fmtPct = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 // current value is equity × its current weight — the number a brokerage user actually wants to see.
 const SEED = 10_000_000;
 const fmtKRW = n => Math.round(n).toLocaleString('ko-KR') + '원';
+// tiny inline icons (currentColor) so labels read as game UI, not form labels
+const ICON = {
+  coin: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  flag: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4" stroke="#7458C9" stroke-width="2.4" stroke-linecap="round"/><path d="M6 5h11l-3 4 3 4H6z" fill="#A58CF0" stroke="#7458C9" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+  bolt: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="#FFD54A" stroke="#B9841A" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  chart: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16" stroke="#24405F" stroke-width="2" stroke-linecap="round"/><path d="M5 15l4-5 4 3 6-8" fill="none" stroke="#E0A72E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  skull: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a8 8 0 0 0-8 8c0 3 1.5 5 3 6v3h10v-3c1.5-1 3-3 3-6a8 8 0 0 0-8-8z" fill="#fff" stroke="#8A2E2A" stroke-width="1.8"/><circle cx="9" cy="11" r="1.8" fill="#8A2E2A"/><circle cx="15" cy="11" r="1.8" fill="#8A2E2A"/><path d="M10 17h4" stroke="#8A2E2A" stroke-width="1.6" stroke-linecap="round"/></svg>',
+};
 const fmtKRWd = n => (n >= 0 ? '+' : '−') + Math.abs(Math.round(n)).toLocaleString('ko-KR') + '원';
 const totalValue = () => SEED * battle.equity / 100;
 const roleValue = role => totalValue() * battle.party.weights[role] / 100;
@@ -175,7 +183,7 @@ function renderNewsline(nextBar) {
   const fresh = (ev.facts || []).filter(f => f.at === nextBar);
   if (!fresh.length) return;
   const f = fresh[0];
-  el.innerHTML = `${ev.logo ? `<img src="${ev.logo}" alt="">` : ''}<b>속보</b><span>${f.label} <strong>${f.value}</strong>${f.note ? ` · ${f.note}` : ''}${fresh.length > 1 ? ` 외 ${fresh.length - 1}건` : ''}</span>`;
+  el.innerHTML = `${ICON.bolt}${ev.logo ? `<img src="${ev.logo}" alt="">` : ''}<b>속보</b><span>${f.label} <strong>${f.value}</strong>${f.note ? ` · ${f.note}` : ''}${fresh.length > 1 ? ` 외 ${fresh.length - 1}건` : ''}</span>`;
   el.hidden = false; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
 
@@ -676,7 +684,7 @@ function renderBossHud() {
   $('#hBossName').textContent = (drama.rage && battle.bossHp > 0 ? '격노한 ' : '') + currentTape.boss; $('#hBossPf').src = portrait(bossUnit(currentTape.bossSpecies));
   $('#hBossHp').style.width = battle.bossHp + '%'; $('#hBossHpTxt').textContent = Math.round(battle.bossHp);
   const goal = SEED * (1 + 1 / battle.bossScale);
-  $('#hBreak').textContent = battle.bossHp <= 0 ? '격파!' : `격파까지 ${fmtKRW(Math.max(0, goal - totalValue()))}`;
+  $('#hBreak').innerHTML = battle.bossHp <= 0 ? `${ICON.skull} 격파!` : `${ICON.coin} 격파까지 ${fmtKRW(Math.max(0, goal - totalValue()))}`;
   const cps = currentTape.checkpoints || [], passed = cps.filter(c => c.bar <= battle.bar).length;
   $('#hPhase').innerHTML = `<span>페이즈 ${Math.min(passed + 1, cps.length + 1)}/${cps.length + 1}</span>` + Array.from({ length: cps.length + 1 }, (_, i) => `<i class="${i < passed ? 'done' : i === passed ? 'now' : ''}"></i>`).join('');
 }
@@ -926,7 +934,7 @@ async function showCheckpoint(cp) {
     const m = $('#cp'); m.hidden = false;
     setTimeout(() => showTip('cp'), 300);
     const cps = currentTape.checkpoints, idx = cps.indexOf(cp);
-    $('#cpStep').textContent = `체크포인트 ${idx + 1} / ${cps.length} · ${cpWhen(cp)}`;
+    $('#cpStep').innerHTML = `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length} · ${cpWhen(cp)}`;
     $('#cpTitle span:last-child').textContent = cp.title;
     const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
     $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간: <b>${fmtBar(next.t)} ${next.label}</b> · 결정은 한 번만</span>`;
@@ -1015,7 +1023,7 @@ async function showResult() {
   $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
   $('#rMoney').textContent = fmtKRW(totalValue());
   $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)} · 내가 ${fmtPct(r.alpha)}`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
-  $('#rMore').open = false;
+  $('#rMore').open = true;
   $('#rBoss').textContent = r.bossDown ? '격파' : `HP ${Math.round(s.bossHp)} 남음`;
   $('#rAlive').textContent = `${r.alive} / 4`;
   const cs = ROLES.map(role => ({ role, c: contribution(s, role) })); const mx = Math.max(.2, ...cs.map(x => Math.abs(x.c)));
