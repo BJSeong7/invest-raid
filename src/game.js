@@ -123,6 +123,9 @@ const SCREENS = ['select', 'brief', 'party', 'battle', 'result'];
 function showScreen(name) {
   SCREENS.forEach(s => { $('#screen-' + s).hidden = s !== name; });
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  $('#tip').hidden = true;
+  if (name === 'brief' || name === 'party' || name === 'result') setTimeout(() => showTip(name), 450);
+  if (name === 'battle') setTimeout(() => showTip('battle'), 1800);
 }
 function toast(msg, ms = 1800) {
   const t = $('#toast'); t.textContent = msg;
@@ -921,6 +924,7 @@ async function showCheckpoint(cp) {
   return new Promise(resolve => {
     sfx.pause();
     const m = $('#cp'); m.hidden = false;
+    setTimeout(() => showTip('cp'), 300);
     const cps = currentTape.checkpoints, idx = cps.indexOf(cp);
     $('#cpStep').textContent = `체크포인트 ${idx + 1} / ${cps.length} · ${cpWhen(cp)}`;
     $('#cpTitle span:last-child').textContent = cp.title;
@@ -950,7 +954,7 @@ async function showCheckpoint(cp) {
     const setTab = name => { tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpHold').hidden = name !== 'hold'; $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
     tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
     setTab('hold');
-    const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); resolve(); };
+    const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; $('#tip').hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); resolve(); };
     $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip
     const lvl = effectiveLevel();
@@ -1088,7 +1092,26 @@ function openTutorial() { tutStep = 0; renderTut(); $('#tut').hidden = false; }
 $('#tutNext').addEventListener('click', () => { sfx.select(); if (tutStep < TUT.length - 1) { tutStep++; renderTut(); } else { $('#tut').hidden = true; profile.seenTutorial = true; saveProfile(); } });
 $('#tutSkip').addEventListener('click', () => { sfx.back(); $('#tut').hidden = true; profile.seenTutorial = true; saveProfile(); });
 $('#helpBtn').addEventListener('click', () => { sfx.select(); openTutorial(); });
-if (!profile.seenTutorial) setTimeout(openTutorial, 400);
+// ---- guided first raid: one coach tip per screen, shown once (replaces the up-front modal) ----
+const TIPS = {
+  select: ['먼저 <b>훈련 레이드</b> 하나를 골라 보세요. 예시 시세라 부담 없이 연습할 수 있어요.', 'raidsExample'],
+  brief: ['보스 = 실제 시장 이벤트예요. 이벤트 자료와 지금까지의 차트를 보고 <b>파티 짜기</b>를 누르세요.', 'toParty'],
+  party: ['비중 = 포트폴리오, 상품 = 실제 ETF·채권·옵션. 처음엔 <b>프리셋 하나</b>만 고르고 출발해도 돼요.', 'startBattle'],
+  battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
+  cp: ['여기가 핵심. 선택지마다 <b>▲ 오르면 / ▼ 내리면 걸린 돈</b>이 적혀 있어요. 30초 안에 하나를 고르세요.', 'cpHoldBtn'],
+  result: ['<b>같은 시장, 다른 선택이었다면</b>이 복기예요. 최고 선택과 내 선택의 차이가 곧 배울 점이에요.', 'rWhatIf'],
+};
+function showTip(key) {
+  if (profile.seenTutorial || profile.tips?.[key]) return;
+  const [html, anchor] = TIPS[key]; const el = $('#tip');
+  el.querySelector('p').innerHTML = html; el.hidden = false;
+  const a = anchor && $('#' + anchor); el.style.setProperty('--tip-top', '');
+  if (a && window.innerWidth > 700) { const r = a.getBoundingClientRect(); el.style.top = Math.max(8, r.top + window.scrollY - el.offsetHeight - 14) + 'px'; el.classList.add('anchored'); } else { el.style.top = ''; el.classList.remove('anchored'); }
+  profile.tips = { ...(profile.tips || {}), [key]: true }; saveProfile();
+  if (Object.keys(profile.tips).length >= Object.keys(TIPS).length) { profile.seenTutorial = true; saveProfile(); }
+}
+$('#tipClose').addEventListener('click', () => { $('#tip').hidden = true; });
+setTimeout(() => showTip('select'), 600);
 $('#muteBtn').addEventListener('click', () => { unlock(); const m = !isMuted(); setMuted(m); $('#muteBtn').textContent = m ? '소리 끔' : '소리'; $('#muteBtn').setAttribute('aria-pressed', String(m)); });
 $('#resetBtn').addEventListener('click', () => {
   if (Date.now() - (window.__resetArmed || 0) < 3000) { profile = { level: 1, exp: 0, unlockAll: false, plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: true }; saveProfile(); renderProfile(); renderSelect(); toast('진행 상황을 초기화했어요'); $('#resetBtn').textContent = '진행 초기화'; return; }

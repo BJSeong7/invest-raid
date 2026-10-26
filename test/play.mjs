@@ -28,10 +28,9 @@ try {
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   await page.goto(`http://127.0.0.1:${port}/local.html`);
   await page.waitForFunction(() => window.__rpg && document.querySelectorAll('.raid').length > 0);
-  await page.waitForSelector('#tut:not([hidden])', { timeout: 5000 });
-  check(true, 'first-visit tutorial opens');
-  await page.click('#tutNext'); await page.click('#tutNext'); await page.click('#tutNext');
-  await page.waitForSelector('#tut', { state: 'hidden' });
+  await page.waitForSelector('#tip:not([hidden])', { timeout: 5000 });
+  check(true, 'first-visit coach tip appears');
+  await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
   check((await page.$$('#raids .raid')).length === 2 && (await page.$$('#raidsExample .raid')).length === 3 && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'raid select shows 2 real + 3 training + 3 upcoming');
   check((await page.textContent('#raids .raid:first-child')).includes('실제 종가'), 'real raids carry the real-data chip');
   await shot(page, '1-select');
@@ -152,7 +151,7 @@ try {
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await phone.goto(`http://127.0.0.1:${port}/local.html`);
   await phone.waitForFunction(() => document.querySelectorAll('.raid').length > 0);
-  await phone.waitForSelector('#tut:not([hidden])'); await phone.click('#tutSkip'); await phone.waitForSelector('#tut', { state: 'hidden' });
+
   const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(overflow <= 0, 'no horizontal overflow at 390px (' + overflow + ')');
   await phone.click('#raids .raid'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; });
@@ -175,7 +174,7 @@ try {
   const cutPage = await browser.newPage({ viewport: { width: 1000, height: 700 } });
   await cutPage.goto(`http://127.0.0.1:${port}/local.html`);
   await cutPage.waitForFunction(() => window.__rpg);
-  await cutPage.waitForSelector('#tut:not([hidden])'); await cutPage.click('#tutSkip');
+
   const cutDone = cutPage.evaluate(() => window.__rpg.previewCut('hit'));
   await cutPage.waitForTimeout(520);
   await shot(cutPage, '8-cutin');
