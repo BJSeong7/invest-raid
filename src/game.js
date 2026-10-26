@@ -39,6 +39,8 @@ const fmtDate = iso => `${iso.slice(0, 4)}.${iso.slice(5, 7)}.${iso.slice(8, 10)
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
 /** Bar label: daily tapes print the trading date ("09/16(수)"), intraday tapes the KST clock time. */
 const fmtBar = (iso, tape = currentTape) => tape?.daily ? `${iso.slice(5, 7)}/${iso.slice(8, 10)}(${WD[new Date(iso.slice(0, 10) + 'T12:00:00Z').getUTCDay()]})` : iso.slice(11, 16);
+/** when a checkpoint happens: daily tapes pause after the previous close, intraday tapes right before the next bar */
+const cpWhen = (cp, tape = currentTape) => tape?.daily ? `${fmtBar(tape.bars[Math.max(0, cp.bar - 1)].t, tape)} 마감 후` : fmtBar(tape.bars[cp.bar].t, tape);
 const unitNote = (tape = currentTape) => tape?.daily ? '뉴욕 종가' : 'KST';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const charOf = role => ({ name: ROLE_META[role].char, title: ROLE_META[role].title });
@@ -853,11 +855,11 @@ function heroLines(cp) {
 }
 let cpChart = null, cpTimer = null;
 async function showCheckpoint(cp) {
-  if (speed < 4) await cutIn({ text: '체크포인트!', sub: `${fmtBar(currentTape.bars[cp.bar].t)} ${cp.title}`, bg: '#2F6BD0', artL: null, artR: null }, Math.max(1.6, speedFactor()));
+  if (speed < 4) await cutIn({ text: '체크포인트!', sub: `${cpWhen(cp)} · ${cp.title}`, bg: '#2F6BD0', artL: null, artR: null }, Math.max(1.6, speedFactor()));
   return new Promise(resolve => {
     sfx.pause();
     const m = $('#cp'); m.hidden = false;
-    $('#cpTitle span:last-child').textContent = `${fmtBar(currentTape.bars[cp.bar].t)} ${cp.title}`;
+    $('#cpTitle span:last-child').textContent = `${cpWhen(cp)} · ${cp.title}`;
     const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
     $('#cpHint').innerHTML = `${cp.hint} <span class="muted">다음 구간 <b>${fmtBar(next.t)} ${next.label}</b></span>`;
     // the chart is the question: real closes up to now, the rest still hidden

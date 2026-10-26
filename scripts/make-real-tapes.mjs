@@ -368,7 +368,7 @@ const capex = buildTape({
   event: { kind: 'earnings', company: 'Meta Platforms', ticker: 'META', logo: 'assets/logos/meta.png', logos: [{ src: 'assets/logos/meta.png', name: 'Meta' }, { src: 'assets/logos/nvidia.png', name: 'NVIDIA · 반도체 체인' }],
     source: 'Meta 3분기 실적 보도자료(2026-10-21) · TradingKey 마감 리뷰(2026-10-22)',
     facts: [
-      { at: 0, label: '발표 일정', value: '10/21(화) 뉴욕 장 마감 후' },
+      { at: 0, label: '발표 일정', value: '10/21(수) 뉴욕 장 마감 후' },
       { at: 0, label: '시장 예상 매출', value: '$63.2B' },
       { at: 0, label: '관전 포인트', value: '2026년 설비투자 가이던스 $130~145B 상향 여부' },
       { at: 6, label: '매출', value: '$64.6B (+26%)', note: '예상 $63.2B 상회', good: true },
