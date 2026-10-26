@@ -154,15 +154,15 @@ function renderSelect() {
     const span = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)}` : fmtDate(t.bars[0].t);
     b.innerHTML = `<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
       <div class="meta"><h3>${t.title}</h3>
-      <div class="row" style="gap:6px"><span class="chip ${t.market === 'US' ? 'us' : 'kr'}">${t.market === 'US' ? '미국' : '국내'} · ${span}</span>${t.example ? '<span class="chip example">예시 데이터</span>' : '<span class="chip real">실제 종가</span>'}</div>
-      <span class="small muted">${t.bars.length - 1}${t.daily ? '거래일' : '구간'} · 체크포인트 ${t.checkpoints.length}회${best ? ` · <span class="best">최고 ${best}</span>` : ''}</span></div>`;
+      <div class="row" style="gap:6px"><span class="chip ${t.market === 'US' ? 'us' : 'kr'}">${t.market === 'US' ? '미국' : '국내'} · ${span}</span></div>
+      ${best ? `<span class="small"><span class="best">최고 ${best}</span></span>` : ''}</div>`;
     b.addEventListener('click', () => { unlock(); sfx.select(); openBrief(t.id); });
     $(t.example ? '#raidsExample' : '#raids').appendChild(b);
   });
   UPCOMING.forEach(u => {
     const d = document.createElement('div'); d.className = 'raid upcoming';
     d.innerHTML = `<img src="${portrait(bossUnit(u.species))}" alt="" class="pf" style="filter:brightness(.25) contrast(1.2) sepia(.4)">
-      <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)} 예정</span><span class="chip" style="color:var(--purple)">주간 라이브</span></div><span class="small muted">보스 ${u.boss} · ${u.note}</span></div>`;
+      <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)}</span></div><span class="small muted">보스 ${u.boss}</span></div>`;
     $('#raidsUpcoming').appendChild(d);
   });
 }
@@ -178,14 +178,13 @@ function eventCardHTML(tape, nextBar, opts = {}) {
   return head + body + (opts.source !== false && ev.source ? `<div class="src">출처 · ${ev.source}</div>` : '');
 }
 /** a one-line "속보" under the battle chart when a new fact becomes known at this bar */
-function renderNewsline(nextBar) {
-  const el = $('#newsline'); const ev = currentTape.event; if (!ev) { el.hidden = true; return; }
+/** the one new fact of this bar, if any — shown in the arena banner (one message at a time), not as a second strip */
+function freshFact(nextBar) {
+  const ev = currentTape.event; if (!ev) return null;
   const fresh = (ev.facts || []).filter(f => f.at === nextBar);
-  if (!fresh.length) return;
-  const f = fresh[0];
-  el.innerHTML = `${ICON.bolt}${ev.logo ? `<img src="${ev.logo}" alt="">` : ''}<b>속보</b><span>${f.label} <strong>${f.value}</strong>${f.note ? ` · ${f.note}` : ''}${fresh.length > 1 ? ` 외 ${fresh.length - 1}건` : ''}</span>`;
-  el.hidden = false; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  return fresh.length ? `${fresh[0].label} ${fresh[0].value}${fresh.length > 1 ? ` 외 ${fresh.length - 1}건` : ''}` : null;
 }
+function renderNewsline() { $('#newsline').hidden = true; }
 
 /* ---------- 2. briefing ---------- */
 let bChart = null;
@@ -520,7 +519,7 @@ class BattleScene extends Phaser.Scene {
     const mag = Math.min(1, Math.abs(ret) / 1.5);
     const moves = BOSS_MOVES[currentTape.bossSpecies] || BOSS_MOVES.minotaur;
     const bossMove = moves[turn.bar % moves.length];
-    this.banner(turn.label, ret < 0 ? `${currentTape.boss}의 ${bossMove} · 파티 ${fmtPct(ret)}` : `모험단의 반격 · 파티 ${fmtPct(ret)}`, ret < 0 ? '#FF9A94' : '#FFD54A', speed);
+    this.banner(turn.label, hooks.news ? `속보 · ${hooks.news}` : ret < 0 ? `${currentTape.boss}의 ${bossMove} · 파티 ${fmtPct(ret)}` : `모험단의 반격 · 파티 ${fmtPct(ret)}`, ret < 0 ? '#FF9A94' : '#FFD54A', speed);
     await sleep(d(200));
     await hooks.onMarket?.();   // the chart moves first; the characters answer the market
     await sleep(d(120));
@@ -842,7 +841,7 @@ async function startBattle() {
   game.scale.refresh();
   await sc.setup(currentTape);
   renderBossHud(); renderPartyHud(); renderTurnLine(null);
-  rebuildBattleChart(); $('#newsline').hidden = true; renderNewsline(0);
+  rebuildBattleChart(); renderNewsline();
   $('#chartNote').textContent = currentTape.daily ? `${currentTape.bars.length - 1}거래일 · 일별 종가 · 실제 데이터` : `${currentTape.bars.length - 1}구간 · 30분~1시간 단위${currentTape.example ? ' · 예시 데이터' : ''}`;
   startBgm(.3);
   await cutIn({ text: `${currentTape.boss} 출현!`, sub: `${fmtDate(currentTape.bars[0].t)} · ${currentTape.bars.length - 1}${currentTape.daily ? '거래일' : '구간'} 레이드`, bg: '#5B3FA8', artL: null, artR: cutArt(bossUnit(currentTape.bossSpecies)) }, Math.max(1, speedFactor() / 2));
@@ -862,7 +861,8 @@ async function raidLoop() {
     const rageNow = !drama.rage && battle.bossHp > 0 && battle.bossHp <= 50; if (rageNow) drama.rage = true;
     await scene.playTurn(turn, sp, {
       combo: drama.combo, rage: drama.rage && !rageNow, rageNow,
-      onMarket: async () => { flashChart(ret); await Promise.all([battleChart.reveal(turn.bar, 520 / sp), battleChartEq.reveal(turn.bar, 520 / sp)]); renderChartLegends(); renderTurnLine(turn); renderNewsline(turn.bar + 1); },
+      news: freshFact(turn.bar + 1),
+      onMarket: async () => { flashChart(ret); await Promise.all([battleChart.reveal(turn.bar, 520 / sp), battleChartEq.reveal(turn.bar, 520 / sp)]); renderChartLegends(); renderTurnLine(turn); },
       onImpact: () => { renderPartyHud(turn); renderBossHud(); },
       onGuard: () => { drama.guards++; },
     });

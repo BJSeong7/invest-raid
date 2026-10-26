@@ -32,7 +32,7 @@ try {
   check(true, 'first-visit coach tip appears');
   await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
   check((await page.$$('#raids .raid')).length === 2 && (await page.$$('#raidsExample .raid')).length === 3 && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'raid select shows 2 real + 3 training + 3 upcoming');
-  check((await page.textContent('#raids .raid:first-child')).includes('실제 종가'), 'real raids carry the real-data chip');
+  check((await page.textContent('#screen-select .section-h')).includes('실제 종가'), 'real raid section carries the real-data chip');
   await shot(page, '1-select');
 
   // brief

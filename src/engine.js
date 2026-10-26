@@ -348,24 +348,22 @@ export function classifyCut(portfolioRet, roles) {
 }
 
 export function coachText(state) {
+  // Three short sentences, no more: what happened, the one thing that decided it, the lesson of this raid.
   const r = state.result || settle(state);
   const byRole = ROLES.map(role => ({ role, c: contribution(state, role), w: state.party.weights[role], skill: state.party._bySkill[state.party.skills[role]] }));
   const worst = [...byRole].sort((a, b) => a.c - b.c)[0];
   const best = [...byRole].sort((a, b) => b.c - a.c)[0];
-  const lines = [];
   const sign = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
-  lines.push(`이번 레이드 수익률은 ${sign(r.returnPct)}, 기본 파티 대비 ${sign(r.alpha)}였어요.`);
-  if (worst.c < -0.3) lines.push(`가장 크게 다친 건 ${ROLE_META[worst.role].char}(${worst.skill.name}, 비중 ${worst.w}%)예요. ${worst.skill.lesson || ''}`.trim());
-  if (best.c > 0.3) lines.push(`${ROLE_META[best.role].char}(${best.skill.name})가 파티를 지탱했어요. ${best.skill.lesson || ''}`.trim());
+  const lines = [];
+  const mover = Math.abs(worst.c) > Math.abs(best.c) ? worst : best;
+  lines.push(`${sign(r.returnPct)}로 마쳤고, 기본 파티보다 ${sign(r.alpha)}예요. ${mover.c < 0 ? '가장 크게 깎은 건' : '가장 크게 벌어준 건'} ${ROLE_META[mover.role].char}의 ${mover.skill.name}(비중 ${mover.w}%)였어요.`);
+  const eq = state.actions?.find(a => a.type === 'equip');
   const maxW = Math.max(...ROLES.map(x => state.party.weights[x]));
-  if (maxW >= 60) lines.push(`한 역할에 ${maxW}%를 몰아줬네요. 이번엔 ${maxW === worst.w ? '그 선택이 피해를 키웠어요' : '운이 좋았지만, 반대 방향이었다면 파티가 무너졌을 거예요'}.`);
-  if (state.actions?.some(a => a.type === 'equip')) {
-    const a = state.actions.find(a => a.type === 'equip');
-    const s = state.party._bySkill[a.to];
-    lines.push(`체크포인트에서 ${s.name}(으)로 바꾼 선택이 ${afterCheckpointRet(state, a.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}. ${s.lesson || ''}`.trim());
-  }
+  if (eq) { const s = state.party._bySkill[eq.to]; lines.push(`체크포인트에서 ${s.name}(으)로 바꾼 선택은 ${afterCheckpointRet(state, eq.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}.`); }
+  else if (maxW >= 60) lines.push(`한 역할에 ${maxW}%를 몰아준 편성이라 ${maxW === worst.w ? '한 방에 크게 맞았어요' : '이번엔 크게 벌었지만 반대였다면 크게 잃었을 거예요'}.`);
+  else lines.push(worst.c < -0.3 ? `${ROLE_META[worst.role].char}가 맞을 때 바꿔줄 상품이 있었는지 '같은 시장, 다른 선택'을 보세요.` : '고르게 나눈 편성이 크게 다치지 않은 비결이에요.');
   if (state.tape.lesson) lines.push(state.tape.lesson);
-  return lines;
+  return lines.slice(0, 3);
 }
 function afterCheckpointRet(state, bar) {
   return state.log.filter(t => t.bar >= bar).reduce((a, t) => a + t.boss.portfolioRet, 0);
