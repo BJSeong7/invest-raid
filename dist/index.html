@@ -166,6 +166,13 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .chartbox{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:10px 12px 6px;display:flex;flex-direction:column;gap:6px;box-shadow:0 4px 0 var(--edge);min-width:0}
 .chartbox.big{transition:background .25s,border-color .25s}
 .chartbox.big .chart{flex:1;height:auto;min-height:240px}
+.chartbox.panes{gap:4px}
+.chartbox.panes .pane-price{flex:1.15;min-height:170px}
+.chartbox.panes .pane-eq{flex:1;min-height:140px;border-top:2px dashed var(--line);padding-top:4px}
+.pane-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.pane-h b{font-family:var(--display);font-weight:400;font-size:15px;color:var(--navy)}
+.pane-h .ret{font-family:var(--display)}
+#chartLegend,#chartLegendEq{display:inline-flex;gap:12px;flex-wrap:wrap;align-items:baseline}
 .chartbox.flash-up{animation:flashUp .7s ease-out} .chartbox.flash-down{animation:flashDown .7s ease-out}
 @keyframes flashUp{0%{background:#DDF4E4;border-color:#2E9A58}100%{background:var(--panel);border-color:var(--line)}}
 @keyframes flashDown{0%{background:#FBE1DF;border-color:#D6453F}100%{background:var(--panel);border-color:var(--line)}}
@@ -199,7 +206,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .seg button{background:transparent;border:0;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer;min-height:34px;font-family:var(--display);color:var(--muted);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
 #chartMode button{padding:4px 10px;min-height:28px;font-size:13px}
-@media (max-width:760px){.battlegrid{grid-template-columns:1fr}.chartbox.big .chart{min-height:200px}}
+@media (max-width:760px){.battlegrid{grid-template-columns:1fr}.chartbox.big .chart{min-height:200px}.chartbox.panes .pane-price{min-height:170px}.chartbox.panes .pane-eq{min-height:130px}}
 
 /* ---- checkpoint modal ---- */
 .modal{position:fixed;inset:0;background:rgba(30,45,70,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:40;backdrop-filter:blur(3px)}
@@ -477,13 +484,11 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="ticker" id="ticker" aria-label="실시간 시세"></div>
     </div>
     <div class="battlegrid">
-      <div class="chartbox big" id="battleChartBox">
-        <div class="legend" style="align-items:center">
-          <div class="seg" id="chartMode" role="group" aria-label="차트 종류" style="padding:2px"><button type="button" data-mode="price" aria-pressed="true">실제 시세</button><button type="button" data-mode="compare" aria-pressed="false">내 상품들</button><button type="button" data-mode="equity" aria-pressed="false">내 자금</button></div>
-          <span id="chartNote" class="muted"></span>
-        </div>
-        <div class="legend" id="chartLegend" style="justify-content:flex-start;gap:10px"></div>
-        <div class="chart" id="chart"></div>
+      <div class="chartbox big panes" id="battleChartBox">
+        <div class="pane-h"><b>실제 시세</b><span id="chartLegend"></span><span id="chartNote" class="muted"></span></div>
+        <div class="chart pane-price" id="chart"></div>
+        <div class="pane-h"><b>내 자금</b><span id="chartLegendEq"></span></div>
+        <div class="chart pane-eq" id="chartEq"></div>
         <div class="newsline" id="newsline" hidden></div>
       </div>
       <div class="arena" id="arena"><div class="loading" id="arenaLoading"><span id="arenaLoadingTxt">전장 불러오는 중…</span><div class="bar"><i id="arenaLoadingBar"></i></div></div><button type="button" class="guard" id="guardBtn" hidden aria-label="가드">가드!<i></i></button></div>
@@ -1782,8 +1787,8 @@ class BattleChart {
     this.c = LightweightCharts.createChart(container, {
       autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#5A5244', fontFamily: '"Noto Sans KR", sans-serif', fontSize: 13 },
       grid: { vertLines: { visible: false }, horzLines: { color: '#EFE8D6', style: 0 } },
-      rightPriceScale: { borderColor: '#D9CDAE', scaleMargins: { top: .18, bottom: .2 }, ticksVisible: false }, leftPriceScale: { visible: withLeft, borderColor: '#D9CDAE', scaleMargins: { top: .06, bottom: 0 } },
-      timeScale: { borderColor: '#D9CDAE', timeVisible: !tape.daily, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, rightOffset: 0, ticksVisible: false },
+      rightPriceScale: { borderColor: '#D9CDAE', scaleMargins: { top: .18, bottom: .2 }, ticksVisible: false, minimumWidth: 74 }, leftPriceScale: { visible: withLeft, borderColor: '#D9CDAE', scaleMargins: { top: .06, bottom: 0 } },
+      timeScale: { borderColor: '#D9CDAE', timeVisible: !tape.daily, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, rightOffset: 0, ticksVisible: false, visible: !opts.noTime },
       crosshair: { vertLine: { visible: false, labelVisible: false }, horzLine: { visible: false, labelVisible: false } }, handleScroll: false, handleScale: false, localization: { locale: 'ko-KR', dateFormat: 'MM-dd' },
     });
     const pct = { type: 'custom', formatter: v => fmtPct(v), minMove: .01 };
@@ -1802,8 +1807,8 @@ class BattleChart {
       const breakPct = this.state ? 100 / this.state.bossScale : 100 / (tape.scale?.bossHpPerPct || 40);
       this.eq.createPriceLine({ price: SEED * (1 + breakPct / 100), color: '#D6453F', lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title: '보스 격파' });
       this.eq.createPriceLine({ price: SEED, color: '#8E8676', lineWidth: 1, lineStyle: 3, axisLabelVisible: true, title: '시작' });
-      // keep the goal line in view even when the party is far below it
-      this.eq.applyOptions({ autoscaleInfoProvider: orig => { const r = orig(); if (!r) return r; const goal = SEED * (1 + breakPct / 100); return { priceRange: { minValue: Math.min(r.priceRange.minValue, SEED * .985), maxValue: Math.max(r.priceRange.maxValue, goal * 1.002) }, margins: r.margins }; } });
+      // keep the start line in view so a flat raid still reads as "near 1,000만"; the goal line appears once it is close
+      this.eq.applyOptions({ autoscaleInfoProvider: orig => { const r = orig(); if (!r) return r; const span = Math.max(r.priceRange.maxValue - r.priceRange.minValue, SEED * .006); const mid = (r.priceRange.maxValue + r.priceRange.minValue) / 2; return { priceRange: { minValue: Math.min(mid - span / 2, SEED - span * .1), maxValue: Math.max(mid + span / 2, SEED + span * .1) }, margins: r.margins }; } });
     } else {
       this.lines = this.ids.map((id, i) => (mode === 'price' && i === 0)
         ? this.c.addAreaSeries({ lineColor: '#E0A72E', topColor: 'rgba(224,167,46,.28)', bottomColor: 'rgba(224,167,46,0)', lineWidth: 4, lastValueVisible: true, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: money })
@@ -1851,7 +1856,7 @@ class BattleChart {
   /** grey hatched overlay over the bars not yet revealed, with a "?" — what the player is deciding about */
   shadeFuture() {
     const el = this.container;
-    if (!this.shadeEl) { el.style.position = 'relative'; this.shadeEl = document.createElement('div'); this.shadeEl.className = 'future-shade'; this.shadeEl.innerHTML = '<span>?</span><small>아직 모름</small>'; el.appendChild(this.shadeEl); this.ro = new ResizeObserver(() => this.shadeFuture()); this.ro.observe(el); }
+    if (!this.shadeEl) { el.style.position = 'relative'; this.shadeEl = document.createElement('div'); this.shadeEl.className = 'future-shade'; if (this.c.options().timeScale.visible === false) this.shadeEl.style.bottom = '0'; this.shadeEl.innerHTML = '<span>?</span><small>아직 모름</small>'; el.appendChild(this.shadeEl); this.ro = new ResizeObserver(() => this.shadeFuture()); this.ro.observe(el); }
     requestAnimationFrame(() => { const x = this.c.timeScale().timeToCoordinate(this.t(Math.min(this.upto, this.tape.bars.length - 1))); const W = el.clientWidth - (this.c.priceScale('right').width() || 60); if (x === null || this.upto >= this.tape.bars.length - 1) { this.shadeEl.style.display = 'none'; return; } this.shadeEl.style.display = ''; this.shadeEl.style.left = Math.round(x) + 'px'; this.shadeEl.style.width = Math.max(0, Math.round(W - x)) + 'px'; });
   }
   setUpto(upto) { this.upto = upto; this.draw(); }
@@ -1873,23 +1878,26 @@ class BattleChart {
   legend() {
     const up = Math.min(this.upto, this.tape.bars.length - 1);
     if (this.mode === 'equity') { const h = this.state?.history.find(p => p.bar === up); const eq = h ? SEED * h.equity / 100 : SEED, bm = h ? SEED * h.benchmark / 100 : SEED;
-      return `<span><i style="background:#E0A72E"></i>내 자금 <b class="tabular">${fmtKRW(eq)}</b></span><span><i style="background:#9AA0AA"></i>기본 파티였다면 <b class="tabular">${fmtKRW(bm)}</b></span><span><i style="background:#D6453F"></i>보스 격파선</span>`; }
+      const goal = SEED * (1 + (this.state ? 100 / this.state.bossScale : 100 / (this.tape.scale?.bossHpPerPct || 40)) / 100);
+      return `<span><i style="background:#E0A72E"></i><b class="tabular">${fmtKRW(eq)}</b> <span class="ret tabular ${eq >= SEED ? 'up' : 'down'}">${fmtKRWd(eq - SEED)}</span></span><span><i style="background:#9AA0AA"></i>기본 파티였다면 <b class="tabular">${fmtKRW(bm)}</b></span><span><i style="background:#D6453F"></i>${eq >= goal ? '격파!' : `격파까지 ${fmtKRW(goal - eq)}`}</span>`; }
     return this.ids.map((id, i) => { const p0 = this.tape.bars[0].prices[id], p = this.tape.bars[up].prices[id], ins = this.tape.instruments[id];
       return `<span><i style="background:${INS_COLORS[i % INS_COLORS.length]}"></i>${id} ${ins.name} <b class="tabular">${fmtMoney(p, ins.currency)}</b> <span class="${p >= p0 ? 'ret up' : 'ret down'} tabular" style="font-size:12px">${fmtPct(100 * (p / p0 - 1))}</span></span>`; }).join('');
   }
   remove() { try { this.ro?.disconnect(); this.shadeEl?.remove(); this.c.remove(); } catch {} }
 }
 
-let chartMode = 'price', battleChart = null;
+// Two panes, always both visible, same timeline: the real price on top, my money below (brokerage-app layout).
+let battleChart = null, battleChartEq = null;
 function battleInstruments() { return [...new Set([mainInstrument(currentTape), ...ROLES.map(r => battle.party._bySkill[battle.party.skills[r]]).flatMap(k => k.blend ? Object.keys(k.blend) : [k.instrument])])].slice(0, 6); }
 function rebuildBattleChart() {
-  battleChart?.remove();
+  battleChart?.remove(); battleChartEq?.remove();
   const upto = battle.history.length ? battle.history.at(-1).bar : 0;
-  battleChart = new BattleChart($('#chart'), currentTape, chartMode, { state: battle, upto, ids: battleInstruments() });
-  $('#chartLegend').innerHTML = battleChart.legend();
+  battleChart = new BattleChart($('#chart'), currentTape, 'price', { state: battle, upto, quiet: true, futureShade: true, noTime: true });
+  battleChartEq = new BattleChart($('#chartEq'), currentTape, 'equity', { state: battle, upto, quiet: true });
+  renderChartLegends();
 }
+function renderChartLegends() { $('#chartLegend').innerHTML = battleChart.legend(); $('#chartLegendEq').innerHTML = battleChartEq.legend(); }
 function flashChart(ret) { const box = $('#battleChartBox'); box.classList.remove('flash-up', 'flash-down'); void box.offsetWidth; box.classList.add(ret >= 0 ? 'flash-up' : 'flash-down'); }
-$$('#chartMode [data-mode]').forEach(b => b.addEventListener('click', () => { chartMode = b.dataset.mode; $$('#chartMode [data-mode]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); sfx.select(); if (battle) rebuildBattleChart(); }));
 
 async function startBattle() {
   const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
@@ -1920,11 +1928,11 @@ async function raidLoop() {
     const rageNow = !drama.rage && battle.bossHp > 0 && battle.bossHp <= 50; if (rageNow) drama.rage = true;
     await scene.playTurn(turn, sp, {
       combo: drama.combo, rage: drama.rage && !rageNow, rageNow,
-      onMarket: async () => { flashChart(ret); await battleChart.reveal(turn.bar, 520 / sp); $('#chartLegend').innerHTML = battleChart.legend(); renderTurnLine(turn); renderNewsline(turn.bar + 1); },
+      onMarket: async () => { flashChart(ret); await Promise.all([battleChart.reveal(turn.bar, 520 / sp), battleChartEq.reveal(turn.bar, 520 / sp)]); renderChartLegends(); renderTurnLine(turn); renderNewsline(turn.bar + 1); },
       onImpact: () => { renderPartyHud(turn); renderBossHud(); },
       onGuard: () => { drama.guards++; },
     });
-    battleChart.markers();
+    battleChart.markers(); battleChartEq.markers();
     const cut = cutForTurn(turn);
     if (cut && speed < 4) await cutIn(cut, sp);
     if (battle.bossHp <= 0 && !battle._bossShown) { battle._bossShown = true; startBgm(.8); }
@@ -1982,7 +1990,7 @@ async function showCheckpoint(cp) {
     const setTab = name => { tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpHold').hidden = name !== 'hold'; $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
     tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
     setTab('hold');
-    const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); resolve(); };
+    const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); resolve(); };
     $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip
     const lvl = effectiveLevel();

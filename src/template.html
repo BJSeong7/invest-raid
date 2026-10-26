@@ -164,6 +164,13 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .chartbox{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:10px 12px 6px;display:flex;flex-direction:column;gap:6px;box-shadow:0 4px 0 var(--edge);min-width:0}
 .chartbox.big{transition:background .25s,border-color .25s}
 .chartbox.big .chart{flex:1;height:auto;min-height:240px}
+.chartbox.panes{gap:4px}
+.chartbox.panes .pane-price{flex:1.15;min-height:170px}
+.chartbox.panes .pane-eq{flex:1;min-height:140px;border-top:2px dashed var(--line);padding-top:4px}
+.pane-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.pane-h b{font-family:var(--display);font-weight:400;font-size:15px;color:var(--navy)}
+.pane-h .ret{font-family:var(--display)}
+#chartLegend,#chartLegendEq{display:inline-flex;gap:12px;flex-wrap:wrap;align-items:baseline}
 .chartbox.flash-up{animation:flashUp .7s ease-out} .chartbox.flash-down{animation:flashDown .7s ease-out}
 @keyframes flashUp{0%{background:#DDF4E4;border-color:#2E9A58}100%{background:var(--panel);border-color:var(--line)}}
 @keyframes flashDown{0%{background:#FBE1DF;border-color:#D6453F}100%{background:var(--panel);border-color:var(--line)}}
@@ -197,7 +204,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .seg button{background:transparent;border:0;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer;min-height:34px;font-family:var(--display);color:var(--muted);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
 #chartMode button{padding:4px 10px;min-height:28px;font-size:13px}
-@media (max-width:760px){.battlegrid{grid-template-columns:1fr}.chartbox.big .chart{min-height:200px}}
+@media (max-width:760px){.battlegrid{grid-template-columns:1fr}.chartbox.big .chart{min-height:200px}.chartbox.panes .pane-price{min-height:170px}.chartbox.panes .pane-eq{min-height:130px}}
 
 /* ---- checkpoint modal ---- */
 .modal{position:fixed;inset:0;background:rgba(30,45,70,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:40;backdrop-filter:blur(3px)}
@@ -475,13 +482,11 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="ticker" id="ticker" aria-label="실시간 시세"></div>
     </div>
     <div class="battlegrid">
-      <div class="chartbox big" id="battleChartBox">
-        <div class="legend" style="align-items:center">
-          <div class="seg" id="chartMode" role="group" aria-label="차트 종류" style="padding:2px"><button type="button" data-mode="price" aria-pressed="true">실제 시세</button><button type="button" data-mode="compare" aria-pressed="false">내 상품들</button><button type="button" data-mode="equity" aria-pressed="false">내 자금</button></div>
-          <span id="chartNote" class="muted"></span>
-        </div>
-        <div class="legend" id="chartLegend" style="justify-content:flex-start;gap:10px"></div>
-        <div class="chart" id="chart"></div>
+      <div class="chartbox big panes" id="battleChartBox">
+        <div class="pane-h"><b>실제 시세</b><span id="chartLegend"></span><span id="chartNote" class="muted"></span></div>
+        <div class="chart pane-price" id="chart"></div>
+        <div class="pane-h"><b>내 자금</b><span id="chartLegendEq"></span></div>
+        <div class="chart pane-eq" id="chartEq"></div>
         <div class="newsline" id="newsline" hidden></div>
       </div>
       <div class="arena" id="arena"><div class="loading" id="arenaLoading"><span id="arenaLoadingTxt">전장 불러오는 중…</span><div class="bar"><i id="arenaLoadingBar"></i></div></div><button type="button" class="guard" id="guardBtn" hidden aria-label="가드">가드!<i></i></button></div>
