@@ -937,7 +937,8 @@ async function showCheckpoint(cp) {
     $('#cpStep').innerHTML = `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length} · ${cpWhen(cp)}`;
     $('#cpTitle span:last-child').textContent = cp.title;
     const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
-    $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간: <b>${fmtBar(next.t)} ${next.label}</b> · 결정은 한 번만</span>`;
+    $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간 <b>${fmtBar(next.t)} ${next.label}</b></span>`;
+    $('#cpMore').open = false;
     // the chart is the question: real closes up to now, the rest still hidden
     const main = mainInstrument(currentTape);
     $('#cpChartTitle').innerHTML = `${main} ${currentTape.instruments[main].name} <span class="muted">· 지금까지의 실제 흐름</span>`;
@@ -959,9 +960,10 @@ async function showCheckpoint(cp) {
     const tick = () => { $('#cpTimerTxt').textContent = left; $('#cpTimerBar').style.width = (100 * left / CP_SECONDS) + '%'; tEl.classList.toggle('hot', left <= 10); if (left <= 10 && left > 0) sfx.select(); if (left <= 0) { clearInterval(cpTimer); done({ type: 'hold' }, '시간 초과 — 그대로 진행'); } left--; };
     tick(); cpTimer = setInterval(tick, 1000);
     const tabs = $$('#cp .choices [data-tab]');
-    const setTab = name => { tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpHold').hidden = name !== 'hold'; $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
-    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
-    setTab('hold');
+    let openTab = null;
+    const setTab = name => { openTab = name; tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
+    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(openTab === t.dataset.tab ? null : t.dataset.tab); }; });
+    setTab(null);
     const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; $('#tip').hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); resolve(); };
     $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip

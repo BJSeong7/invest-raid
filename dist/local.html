@@ -394,6 +394,18 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .cp-scen .up{background:#EAF7EE;border-color:#B5DEC2}.cp-scen .up b{color:var(--green)}
 .cp-scen .dn{background:#FBECEB;border-color:#EFC2BF}.cp-scen .dn b{color:var(--red)}
 .choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.choices.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.cp-box{width:min(640px,100%)}
+.primary-choice{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 18px;min-height:64px}
+.primary-choice>span:first-child{display:flex;flex-direction:column;gap:2px}
+.primary-choice b{font-family:var(--display);font-weight:400;font-size:22px}
+.primary-choice small{font-size:12px;opacity:.9;font-family:var(--body);text-shadow:none}
+.primary-choice .pay em{background:#fff}
+.cp-more{border-top:2px dashed var(--line);padding-top:8px}
+.cp-more summary{cursor:pointer;font-family:var(--display);font-size:14px;color:var(--muted);list-style:none;display:flex;align-items:center;gap:8px}
+.cp-more summary::before{content:"▸";transition:transform .15s}.cp-more[open] summary::before{transform:rotate(90deg)}
+.cp-more summary::-webkit-details-marker{display:none}
+.cp-more-body{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .choices button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px;cursor:pointer;min-height:64px;box-shadow:0 3px 0 var(--edge)}
 .choices button b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--navy)}
 .choices button span{font-size:11.5px;color:var(--muted);line-height:1.3}
@@ -594,35 +606,34 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   </section>
 </div>
 
-<!-- checkpoint modal: 상황(왼쪽) → 선택(오른쪽) -->
+<!-- checkpoint modal: one question, one number, three choices; everything else folded -->
 <div class="modal" id="cp" hidden role="dialog" aria-modal="true" aria-labelledby="cpTitle">
-  <div class="box wide cp-box">
+  <div class="box cp-box">
     <div class="cp-head">
       <div><span class="cp-step" id="cpStep">체크포인트</span><h2 id="cpTitle"><span class="pause"></span><span></span></h2></div>
       <div class="timer" id="cpTimer" title="시간이 다 되면 그대로 진행"><span id="cpTimerTxt">30</span><i><b id="cpTimerBar"></b></i></div>
     </div>
-    <div class="cp-grid">
-      <div class="cp-col">
-        <div class="cp-money"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
-        <div class="cp-party" id="cpParty"></div>
+    <p class="cp-hint" id="cpHint"></p>
+    <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
+    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
+    <div class="choices two" role="tablist">
+      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
+      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
+    </div>
+    <div id="cpHold" hidden></div>
+    <div class="cp-panel cp-roles" id="cpEquip" hidden></div>
+    <div class="cp-panel" id="cpRebal" hidden><div class="rebal" id="cpSliders"></div><div class="total" style="margin-top:8px"><div class="sum" id="cpSum"></div><button class="btn" id="cpRebalBtn" type="button">이 비중으로 간다</button></div></div>
+    <details class="cp-more" id="cpMore">
+      <summary>참고 — 차트 · 오르면/내리면 · 이벤트 자료 · 내 캐릭터</summary>
+      <div class="cp-more-body">
         <div class="chartbox" style="padding:8px 10px 4px"><div class="legend"><span class="small" id="cpChartTitle"></span></div><div class="chart" id="cpChart" style="height:170px"></div><div class="ticker" id="cpTicker"></div></div>
-        <div class="event-card compact" id="cpEvent"></div>
-      </div>
-      <div class="cp-col">
-        <p class="cp-hint" id="cpHint"></p>
         <div class="cp-scen"><div class="up"><b>▲ 오르면</b><span id="cpBull"></span></div><div class="dn"><b>▼ 내리면</b><span id="cpBear"></span></div></div>
-        <p class="small muted" id="cpScenNote" style="margin:-4px 0 0;font-size:11.5px"></p>
-        <div class="choices" role="tablist">
-          <button type="button" role="tab" data-tab="hold" aria-selected="true"><b>그대로 간다</b><span>지금 편성 그대로</span></button>
-          <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
-          <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
-        </div>
-        <div class="cp-panel" id="cpHold"><div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="small muted">지금 편성 그대로 다음 구간을 맞습니다.</span><span id="cpHoldPay"></span></div><button class="btn" id="cpHoldBtn" type="button">이대로 간다</button></div>
-        <div class="cp-panel cp-roles" id="cpEquip" hidden></div>
-        <div class="cp-panel" id="cpRebal" hidden><div class="rebal" id="cpSliders"></div><div class="total" style="margin-top:8px"><div class="sum" id="cpSum"></div><button class="btn" id="cpRebalBtn" type="button">이 비중으로 간다</button></div></div>
+        <p class="small muted" id="cpScenNote" style="margin:0;font-size:11.5px"></p>
+        <div class="cp-party" id="cpParty"></div>
+        <div class="event-card compact" id="cpEvent"></div>
         <div class="cp-say" id="cpSay" hidden></div>
       </div>
-    </div>
+    </details>
   </div>
 </div>
 
@@ -2079,7 +2090,8 @@ async function showCheckpoint(cp) {
     $('#cpStep').innerHTML = `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length} · ${cpWhen(cp)}`;
     $('#cpTitle span:last-child').textContent = cp.title;
     const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
-    $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간: <b>${fmtBar(next.t)} ${next.label}</b> · 결정은 한 번만</span>`;
+    $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간 <b>${fmtBar(next.t)} ${next.label}</b></span>`;
+    $('#cpMore').open = false;
     // the chart is the question: real closes up to now, the rest still hidden
     const main = mainInstrument(currentTape);
     $('#cpChartTitle').innerHTML = `${main} ${currentTape.instruments[main].name} <span class="muted">· 지금까지의 실제 흐름</span>`;
@@ -2101,9 +2113,10 @@ async function showCheckpoint(cp) {
     const tick = () => { $('#cpTimerTxt').textContent = left; $('#cpTimerBar').style.width = (100 * left / CP_SECONDS) + '%'; tEl.classList.toggle('hot', left <= 10); if (left <= 10 && left > 0) sfx.select(); if (left <= 0) { clearInterval(cpTimer); done({ type: 'hold' }, '시간 초과 — 그대로 진행'); } left--; };
     tick(); cpTimer = setInterval(tick, 1000);
     const tabs = $$('#cp .choices [data-tab]');
-    const setTab = name => { tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpHold').hidden = name !== 'hold'; $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
-    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
-    setTab('hold');
+    let openTab = null;
+    const setTab = name => { openTab = name; tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
+    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(openTab === t.dataset.tab ? null : t.dataset.tab); }; });
+    setTab(null);
     const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; $('#tip').hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); resolve(); };
     $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip
