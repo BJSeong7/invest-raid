@@ -17,7 +17,7 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 32px}
 button{font-family:inherit;color:inherit}
 button:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
@@ -57,6 +57,7 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
 .raids{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .raid{display:flex;gap:14px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;align-items:center;transition:transform .12s,border-color .12s}
 .raid:hover{transform:translateY(-2px);border-color:var(--gold)}
+.raid.upcoming{cursor:default;border-style:dashed;opacity:.85}.raid.upcoming:hover{transform:none;border-color:var(--line)}
 .raid img{width:84px;height:84px;flex-shrink:0;image-rendering:auto}
 .raid .meta{display:flex;flex-direction:column;gap:6px;min-width:0}
 .raid h3{font-size:19px}
@@ -107,9 +108,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 
 /* battle */
 .hud{display:flex;flex-direction:column;gap:8px}
-.bossbar{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.bossbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
 .bossbar .name{font-family:var(--display);font-size:18px;white-space:nowrap}
-.bossbar .bar{flex:1;height:16px;background:#2a1b22;border-radius:8px;overflow:hidden;border:1px solid #4a2a35;position:relative}
+.bossbar .bar{flex:1 1 160px;min-width:120px;height:16px;background:#2a1b22;border-radius:8px;overflow:hidden;border:1px solid #4a2a35;position:relative}
 .bossbar .bar i{display:block;height:100%;background:linear-gradient(90deg,#FF6B6B,#FF3B5C);width:100%;transition:width .5s cubic-bezier(.2,.8,.2,1)}
 .bossbar .bar b{position:absolute;right:8px;top:-1px;font-family:var(--display);font-size:13px;color:#fff;font-weight:400}
 .turnline{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
@@ -119,12 +120,13 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .arena{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:#0D1018;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
 .arena canvas{display:block;width:100%!important;height:100%!important}
 .partyhud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-@media (max-width:620px){.partyhud{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.partyhud{grid-template-columns:repeat(2,minmax(0,1fr))}#hBreak{flex-basis:100%;text-align:right}}
 .phud{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;border-left:4px solid var(--rc);transition:opacity .3s}
 .phud.dead{opacity:.45;filter:grayscale(1)}
 .phud .t{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
-.phud .t b{font-family:var(--display);font-weight:400;font-size:15px;display:flex;align-items:baseline;gap:6px}
-.phud .delta{font-size:12px;font-family:var(--body)}.phud .delta.up{color:var(--green)}.phud .delta.down{color:var(--red)}
+.phud .t b{font-family:var(--display);font-weight:400;font-size:15px;white-space:nowrap}
+.phud .sk{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phud .delta{font-size:12px;font-family:var(--body);white-space:nowrap}.phud .delta.up{color:var(--green)}.phud .delta.down{color:var(--red)}
 .phud .t small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .hp{height:9px;background:#1a2230;border-radius:5px;overflow:hidden;position:relative}
 .hp i{display:block;height:100%;background:var(--green);width:100%;transition:width .45s cubic-bezier(.2,.8,.2,1)}
@@ -253,7 +255,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <h3 style="font-size:18px;margin-bottom:8px">레이드 선택</h3>
       <div class="raids" id="raids"></div>
     </div>
-    <p class="foot">현재 테이프는 이벤트 모양을 본떠 만든 예시 데이터입니다. 실제 분봉이 연결되면 같은 형식으로 교체됩니다. 특정 상품의 투자권유가 아닙니다.</p>
+    <p class="foot">현재 테이프는 이벤트 모양을 본떠 만든 예시 데이터입니다. 실제 분봉이 연결되면 같은 형식으로 교체됩니다. 특정 상품의 투자권유가 아닙니다. · <button class="iconbtn" id="resetBtn" type="button" style="padding:3px 10px;font-size:11px">진행 초기화</button></p>
   </section>
 
   <!-- 2. briefing -->
@@ -305,7 +307,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <!-- 4. battle -->
   <section id="screen-battle" hidden style="display:flex;flex-direction:column;gap:10px">
     <div class="hud">
-      <div class="bossbar"><span class="name" id="hBossName">보스</span><div class="bar"><i id="hBossHp"></i><b id="hBossHpTxt">100</b></div></div>
+      <div class="bossbar"><span class="name" id="hBossName">보스</span><div class="bar"><i id="hBossHp"></i><b id="hBossHpTxt">100</b></div><span class="small muted tabular" id="hBreak" style="white-space:nowrap"></span></div>
       <div class="turnline"><span><span class="label" id="hLabel">대기</span> <span class="tabular" id="hTime"></span></span><span><span class="muted">이번 구간 파티 </span><span class="ret tabular" id="hRet">—</span><span class="muted"> · 누적 </span><span class="ret tabular" id="hCum">0.00%</span></span></div>
     </div>
     <div class="arena" id="arena"></div>

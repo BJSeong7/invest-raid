@@ -28,7 +28,7 @@ try {
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   await page.goto(`http://127.0.0.1:${port}/local.html`);
   await page.waitForFunction(() => window.__rpg && document.querySelectorAll('.raid').length > 0);
-  check((await page.$$('.raid')).length === 3, 'raid select shows 3 raids');
+  check((await page.$$('.raid:not(.upcoming)')).length === 3 && (await page.$$('.raid.upcoming')).length === 2, 'raid select shows 3 raids + 2 upcoming');
   await shot(page, '1-select');
 
   // brief
@@ -116,6 +116,7 @@ try {
   await page.waitForSelector('#screen-result:not([hidden])', { timeout: 60000 });
   check(true, 'KR raid completed: ' + (await page.textContent('#rStamp')).trim() + ' ' + (await page.textContent('#rRet')).trim());
 
+  await page.close();   // free the software GPU before the next Phaser instance
   // phone width sanity: no horizontal overflow on select screen
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await phone.goto(`http://127.0.0.1:${port}/local.html`);
@@ -126,6 +127,18 @@ try {
   const ov2 = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(ov2 <= 0, 'no horizontal overflow on party screen at 390px (' + ov2 + ')');
   await shot(phone, '7-phone-party');
+  await phone.evaluate(() => window.__rpg.setSpeed(4));
+  await phone.click('#presetBtn');
+  const t0 = Date.now();
+  await phone.evaluate(() => document.querySelector('#startBattle').click());   // don't block on the (heavy) Phaser boot
+  await phone.waitForSelector('#cp:not([hidden])', { timeout: 60000 });
+  console.log('   (phone raid reached first checkpoint in', Date.now() - t0, 'ms)');
+  await phone.click('#cpHoldBtn');
+  await phone.waitForTimeout(900);
+  const ov3 = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  check(ov3 <= 0, 'no horizontal overflow on battle screen at 390px (' + ov3 + ')');
+  await shot(phone, '9-phone-battle');
+  await phone.close();
   // cut-in preview frame (for visual review)
   const cutPage = await browser.newPage({ viewport: { width: 1000, height: 700 } });
   await cutPage.goto(`http://127.0.0.1:${port}/local.html`);

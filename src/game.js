@@ -6,6 +6,11 @@ import { CHARACTERS, BOSSES, svgUri, rasterize, hurtSvg } from './art.js';
 import { unlock, setMuted, isMuted, sfx, startBgm, stopBgm } from './audio.js';
 
 const TAPES = window.__TAPES__ || [];
+// Weekly cadence preview. Real dates from the public calendars; the boss is generated after the event is scheduled and judged after it prints.
+const UPCOMING = [
+  { date: '2026-11-06T22:30:00+09:00', title: '미국 10월 고용보고서', boss: '???', species: 'slime', note: '발표 후 실제 분봉으로 판정' },
+  { date: '2026-12-10T04:00:00+09:00', title: '12월 FOMC 금리 결정', boss: '동결의 골렘 2차', species: 'golem', note: '2026년 마지막 회의' },
+];
 const adapter = new ReplayAdapter(TAPES);
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -18,6 +23,7 @@ const charOf = role => CHARACTERS[ROLE_META[role].species];
 const ROLE_COLOR = { tank: 'var(--tank)', dealer: 'var(--dealer)', healer: 'var(--healer)', support: 'var(--support)' };
 const ROLE_HEX = { tank: 0x8EA0B8, dealer: 0x6E9BFF, healer: 0xF2C14E, support: 0x6FD39A };
 const UNLOCKS = { 5: '폭주 돌진 (레버리지 ETF)', 10: '도토리 보험 (풋옵션)' };
+const BOSS_MOVES = { golem: ['긴축 압박', '냉기 폭풍', '할인율 내려치기'], hydra: ['기대치 깨물기', '설비투자 저주', '차익실현 꼬리치기'], slime: ['물가 분열', '구매력 흡수', '끈적한 상승'], bear: ['하락 포효', '곰발바닥 내리치기'] };
 
 /* ------------------------------------------------------------------ */
 /* Profile (per-viewer convenience only; wrapped in try/catch)         */
@@ -66,6 +72,12 @@ function renderSelect() {
       <span class="small muted">${t.bars.length - 1}구간 · 체크포인트 ${t.checkpoints.length}회${best ? ` · <span class="best">최고 ${best}</span>` : ''}</span></div>`;
     b.addEventListener('click', () => { unlock(); sfx.select(); openBrief(t.id); });
     $('#raids').appendChild(b);
+  });
+  UPCOMING.forEach(u => {
+    const d = document.createElement('div'); d.className = 'raid upcoming';
+    d.innerHTML = `<img src="${svgUri(BOSSES[u.species].svg)}" alt="" style="filter:brightness(.15) contrast(1.2)">
+      <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)} 예정</span><span class="chip" style="color:var(--purple)">주간 라이브</span></div><span class="small muted">보스 ${u.boss} · ${u.note}</span></div>`;
+    $('#raids').appendChild(d);
   });
 }
 
@@ -116,7 +128,7 @@ function renderSkillList(box, role, lvl) {
   box.innerHTML = '';
   currentTape.skills.filter(s => s.role === role).forEach(s => {
     const locked = s.unlockLevel && lvl < s.unlockLevel;
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'skill';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; if (s.lesson) b.title = s.lesson;
     b.setAttribute('aria-pressed', String(party.skills[role] === s.id));
     const ins = currentTape.instruments[s.instrument];
     b.innerHTML = `<span><span class="n">${s.name}</span><span class="i">${ins.name}${s.blend ? ' 25% + 현금 75%' : ''}</span></span>${locked ? `<span class="lock">Lv.${s.unlockLevel} 해금</span>` : ''}`;
@@ -192,6 +204,17 @@ class BattleScene extends Phaser.Scene {
     gsapLike(this, b, { alpha: { from: 0, to: 1 }, y: { from: BOSS_POS.y - 40, to: BOSS_POS.y } }, 500);
   }
   tw(cfg) { return new Promise(res => this.tweens.add({ ...cfg, onComplete: () => { cfg.onComplete?.(); res(); } })); }
+  /** Top banner inside the arena: "05:00 매파 발언 · 동결의 골렘의 긴축 압박!" */
+  banner(main, sub, color, speed = 1) {
+    this.bannerObjs?.forEach(o => o.destroy());
+    const bg = this.add.rectangle(W / 2, 46, W, 64, 0x0D1018, .72).setDepth(70);
+    const t1 = this.add.text(W / 2, 34, main, { fontFamily: 'Jua, sans-serif', fontSize: '26px', color }).setOrigin(.5).setDepth(71);
+    const t2 = this.add.text(W / 2, 62, sub, { fontFamily: 'Gowun Dodum, sans-serif', fontSize: '15px', color: '#D7DCE6' }).setOrigin(.5).setDepth(71);
+    this.bannerObjs = [bg, t1, t2];
+    this.bannerObjs.forEach(o => { o.alpha = 0; o.y -= 20; });
+    this.tweens.add({ targets: this.bannerObjs, alpha: 1, y: '+=20', duration: 180 / speed, ease: 'power2.out' });
+    this.time.delayedCall(1400 / speed, () => this.tweens.add({ targets: this.bannerObjs, alpha: 0, duration: 250 / speed }));
+  }
   number(x, y, text, color, size = 28) {
     const t = this.add.text(x, y, text, { fontFamily: 'Jua, sans-serif', fontSize: size + 'px', color, stroke: '#14161c', strokeThickness: 6 }).setOrigin(.5).setDepth(60);
     this.tweens.add({ targets: t, y: y - 60, alpha: { from: 1, to: 0 }, scale: { from: .6, to: 1.1 }, duration: 900, ease: 'cubic.out', onComplete: () => t.destroy() });
@@ -211,6 +234,10 @@ class BattleScene extends Phaser.Scene {
     const d = ms => Math.max(30, ms / speed);
     const boss = this.sprites.boss, ret = turn.boss.portfolioRet;
     const mag = Math.min(1, Math.abs(ret) / 1.5);
+    const moves = BOSS_MOVES[currentTape.bossSpecies] || BOSS_MOVES.golem;
+    const bossMove = moves[turn.bar % moves.length];
+    this.banner(`${fmtTime(turn.t)} ${turn.label}`, ret < 0 ? `${currentTape.boss}의 ${bossMove}! 파티 ${fmtPct(ret)}` : `모험단의 반격! 파티 ${fmtPct(ret)}`, ret < 0 ? '#FF8A8A' : '#F4C542', speed);
+    await sleep(d(380));
     if (ret < 0) {
       // boss attack: lunge, impact on party
       sfx.roar();
@@ -333,7 +360,8 @@ function renderPartyHud(turn) {
     const sk = s.party._bySkill[s.party.skills[role]], hp = s.partyHp[role], sh = s.shield[role];
     const r = turn?.roles[role]?.ret;
     return `<div class="phud ${hp <= 0 ? 'dead' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]}">
-      <div class="t"><b>${charOf(role).name} ${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</b><small>${sk.name} · ${s.party.weights[role]}%</small></div>
+      <div class="t"><b>${charOf(role).name}</b>${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</div>
+      <div class="sk">${sk.name} · ${s.party.weights[role]}%</div>
       <div class="hp"><i class="${hpClass(hp)}" style="width:${hp}%"></i><em style="width:${Math.min(100, sh)}%"></em></div>
       <div class="num"><span>HP <b class="tabular">${Math.round(hp)}</b>${sh > 0 ? ` <span style="color:var(--gold)">+${Math.round(sh)}</span>` : ''}</span><span class="tabular">${currentTape.instruments[sk.instrument].name}</span></div></div>`;
   }).join('');
@@ -341,6 +369,8 @@ function renderPartyHud(turn) {
 function renderBossHud() {
   $('#hBossName').textContent = currentTape.boss;
   $('#hBossHp').style.width = battle.bossHp + '%'; $('#hBossHpTxt').textContent = Math.round(battle.bossHp);
+  const need = Math.max(0, battle.bossHp / battle.bossScale);
+  $('#hBreak').textContent = battle.bossHp <= 0 ? '격파!' : `격파선까지 누적 +${need.toFixed(2)}%`;
 }
 function renderTurnLine(turn) {
   if (!turn) { $('#hLabel').textContent = `${fmtTime(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '—'; $('#hRet').className = 'ret tabular'; $('#hCum').textContent = '0.00%'; $('#hCum').className = 'ret tabular'; return; }
@@ -410,7 +440,8 @@ async function raidLoop() {
 }
 
 /* ---------- checkpoint modal ---------- */
-function showCheckpoint(cp) {
+async function showCheckpoint(cp) {
+  if (speed < 4) await cutIn({ text: '체크포인트!', sub: `${fmtTime(currentTape.bars[cp.bar].t)} ${cp.title}`, bg: '#14243F', artL: null, artR: null }, Math.max(1.6, speedFactor()));
   return new Promise(resolve => {
     sfx.pause();
     const m = $('#cp'); m.hidden = false;
@@ -433,7 +464,7 @@ function showCheckpoint(cp) {
       const opts = box.querySelector('.opts');
       currentTape.skills.filter(s => s.role === role && s.id !== cur.id).forEach(s => {
         const locked = s.unlockLevel && lvl < s.unlockLevel;
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked;
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked; if (s.lesson) b.title = s.lesson;
         b.innerHTML = `<span class="n">${s.name}</span><span class="i">${currentTape.instruments[s.instrument].name}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>`;
         b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: lvl }, `${charOf(role).name}: ${s.name} 장착!`); };
         opts.appendChild(b);
@@ -532,6 +563,10 @@ $('#otherBtn').addEventListener('click', () => { sfx.select(); renderSelect(); s
 $('#etfBtn').addEventListener('click', () => { sfx.select(); $('#etfAlloc').innerHTML = ROLES.map(r => `<i style="width:${battle.party.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); $('#etfModal').hidden = false; });
 $('#etfClose').addEventListener('click', () => { sfx.back(); $('#etfModal').hidden = true; });
 $('#muteBtn').addEventListener('click', () => { unlock(); const m = !isMuted(); setMuted(m); $('#muteBtn').textContent = m ? '소리 꺼짐' : '소리 켜짐'; $('#muteBtn').setAttribute('aria-pressed', String(m)); });
+$('#resetBtn').addEventListener('click', () => {
+  if (Date.now() - (window.__resetArmed || 0) < 3000) { profile = { level: 1, exp: 0, unlockAll: false, plays: {} }; saveProfile(); renderProfile(); renderSelect(); toast('진행 상황을 초기화했어요'); $('#resetBtn').textContent = '진행 초기화'; return; }
+  window.__resetArmed = Date.now(); $('#resetBtn').textContent = '정말 초기화? (한 번 더)'; setTimeout(() => { $('#resetBtn').textContent = '진행 초기화'; }, 3000);
+});
 $('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '데모 모드: 모든 기술을 쓸 수 있어요' : '레벨 제한을 다시 켰어요'); if (!$('#screen-party').hidden) renderPartyScreen(); });
 document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-battle').hidden && $('#cp').hidden && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); $('#pauseBtn').click(); } });
 
