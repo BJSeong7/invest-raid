@@ -1,0 +1,1459 @@
+<title>모험단 레이드</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+/* Layout: one game column (max 980px) on a deep night-market ground. Screens swap inside it; the battle screen stacks HUD → arena → party → chart.
+   Single committed dark look (a projector-friendly game screen), so no light/dark split. */
+:root{
+  --bg:#12151C; --panel:#1C212C; --panel2:#262D3B; --line:#343D4F; --ink:#F3EFE7; --muted:#A6AEBE; --dim:#6F788A;
+  --gold:#F4C542; --blue:#5B8DEF; --green:#4FD18B; --red:#FF6B6B; --orange:#FFA94D; --purple:#B48CFF;
+  --tank:#8EA0B8; --dealer:#6E9BFF; --healer:#F2C14E; --support:#6FD39A;
+  --display:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --body:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 32px}
+button{font-family:inherit;color:inherit}
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.3px}
+.tabular{font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+
+/* top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:24px}
+.brand small{display:block;font-size:12px;color:var(--muted);font-family:var(--body)}
+.profile{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 8px}
+.lv{font-family:var(--display);font-size:16px;background:var(--gold);color:#2B2410;border-radius:999px;padding:1px 10px}
+.expbar{width:90px;height:8px;background:var(--panel2);border-radius:4px;overflow:hidden}
+.expbar i{display:block;height:100%;background:var(--blue);width:0}
+.iconbtn{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer}
+.iconbtn[aria-pressed="true"]{background:var(--panel2);color:var(--muted)}
+
+/* generic panels & buttons */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.btn{font-family:var(--display);font-size:18px;letter-spacing:.3px;background:var(--gold);color:#2B2410;border:0;border-radius:14px;padding:14px 22px;cursor:pointer;min-height:48px;box-shadow:0 4px 0 #A8841F;transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #A8841F}
+.btn.secondary{background:var(--panel2);color:var(--ink);box-shadow:0 4px 0 #11151D}
+.btn.secondary:active{box-shadow:0 1px 0 #11151D}
+.btn.danger{background:var(--red);color:#2B1010;box-shadow:0 4px 0 #A13C3C}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;border-radius:999px;padding:3px 10px;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.chip.example{color:var(--orange);border-color:#5a4322}
+.chip.us{color:var(--blue)} .chip.kr{color:var(--green)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* raid select */
+.raids{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.raid{display:flex;gap:14px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;align-items:center;transition:transform .12s,border-color .12s}
+.raid:hover{transform:translateY(-2px);border-color:var(--gold)}
+.raid img{width:84px;height:84px;flex-shrink:0;image-rendering:auto}
+.raid .meta{display:flex;flex-direction:column;gap:6px;min-width:0}
+.raid h3{font-size:19px}
+.raid .best{font-family:var(--display);color:var(--gold)}
+.hero{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:center}
+.hero .party-preview{display:flex;gap:4px;justify-content:center;align-items:flex-end}
+.hero .party-preview img{width:22%;max-width:110px}
+.hero p{margin:6px 0 0;color:var(--muted)}
+@media (max-width:640px){.hero{grid-template-columns:1fr}}
+
+/* briefing */
+.brief{display:grid;grid-template-columns:1fr 1.1fr;gap:16px;align-items:stretch}
+.boss-stage{position:relative;overflow:hidden;border-radius:16px;background:radial-gradient(ellipse at 50% 70%,#3B2F4A,#171A26 70%);min-height:300px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line)}
+.boss-stage img{width:68%;max-width:300px;filter:drop-shadow(0 18px 24px rgba(0,0,0,.5))}
+.boss-stage .tag{position:absolute;left:14px;top:12px}
+.brief-text{display:flex;flex-direction:column;gap:12px}
+.brief-text h2{font-size:30px}
+.sys{background:#0F1320;border:1px solid #2A3550;border-left:4px solid var(--blue);border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.6}
+.sys b{color:var(--blue);font-family:var(--display);font-weight:400}
+.timeline{display:flex;gap:6px;flex-wrap:wrap}
+.timeline span{font-size:12px;background:var(--panel2);border-radius:8px;padding:4px 8px;color:var(--muted)}
+.timeline span.cp{color:var(--gold);border:1px dashed #6b5a22}
+@media (max-width:720px){.brief{grid-template-columns:1fr}.boss-stage{min-height:220px}}
+
+/* party setup */
+.roles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:820px){.roles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.roles{grid-template-columns:1fr}.role img{max-width:96px}}
+.role{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--rc)}
+.role img{width:72%;max-width:120px;align-self:center}
+.role h3{font-size:18px;display:flex;justify-content:space-between;align-items:baseline}
+.role h3 small{font-family:var(--body);font-size:12px;color:var(--muted)}
+.weight{display:flex;flex-direction:column;gap:4px}
+.weight label{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.weight output{font-family:var(--display);font-size:18px;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--rc);height:28px}
+.skills{display:flex;flex-direction:column;gap:6px}
+.skill{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:13px;min-height:44px}
+.skill[aria-pressed="true"]{border-color:var(--rc);box-shadow:inset 0 0 0 1px var(--rc)}
+.skill .n{font-family:var(--display);font-size:15px}
+.skill .i{color:var(--muted);font-size:12px;display:block}
+.skill .lock{font-size:11px;color:var(--orange);white-space:nowrap;flex-shrink:0}
+.skill:disabled{opacity:.55;cursor:not-allowed}
+.total{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.total .sum{font-family:var(--display);font-size:22px}
+.total .sum.bad{color:var(--red)}
+.alloc{display:flex;height:14px;border-radius:7px;overflow:hidden;width:100%;max-width:420px}
+
+/* battle */
+.hud{display:flex;flex-direction:column;gap:8px}
+.bossbar{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.bossbar .name{font-family:var(--display);font-size:18px;white-space:nowrap}
+.bossbar .bar{flex:1;height:16px;background:#2a1b22;border-radius:8px;overflow:hidden;border:1px solid #4a2a35;position:relative}
+.bossbar .bar i{display:block;height:100%;background:linear-gradient(90deg,#FF6B6B,#FF3B5C);width:100%;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bossbar .bar b{position:absolute;right:8px;top:-1px;font-family:var(--display);font-size:13px;color:#fff;font-weight:400}
+.turnline{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.turnline .label{font-family:var(--display);font-size:18px;color:var(--ink)}
+.turnline .ret{font-family:var(--display);font-size:16px}
+.ret.up{color:var(--green)} .ret.down{color:var(--red)}
+.arena{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:#0D1018;border-radius:16px;overflow:hidden;border:1px solid var(--line)}
+.arena canvas{display:block;width:100%!important;height:100%!important}
+.partyhud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.partyhud{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.phud{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;border-left:4px solid var(--rc);transition:opacity .3s}
+.phud.dead{opacity:.45;filter:grayscale(1)}
+.phud .t{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.phud .t b{font-family:var(--display);font-weight:400;font-size:15px;display:flex;align-items:baseline;gap:6px}
+.phud .delta{font-size:12px;font-family:var(--body)}.phud .delta.up{color:var(--green)}.phud .delta.down{color:var(--red)}
+.phud .t small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hp{height:9px;background:#1a2230;border-radius:5px;overflow:hidden;position:relative}
+.hp i{display:block;height:100%;background:var(--green);width:100%;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.hp i.mid{background:var(--gold)} .hp i.low{background:var(--red)}
+.hp em{position:absolute;left:0;top:0;height:100%;background:rgba(244,197,66,.55);border-right:2px solid var(--gold);width:0;transition:width .45s}
+.phud .num{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.phud .num b{font-family:var(--display);font-weight:400;color:var(--ink)}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px 6px;display:flex;flex-direction:column;gap:6px}
+.chartbox .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap;justify-content:space-between}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.chart{height:150px;width:100%}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{background:transparent;border:0;border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--panel2);color:var(--gold);font-family:var(--display)}
+
+/* checkpoint modal (inside battle) */
+.modal{position:fixed;inset:0;background:rgba(8,10,16,.78);display:flex;align-items:center;justify-content:center;padding:16px;z-index:40;backdrop-filter:blur(2px)}
+.modal .box{background:var(--panel);border:1px solid var(--line);border-radius:18px;width:min(640px,100%);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:18px;box-shadow:0 30px 60px rgba(0,0,0,.6)}
+.modal h2{font-size:26px;display:flex;align-items:center;gap:10px}
+.modal h2 .pause{display:inline-block;width:22px;height:22px;border-radius:4px;background:var(--gold);position:relative}
+.modal h2 .pause::before,.modal h2 .pause::after{content:"";position:absolute;top:5px;bottom:5px;width:4px;background:#2B2410;left:6px;border-radius:1px}
+.modal h2 .pause::after{left:12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;font-family:var(--display);font-size:15px;min-height:44px}
+.tabs button[aria-selected="true"]{background:var(--gold);color:#2B2410;border-color:var(--gold)}
+.cp-roles{display:flex;flex-direction:column;gap:10px}
+.cp-role{display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:start;background:var(--panel2);border-radius:12px;padding:10px;border-left:4px solid var(--rc)}
+.cp-role img{width:56px;height:56px}
+.cp-role .opts{display:flex;flex-wrap:wrap;gap:6px}
+.cp-role .opts .skill{min-height:40px;padding:6px 10px;flex-direction:column;align-items:flex-start;gap:0}
+.cp-role .hdr{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--muted);margin-bottom:6px}
+.cp-role .hdr b{font-family:var(--display);font-weight:400;color:var(--ink);font-size:15px}
+.rebal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.rebal{grid-template-columns:1fr}}
+
+/* cut-in overlay (webtoon panel) */
+.cutin{position:fixed;inset:0;z-index:50;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cutin .band{position:absolute;inset:-20% -10%;background:var(--cut-bg,#1E1B2E);transform:skewY(-8deg) scaleY(0);transform-origin:center}
+.cutin .lines{position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.14) 0 1.2deg,transparent 1.2deg 6deg);opacity:0}
+.cutin .art{position:absolute;width:min(44vw,360px);filter:drop-shadow(0 20px 30px rgba(0,0,0,.6));opacity:0}
+.cutin .art.left{left:6%;bottom:8%} .cutin .art.right{right:6%;top:6%;transform:scaleX(-1)}
+.cutin .text{position:relative;font-family:var(--display);font-size:clamp(40px,9vw,96px);color:#fff;-webkit-text-stroke:3px #1a1a1a;paint-order:stroke fill;text-shadow:0 8px 0 rgba(0,0,0,.35);opacity:0;text-align:center;line-height:1;transform:rotate(-6deg)}
+.cutin .sub{position:absolute;bottom:14%;left:0;right:0;text-align:center;font-family:var(--display);font-size:clamp(16px,3vw,28px);color:var(--gold);opacity:0;-webkit-text-stroke:1px #1a1a1a;paint-order:stroke fill}
+
+/* result */
+.result{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.result{grid-template-columns:1fr}}
+.stamp-wrap{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:220px;background:radial-gradient(ellipse at 50% 40%,#2A2238,#171A26 70%);border-radius:16px;border:1px solid var(--line);overflow:hidden}
+.stamp{font-family:var(--display);font-size:140px;line-height:1;color:var(--gold);-webkit-text-stroke:4px #3a2d10;paint-order:stroke fill;transform:rotate(-12deg);text-shadow:0 10px 0 rgba(0,0,0,.35)}
+.stamp.F,.stamp.D{color:var(--red);-webkit-text-stroke-color:#3a1010}
+.stamp.B,.stamp.C{color:var(--blue);-webkit-text-stroke-color:#10203a}
+.verdict{font-family:var(--display);font-size:24px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.stat{background:var(--panel2);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.stat small{color:var(--muted);font-size:12px}
+.stat b{font-family:var(--display);font-weight:400;font-size:22px}
+.contribs{display:flex;flex-direction:column;gap:8px}
+.contrib{display:grid;grid-template-columns:70px 1fr 64px;gap:8px;align-items:center;font-size:13px}
+.contrib .bar{position:relative;height:14px;background:var(--panel2);border-radius:7px;overflow:hidden}
+.contrib .bar i{position:absolute;top:0;height:100%;background:var(--rc)}
+.contrib .bar::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
+.contrib .v{text-align:right;font-family:var(--display)}
+.coach{display:flex;gap:12px;align-items:flex-start}
+.coach .av{width:56px;height:56px;border-radius:50%;background:var(--panel2);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.coach .av img{width:46px}
+.coach .bubble{background:var(--panel2);border-radius:4px 16px 16px 16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-height:60px;flex:1;min-width:0}
+.coach .bubble p{margin:0;line-height:1.6}
+.coach .bubble p.typing::after{content:"▍";color:var(--gold);animation:blink .8s infinite}
+@keyframes blink{50%{opacity:0}}
+.decisions{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.decisions div{display:flex;gap:8px;align-items:baseline}
+.decisions .t{color:var(--gold);font-family:var(--display);white-space:nowrap}
+.concepts{display:flex;flex-direction:column;gap:6px}
+.concepts details{background:var(--panel2);border-radius:10px;padding:0}
+.concepts summary{cursor:pointer;list-style:none;padding:9px 12px;font-family:var(--display);font-size:15px;display:flex;align-items:center;gap:8px;min-height:44px}
+.concepts summary::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.concepts summary::-webkit-details-marker{display:none}
+.concepts p{margin:0;padding:0 12px 12px 28px;font-size:13px;color:var(--muted);line-height:1.6}
+.whatif{display:flex;flex-direction:column;gap:6px}
+.whatif div{display:grid;grid-template-columns:64px 1fr 72px;gap:8px;align-items:center;background:var(--panel2);border-radius:10px;padding:8px 10px;font-size:13px}
+.whatif .k{font-family:var(--display);font-size:13px;color:var(--muted)}
+.whatif .k.best{color:var(--green)} .whatif .k.worst{color:var(--red)} .whatif .k.me{color:var(--gold)}
+.whatif .v{text-align:right;font-family:var(--display);font-size:16px}
+.whatif .lock{color:var(--orange);font-size:11px;margin-left:6px}
+.expgain{display:flex;flex-direction:column;gap:6px}
+.expgain .big{font-family:var(--display);font-size:20px}
+.expbar.lg{width:100%;height:14px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--gold);color:#2B2410;font-family:var(--display);font-size:18px;padding:12px 20px;border-radius:999px;opacity:0;z-index:60;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);white-space:nowrap}
+.foot{font-size:12px;color:var(--dim);text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div>
+        <h1>모험단 레이드</h1>
+        <small>실제 시장 이벤트가 보스가 되는 투자 교육 게임</small>
+      </div>
+    </div>
+    <div class="row">
+      <div class="profile" title="레벨과 경험치">
+        <span class="lv" id="pLv">Lv.1</span>
+        <div class="expbar" aria-label="경험치"><i id="pExp"></i></div>
+        <span class="small muted tabular" id="pExpTxt">0 / 60</span>
+      </div>
+      <button class="iconbtn" id="unlockBtn" type="button" aria-pressed="false" title="데모용: 레벨 제한 없이 모든 기술 사용">전 기술 해금</button>
+      <button class="iconbtn" id="muteBtn" type="button" aria-pressed="false">소리 켜짐</button>
+    </div>
+  </header>
+
+  <!-- 1. raid select -->
+  <section id="screen-select" class="card" style="display:flex;flex-direction:column;gap:16px">
+    <div class="hero">
+      <div>
+        <h2 style="font-size:28px">이번 주, 시장에 보스가 나타났다</h2>
+        <p>거북이·치타·다람쥐·꿀벌 모험단을 편성하고, 실제 시장 데이터로 판정되는 레이드에 도전하세요. 같은 시장이라도 당신의 선택에 따라 결과가 달라집니다.</p>
+        <div class="row" style="margin-top:10px">
+          <span class="chip">파티 비중 = 포트폴리오</span><span class="chip">기술 = 실제 금융상품</span><span class="chip">데미지 = 실제 등락률</span>
+        </div>
+      </div>
+      <div class="party-preview" id="partyPreview"></div>
+    </div>
+    <div>
+      <h3 style="font-size:18px;margin-bottom:8px">레이드 선택</h3>
+      <div class="raids" id="raids"></div>
+    </div>
+    <p class="foot">현재 테이프는 이벤트 모양을 본떠 만든 예시 데이터입니다. 실제 분봉이 연결되면 같은 형식으로 교체됩니다. 특정 상품의 투자권유가 아닙니다.</p>
+  </section>
+
+  <!-- 2. briefing -->
+  <section id="screen-brief" class="card" hidden>
+    <div class="brief">
+      <div class="boss-stage"><span class="chip tag" id="bTag"></span><img id="bArt" alt=""></div>
+      <div class="brief-text">
+        <span class="muted small" id="bDate"></span>
+        <h2 id="bTitle"></h2>
+        <div class="sys" id="bBrief"></div>
+        <div>
+          <div class="small muted" style="margin-bottom:6px">레이드 구간 · 노란 칸이 개입 가능한 체크포인트</div>
+          <div class="timeline" id="bTimeline"></div>
+        </div>
+        <div>
+          <div class="small muted" style="margin-bottom:6px">이 레이드에서 배우는 것</div>
+          <div class="row" id="bConcepts" style="gap:6px"></div>
+        </div>
+        <div class="row" style="margin-top:auto">
+          <button class="btn" id="toParty" type="button">파티 편성하기</button>
+          <button class="btn secondary" id="backToSelect" type="button">다른 레이드</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. party setup -->
+  <section id="screen-party" class="card" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="total">
+      <div>
+        <h2 style="font-size:24px">파티 편성</h2>
+        <div class="small muted">비중의 합이 100이 되어야 출발합니다. 역할마다 기술 하나를 장착하세요.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex:1;min-width:220px">
+        <div class="sum" id="sumTxt">100 / 100</div>
+        <div class="alloc" id="alloc"></div>
+      </div>
+    </div>
+    <div class="roles" id="roles"></div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn secondary" id="backToBrief" type="button">브리핑으로</button>
+      <div class="row">
+        <button class="btn secondary" id="presetBtn" type="button">기본 파티</button>
+        <button class="btn" id="startBattle" type="button">레이드 출발</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. battle -->
+  <section id="screen-battle" hidden style="display:flex;flex-direction:column;gap:10px">
+    <div class="hud">
+      <div class="bossbar"><span class="name" id="hBossName">보스</span><div class="bar"><i id="hBossHp"></i><b id="hBossHpTxt">100</b></div></div>
+      <div class="turnline"><span><span class="label" id="hLabel">대기</span> <span class="tabular" id="hTime"></span></span><span><span class="muted">이번 구간 파티 </span><span class="ret tabular" id="hRet">—</span><span class="muted"> · 누적 </span><span class="ret tabular" id="hCum">0.00%</span></span></div>
+    </div>
+    <div class="arena" id="arena"></div>
+    <div class="partyhud" id="partyhud"></div>
+    <div class="chartbox">
+      <div class="legend"><span><i style="background:var(--gold)"></i>내 파티 <i style="background:#7C8597;margin-left:12px"></i>기본 파티 <i style="background:var(--red);margin-left:12px"></i>보스 HP</span><span id="chartNote" class="muted"></span></div>
+      <div class="chart" id="chart"></div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="재생 속도"><button type="button" data-speed="1" aria-pressed="true">1×</button><button type="button" data-speed="2" aria-pressed="false">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div>
+      <div class="row"><button class="btn secondary" id="pauseBtn" type="button">일시정지</button><button class="btn secondary" id="abortBtn" type="button">레이드 포기</button></div>
+    </div>
+  </section>
+
+  <!-- 5. result -->
+  <section id="screen-result" hidden style="display:flex;flex-direction:column;gap:14px">
+    <div class="result">
+      <div class="card" style="display:flex;flex-direction:column;gap:12px">
+        <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
+        <div class="stats">
+          <div class="stat"><small>레이드 수익률</small><b class="tabular" id="rRet">0.00%</b></div>
+          <div class="stat"><small>기본 파티 대비</small><b class="tabular" id="rAlpha">0.00%</b></div>
+          <div class="stat"><small>보스</small><b id="rBoss">—</b></div>
+          <div class="stat"><small>생존</small><b id="rAlive">4 / 4</b></div>
+        </div>
+        <div>
+          <div class="small muted" style="margin-bottom:8px">역할별 기여도 (포트폴리오 %p)</div>
+          <div class="contribs" id="rContribs"></div>
+        </div>
+        <div>
+          <div class="small muted" style="margin-bottom:6px">체크포인트 선택</div>
+          <div class="decisions" id="rDecisions"></div>
+        </div>
+        <div>
+          <div class="small muted" style="margin-bottom:6px">이번 레이드에서 배운 개념 · 눌러서 펼치기</div>
+          <div class="concepts" id="rConcepts"></div>
+        </div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <div class="chartbox" style="padding:0;border:0;background:transparent"><div class="legend"><span><i style="background:var(--gold)"></i>내 파티 <i style="background:#7C8597;margin-left:12px"></i>기본 파티</span></div><div class="chart" id="rChart" style="height:170px"></div></div>
+        <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
+        <div>
+          <div class="small muted" style="margin-bottom:6px">같은 시장, 다른 선택이었다면</div>
+          <div class="whatif" id="rWhatIf"></div>
+        </div>
+        <div class="expgain"><div class="big">경험치 <span id="rExp" class="tabular">+0</span></div><div class="expbar lg"><i id="rExpBar"></i></div><div class="small muted" id="rExpTxt"></div></div>
+        <div class="row">
+          <button class="btn" id="retryBtn" type="button">같은 레이드 다시</button>
+          <button class="btn secondary" id="otherBtn" type="button">다른 레이드</button>
+          <button class="btn secondary" id="etfBtn" type="button">닮은 ETF 보기</button>
+        </div>
+      </div>
+    </div>
+    <p class="foot">게임 결과는 학습용이며 특정 상품의 투자권유가 아닙니다. 투자 전 상품설명서를 확인하세요.</p>
+  </section>
+</div>
+
+<!-- checkpoint modal -->
+<div class="modal" id="cp" hidden role="dialog" aria-modal="true" aria-labelledby="cpTitle">
+  <div class="box">
+    <h2 id="cpTitle"><span class="pause"></span><span></span></h2>
+    <div class="sys" id="cpHint"></div>
+    <div class="tabs" role="tablist"><button type="button" role="tab" data-tab="hold" aria-selected="true">버티기</button><button type="button" role="tab" data-tab="equip" aria-selected="false">기술 교체</button><button type="button" role="tab" data-tab="rebalance" aria-selected="false">비중 조정</button></div>
+    <div id="cpHold"><p class="muted" style="margin:0 0 10px">지금 구성 그대로 다음 구간을 맞습니다. 시장이 예상대로면 이게 정답일 수도 있어요.</p><button class="btn" id="cpHoldBtn" type="button">이대로 버틴다</button></div>
+    <div id="cpEquip" hidden class="cp-roles"></div>
+    <div id="cpRebal" hidden style="display:flex;flex-direction:column;gap:10px"><div class="rebal" id="cpSliders"></div><div class="total"><div class="sum" id="cpSum">100 / 100</div><button class="btn" id="cpRebalBtn" type="button">이 비중으로 간다</button></div></div>
+  </div>
+</div>
+
+<!-- ETF link placeholder modal -->
+<div class="modal" id="etfModal" hidden role="dialog" aria-modal="true">
+  <div class="box">
+    <h2 style="font-size:22px">당신의 파티와 닮은 상품</h2>
+    <p class="muted" style="margin:0">이 자리에 실제 ETF 구성비 비교와 유진 앱 상품 화면으로 가는 연결이 들어갑니다. 지금은 자리만 잡아둔 상태예요.</p>
+    <div class="alloc" id="etfAlloc" style="max-width:100%"></div>
+    <button class="btn secondary" id="etfClose" type="button">닫기</button>
+  </div>
+</div>
+
+<div class="cutin" id="cutin" hidden><div class="band"></div><div class="lines"></div><img class="art left" id="cutArtL" alt=""><img class="art right" id="cutArtR" alt=""><div class="text" id="cutText"></div><div class="sub" id="cutSub"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>window.__TAPES__ = [{"id":"semi-earnings-2026-10-28","title":"반도체 쌍두 히드라 레이드","boss":"반도체 쌍두 히드라","bossSpecies":"hydra","market":"KR","example":true,"settled":true,"briefing":"SK하이닉스 3분기 실적이 장 시작 전에 나온다. 컨센서스는 이미 높다. 좋은 실적이 아니라 \"기대보다 좋은\" 실적이어야 오른다.","lesson":"기대치가 이미 높을 때는 좋은 뉴스도 차익실현의 빌미가 돼요. 반도체 ETF는 결국 한 업종에 모여 있어서 함께 움직여요.","concepts":[{"name":"기대치 대비 실적","text":"좋은 실적이 아니라 \"기대보다 좋은\" 실적이어야 올라요. 기대가 이미 높으면 좋은 뉴스도 매물의 빌미가 돼요."},{"name":"업종 집중의 위험","text":"반도체 ETF는 여러 종목이지만 결국 한 업종이에요. 업종 뉴스 하나에 다 같이 움직여요."},{"name":"차익실현","text":"급등 직후엔 먼저 산 사람들이 이익을 챙기며 팔아요. 첫 10분의 방향이 하루를 결정하지 않아요."}],"instruments":{"K200":{"name":"코스피200 ETF","kind":"etf","currency":"KRW"},"K200L":{"name":"코스피200 2배 레버리지","kind":"lev","currency":"KRW"},"KSEMI":{"name":"반도체 ETF","kind":"etf","currency":"KRW"},"KBOND":{"name":"국고채 10년 ETF","kind":"etf","currency":"KRW"},"KGOLD":{"name":"금 현물 ETF","kind":"etf","currency":"KRW"},"KCASH":{"name":"머니마켓 ETF","kind":"cash","currency":"KRW"},"KDIV":{"name":"고배당 ETF","kind":"etf","currency":"KRW"},"K200_P":{"name":"코스피200 풋옵션 (행사가 560)","kind":"option","currency":"KRW"}},"skills":[{"id":"tank_kbond","role":"tank","instrument":"KBOND","name":"국고채 방패","default":true,"lesson":"국내 금리 이벤트가 아닌 날, 채권은 조용히 버텨요."},{"id":"dealer_k200","role":"dealer","instrument":"K200","name":"코스피 베기","default":true,"lesson":"지수 ETF는 업종 뉴스를 희석해서 받아요."},{"id":"dealer_ksemi","role":"dealer","instrument":"KSEMI","name":"반도체 돌격","lesson":"업종 ETF는 그 업종 뉴스에 지수보다 2배쯤 크게 움직여요."},{"id":"dealer_k200l","role":"dealer","instrument":"K200L","name":"폭주 돌진","unlockLevel":5,"lesson":"레버리지는 하루 안에서도 반동이 두 배예요."},{"id":"healer_kgold","role":"healer","instrument":"KGOLD","name":"황금 가호","default":true,"lesson":"금은 주식이 흔들릴 때 조용히 버텨줘요."},{"id":"healer_kcash","role":"healer","instrument":"KCASH","name":"현금 대기","lesson":"현금은 안 다치지만 보스도 못 때려요."},{"id":"healer_kput","role":"healer","instrument":"K200_P","blend":{"K200_P":0.25,"KCASH":0.75},"name":"도토리 보험","unlockLevel":10,"lesson":"슬롯의 25%만 풋옵션, 나머지는 현금이에요. 급등 땐 보험료가 빠르게 녹아요. 타이밍이 전부예요."},{"id":"support_kdiv","role":"support","instrument":"KDIV","name":"꿀 모으기","default":true,"lesson":"고배당주는 성장주보다 덜 흔들려요."}],"checkpoints":[{"bar":1,"title":"장 시작 직전","hint":"실적은 기대치를 넘었다. 그런데 기대치가 원래 높았다. 반도체로 몰아줄까?","allow":["hold","equip","rebalance"]},{"bar":4,"title":"차익실현 조짐","hint":"첫 급등 뒤 매물이 나오기 시작했다. 이익을 지킬까, 더 갈까?","allow":["hold","equip","rebalance"]}],"bars":[{"t":"2026-10-28T08:30:00+09:00","label":"실적 발표","prices":{"K200":56800,"K200L":41250,"KSEMI":78400,"KBOND":121300,"KGOLD":31900,"KCASH":105320,"KDIV":17840,"K200_P":3.85}},{"t":"2026-10-28T09:00:00+09:00","label":"장 시작","prices":{"K200":57425,"K200L":42149,"KSEMI":80438,"KBOND":121239,"KGOLD":31868,"KCASH":105320,"KDIV":17911,"K200_P":3.31}},{"t":"2026-10-28T09:10:00+09:00","label":"첫 10분","prices":{"K200":57654,"K200L":42482,"KSEMI":81162,"KBOND":121215,"KGOLD":31852,"KCASH":105320,"KDIV":17929,"K200_P":3.15}},{"t":"2026-10-28T09:30:00+09:00","label":"초반 소화","prices":{"K200":57309,"K200L":41968,"KSEMI":79701,"KBOND":121264,"KGOLD":31884,"KCASH":105320,"KDIV":17893,"K200_P":3.43}},{"t":"2026-10-28T10:00:00+09:00","label":"차익실현","prices":{"K200":56793,"K200L":41209,"KSEMI":77789,"KBOND":121361,"KGOLD":31932,"KCASH":105320,"KDIV":17840,"K200_P":3.98}},{"t":"2026-10-28T11:00:00+09:00","label":"오전 마감","prices":{"K200":56622,"K200L":40957,"KSEMI":77244,"KBOND":121397,"KGOLD":31948,"KCASH":105320,"KDIV":17822,"K200_P":4.18}},{"t":"2026-10-28T13:00:00+09:00","label":"오후 시작","prices":{"K200":56679,"K200L":41035,"KSEMI":77399,"KBOND":121385,"KGOLD":31948,"KCASH":105320,"KDIV":17831,"K200_P":4.09}},{"t":"2026-10-28T14:30:00+09:00","label":"막판 반등","prices":{"K200":56962,"K200L":41441,"KSEMI":78250,"KBOND":121336,"KGOLD":31932,"KCASH":105320,"KDIV":17866,"K200_P":3.77}},{"t":"2026-10-28T15:30:00+09:00","label":"마감","prices":{"K200":57076,"K200L":41603,"KSEMI":78563,"KBOND":121312,"KGOLD":31932,"KCASH":105320,"KDIV":17884,"K200_P":3.65}}]},{"id":"fomc-2026-10-29","title":"동결의 골렘 레이드","boss":"동결의 골렘","bossSpecies":"golem","market":"US","example":true,"settled":true,"briefing":"FOMC 결정은 동결이 90% 예상. 진짜 공격은 2페이즈 기자회견에서 온다. \"앞으로 더 올릴 수 있다\"는 한마디가 필살기다.","lesson":"시장은 결과 자체가 아니라 예상과의 차이에 반응해요. 동결은 이미 가격에 있었고, 기자회견의 톤이 새 정보였어요.","concepts":[{"name":"이미 가격에 반영된 뉴스","text":"90%가 예상한 동결은 발표 순간 거의 움직임이 없었어요. 시장은 \"예상과 다른 것\"에만 반응해요."},{"name":"금리와 성장주","text":"성장주는 먼 미래의 이익을 기대받는 자산이라, 금리 전망이 올라가면 가장 먼저 흔들려요."},{"name":"레버리지의 반동","text":"3배 레버리지는 같은 방향이면 3배 벌지만, 반대 방향이면 3배로 맞아요. 하루 안에서도요."},{"name":"헤지와 보험료","text":"풋옵션은 평소에 보험료가 녹지만 급락 때 파티를 구해요. 그래서 소액으로, 타이밍이 중요해요."}],"instruments":{"QQQ":{"name":"나스닥100 ETF","kind":"etf","currency":"USD"},"TQQQ":{"name":"나스닥100 3배 레버리지","kind":"lev","currency":"USD"},"TLT":{"name":"미국 장기채 ETF","kind":"etf","currency":"USD"},"SHY":{"name":"미국 단기채 ETF","kind":"etf","currency":"USD"},"GLD":{"name":"금 ETF","kind":"etf","currency":"USD"},"BIL":{"name":"현금성 단기국채 ETF","kind":"cash","currency":"USD"},"SCHD":{"name":"미국 배당 ETF","kind":"etf","currency":"USD"},"QQQ_P":{"name":"QQQ 풋옵션 (행사가 480, 2주물)","kind":"option","currency":"USD"}},"skills":[{"id":"tank_tlt","role":"tank","instrument":"TLT","name":"장기채 방패","default":true,"lesson":"장기채는 금리 전망에 민감해서, 매파 발언엔 방패도 금이 가요."},{"id":"tank_shy","role":"tank","instrument":"SHY","name":"단기채 벽","lesson":"단기채는 거의 안 흔들리지만 공격력도 없어요."},{"id":"dealer_qqq","role":"dealer","instrument":"QQQ","name":"질주 베기","default":true,"lesson":"성장주는 금리 신호에 가장 민감한 자산이에요."},{"id":"dealer_tqqq","role":"dealer","instrument":"TQQQ","name":"폭주 돌진","unlockLevel":5,"lesson":"3배 레버리지는 같은 방향이면 3배, 반대면 반동도 3배예요."},{"id":"healer_gld","role":"healer","instrument":"GLD","name":"황금 가호","default":true,"lesson":"금은 금리가 오를 땐 이자를 못 줘서 약해지기도 해요."},{"id":"healer_cash","role":"healer","instrument":"BIL","name":"현금 대기","lesson":"현금은 안 다치지만 보스도 못 때려요."},{"id":"healer_put","role":"healer","instrument":"QQQ_P","blend":{"QQQ_P":0.25,"BIL":0.75},"name":"도토리 보험","unlockLevel":10,"lesson":"보험은 소액이 원칙이에요. 슬롯의 25%만 풋옵션에 쓰고 나머지는 현금으로 뒀어요. 평소엔 보험료가 녹지만 급락 땐 파티를 구해요."},{"id":"support_schd","role":"support","instrument":"SCHD","name":"꿀 모으기","default":true,"lesson":"배당주도 주식이라 하락장에선 같이 밀려요. 대신 덜 밀려요."}],"checkpoints":[{"bar":3,"title":"금리 결정 발표 1분 전","hint":"시장은 동결을 90% 예상하고 있다. 지금 바꿀까, 버틸까?","allow":["hold","equip","rebalance"]},{"bar":5,"title":"기자회견 시작","hint":"의장의 첫 마디가 곧 나온다. 매파일까, 비둘기일까?","allow":["hold","equip","rebalance"]}],"bars":[{"t":"2026-10-29T02:00:00+09:00","label":"장중 대기","prices":{"QQQ":482.1,"TQQQ":71.4,"TLT":92.3,"SHY":82.6,"GLD":251.8,"BIL":91.52,"SCHD":28.4,"QQQ_P":4.2}},{"t":"2026-10-29T02:30:00+09:00","label":"발표 1시간 전","prices":{"QQQ":482.34,"TQQQ":71.51,"TLT":92.32,"SHY":82.6,"GLD":251.88,"BIL":91.52,"SCHD":28.41,"QQQ_P":4.14}},{"t":"2026-10-29T03:00:00+09:00","label":"발표 30분 전","prices":{"QQQ":481.86,"TQQQ":71.29,"TLT":92.27,"SHY":82.59,"GLD":251.77,"BIL":91.52,"SCHD":28.39,"QQQ_P":4.19}},{"t":"2026-10-29T03:30:00+09:00","label":"금리 결정 발표","prices":{"QQQ":483.55,"TQQQ":72.03,"TLT":92.46,"SHY":82.62,"GLD":252.15,"BIL":91.52,"SCHD":28.44,"QQQ_P":3.81}},{"t":"2026-10-29T04:00:00+09:00","label":"결정 소화","prices":{"QQQ":484.03,"TQQQ":72.24,"TLT":92.41,"SHY":82.62,"GLD":252.2,"BIL":91.52,"SCHD":28.45,"QQQ_P":3.7}},{"t":"2026-10-29T04:30:00+09:00","label":"기자회견 시작","prices":{"QQQ":482.82,"TQQQ":71.69,"TLT":92.27,"SHY":82.6,"GLD":251.9,"BIL":91.52,"SCHD":28.41,"QQQ_P":3.99}},{"t":"2026-10-29T05:00:00+09:00","label":"매파 발언","prices":{"QQQ":477.02,"TQQQ":69.09,"TLT":91.63,"SHY":82.53,"GLD":250.51,"BIL":91.52,"SCHD":28.24,"QQQ_P":5.67}},{"t":"2026-10-29T05:30:00+09:00","label":"발언 확산","prices":{"QQQ":474.16,"TQQQ":67.83,"TLT":91.35,"SHY":82.51,"GLD":250.01,"BIL":91.52,"SCHD":28.16,"QQQ_P":6.91}},{"t":"2026-10-29T06:00:00+09:00","label":"진정 국면","prices":{"QQQ":475.59,"TQQQ":68.43,"TLT":91.49,"SHY":82.53,"GLD":250.46,"BIL":91.52,"SCHD":28.21,"QQQ_P":6.29}},{"t":"2026-10-29T06:30:00+09:00","label":"마감","prices":{"QQQ":476.06,"TQQQ":68.62,"TLT":91.53,"SHY":82.53,"GLD":250.61,"BIL":91.52,"SCHD":28.22,"QQQ_P":6.07}}]},{"id":"pce-2026-10-29","title":"인플레 슬라임 레이드","boss":"인플레 슬라임","bossSpecies":"slime","market":"US","example":true,"settled":true,"briefing":"9월 PCE 물가가 미국 장 시작 1시간 전에 나온다. 예상은 전년 대비 3.7%. 숫자가 예상보다 높으면 슬라임이 분열한다. 현금의 회복력이 떨어지고, 금만 버틴다.","lesson":"현금은 가격이 안 변해서 안전해 보이지만, 물가가 오르면 같은 돈으로 살 수 있는 게 줄어요. 금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요.","concepts":[{"name":"인플레이션과 구매력","text":"물가가 오르면 현금의 실질 가치는 줄어요. 금융이해력 조사에서 가장 크게 떨어진 바로 그 문항이에요."},{"name":"물가와 금리 기대","text":"물가가 예상보다 높으면 \"금리를 더 올리겠구나\"로 이어져서 채권과 성장주가 같이 흔들려요."},{"name":"안전자산의 종류","text":"현금, 단기채, 금은 모두 안전자산이지만 물가 앞에서는 다르게 반응해요."}],"instruments":{"QQQ":{"name":"나스닥100 ETF","kind":"etf","currency":"USD"},"TQQQ":{"name":"나스닥100 3배 레버리지","kind":"lev","currency":"USD"},"TLT":{"name":"미국 장기채 ETF","kind":"etf","currency":"USD"},"SHY":{"name":"미국 단기채 ETF","kind":"etf","currency":"USD"},"GLD":{"name":"금 ETF","kind":"etf","currency":"USD"},"BIL":{"name":"현금성 단기국채 ETF","kind":"cash","currency":"USD"},"SCHD":{"name":"미국 배당 ETF","kind":"etf","currency":"USD"},"QQQ_P":{"name":"QQQ 풋옵션 (행사가 470, 2주물)","kind":"option","currency":"USD"}},"skills":[{"id":"tank_tlt","role":"tank","instrument":"TLT","name":"장기채 방패","default":true,"lesson":"물가 서프라이즈는 금리 기대를 올려서 장기채도 같이 맞아요."},{"id":"tank_shy","role":"tank","instrument":"SHY","name":"단기채 벽","lesson":"단기채는 거의 안 흔들리지만 공격력도 없어요."},{"id":"dealer_qqq","role":"dealer","instrument":"QQQ","name":"질주 베기","default":true,"lesson":"성장주는 금리 기대가 올라가면 먼저 밀려요. 대신 회복도 빨라요."},{"id":"dealer_tqqq","role":"dealer","instrument":"TQQQ","name":"폭주 돌진","unlockLevel":5,"lesson":"3배 레버리지는 반등 구간에선 영웅, 급락 구간에선 반동이에요."},{"id":"healer_gld","role":"healer","instrument":"GLD","name":"황금 가호","default":true,"lesson":"금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요. 슬라임 앞에서 버틴 이유예요."},{"id":"healer_cash","role":"healer","instrument":"BIL","name":"현금 대기","lesson":"현금은 숫자는 안 변하지만, 물가가 오르면 살 수 있는 게 줄어요. 슬라임의 진짜 공격이에요."},{"id":"healer_put","role":"healer","instrument":"QQQ_P","blend":{"QQQ_P":0.25,"BIL":0.75},"name":"도토리 보험","unlockLevel":10,"lesson":"발표 전에 든 보험은 비쌌지만 분열 구간에서 값을 했어요. 반등이 오면 보험료는 다시 녹아요."},{"id":"support_schd","role":"support","instrument":"SCHD","name":"꿀 모으기","default":true,"lesson":"배당주는 성장주보다 덜 밀리고 덜 올라요. 꾸준함이 무기예요."}],"checkpoints":[{"bar":1,"title":"PCE 발표 직전","hint":"예상은 3.7%. 지난달보다 높은 숫자가 예고돼 있다. 보험을 들까, 금을 믿을까?","allow":["hold","equip","rebalance"]},{"bar":3,"title":"장 시작 직전","hint":"프리마켓에서 이미 많이 밀렸다. 여기서 더 방어할까, 반등을 노릴까?","allow":["hold","equip","rebalance"]}],"bars":[{"t":"2026-10-29T21:00:00+09:00","label":"발표 1시간 전","prices":{"QQQ":474.3,"TQQQ":67.9,"TLT":91.4,"SHY":82.55,"GLD":250.6,"BIL":91.52,"SCHD":28.2,"QQQ_P":4.6}},{"t":"2026-10-29T21:30:00+09:00","label":"PCE 발표","prices":{"QQQ":470.98,"TQQQ":66.46,"TLT":90.9,"SHY":82.5,"GLD":251.73,"BIL":91.52,"SCHD":28.09,"QQQ_P":5.8}},{"t":"2026-10-29T22:00:00+09:00","label":"프리마켓 반응","prices":{"QQQ":469.57,"TQQQ":65.86,"TLT":90.72,"SHY":82.48,"GLD":252.11,"BIL":91.52,"SCHD":28.05,"QQQ_P":6.32}},{"t":"2026-10-29T22:30:00+09:00","label":"장 시작","prices":{"QQQ":467.45,"TQQQ":64.96,"TLT":90.49,"SHY":82.47,"GLD":252.36,"BIL":91.52,"SCHD":27.99,"QQQ_P":7.08}},{"t":"2026-10-29T23:00:00+09:00","label":"첫 30분","prices":{"QQQ":468.39,"TQQQ":65.34,"TLT":90.53,"SHY":82.48,"GLD":252.23,"BIL":91.52,"SCHD":28.02,"QQQ_P":6.65}},{"t":"2026-10-29T23:30:00+09:00","label":"소화 국면","prices":{"QQQ":470.03,"TQQQ":66.02,"TLT":90.62,"SHY":82.48,"GLD":252.36,"BIL":91.52,"SCHD":28.07,"QQQ_P":6.05}},{"t":"2026-10-30T00:30:00+09:00","label":"반등 시도","prices":{"QQQ":471.91,"TQQQ":66.81,"TLT":90.76,"SHY":82.49,"GLD":252.61,"BIL":91.52,"SCHD":28.13,"QQQ_P":5.45}},{"t":"2026-10-30T01:30:00+09:00","label":"오후장","prices":{"QQQ":471.2,"TQQQ":66.5,"TLT":90.72,"SHY":82.49,"GLD":252.74,"BIL":91.52,"SCHD":28.12,"QQQ_P":5.61}},{"t":"2026-10-30T02:30:00+09:00","label":"마감 전","prices":{"QQQ":471.67,"TQQQ":66.69,"TLT":90.76,"SHY":82.49,"GLD":252.74,"BIL":91.52,"SCHD":28.13,"QQQ_P":5.47}}]}];</script>
+<script type="module">
+/* ===== src/engine.js ===== */
+/**
+ * invest-rpg engine core
+ * ----------------------
+ * UI-free. Runs in Node (tests) and in the browser (Phaser scene imports it).
+ *
+ * Vocabulary
+ *   tape        : one market event, sliced into intraday segments ("bars"). Each bar = one battle turn.
+ *   instrument  : anything with a price series in the tape (ETF, leveraged ETF, option contract, cash).
+ *   skill       : an instrument wrapped in game language (name, role, flavor). 1 skill = 1 instrument.
+ *   party       : 4 roles (tank/dealer/healer/support) with weights (sum 100) and an equipped skill each.
+ *   checkpoint  : a bar where the auto-battle pauses and the player may intervene (re-equip / rebalance).
+ *
+ * All damage is derived from the tape. No RNG anywhere in this file.
+ */
+
+export const ROLES = ['tank', 'dealer', 'healer', 'support'];
+
+export const ROLE_META = {
+  tank:    { name: '탱커',  asset: '채권',    char: '듬직이', species: 'turtle',   color: '#5E6B7D' },
+  dealer:  { name: '딜러',  asset: '성장주',  char: '쌩쌩이', species: 'cheetah',  color: '#2F5BD8' },
+  healer:  { name: '힐러',  asset: '금·현금', char: '알뜰이', species: 'squirrel', color: '#B8892B' },
+  support: { name: '서포터', asset: '배당주', char: '꼬박이', species: 'bee',      color: '#3E8A5F' },
+};
+
+/**
+ * Party damage scale. A role's slot value starts at 100 and compounds with its instrument's bar-to-bar move,
+ * amplified so that intraday % reads as damage. HP = min(100, slot); value above 100 shows as a shield.
+ * Options already move 10-40% per bar, so they are not amplified.
+ */
+export const HP_PER_PCT = 12;
+export const HP_SCALE_BY_KIND = { option: 1 };
+/** Boss HP = 100 - (cumulative portfolio return %) * BOSS_HP_PER_PCT, clamped. +2.5% beats the event; a loss leaves it untouched. */
+export const BOSS_HP_PER_PCT = 40;
+
+/* ------------------------------------------------------------------ */
+/* Tape validation                                                     */
+/* ------------------------------------------------------------------ */
+
+export function validateTape(tape) {
+  const errors = [];
+  if (!tape || typeof tape !== 'object') return ['tape is not an object'];
+  if (!tape.id) errors.push('tape.id missing');
+  if (!Array.isArray(tape.bars) || tape.bars.length < 2) errors.push('tape.bars needs >= 2 bars');
+  if (!tape.instruments || typeof tape.instruments !== 'object') errors.push('tape.instruments missing');
+  if (!Array.isArray(tape.skills) || tape.skills.length === 0) errors.push('tape.skills missing');
+  if (errors.length) return errors;
+
+  const ids = Object.keys(tape.instruments);
+  tape.bars.forEach((b, i) => {
+    if (!b.t) errors.push(`bar[${i}].t missing`);
+    if (!b.prices) { errors.push(`bar[${i}].prices missing`); return; }
+    ids.forEach(id => {
+      const p = b.prices[id];
+      if (typeof p !== 'number' || !(p > 0)) errors.push(`bar[${i}].prices.${id} must be a positive number`);
+    });
+  });
+  tape.skills.forEach(s => {
+    if (!tape.instruments[s.instrument]) errors.push(`skill ${s.id} references unknown instrument ${s.instrument}`);
+    if (!ROLES.includes(s.role)) errors.push(`skill ${s.id} has unknown role ${s.role}`);
+    if (s.blend) {
+      const sum = Object.values(s.blend).reduce((a, b) => a + b, 0);
+      if (Math.abs(sum - 1) > 1e-9) errors.push(`skill ${s.id} blend shares must sum to 1`);
+      Object.keys(s.blend).forEach(id => { if (!tape.instruments[id]) errors.push(`skill ${s.id} blend references unknown instrument ${id}`); });
+    }
+  });
+  (tape.checkpoints || []).forEach((c, i) => {
+    if (!(c.bar > 0 && c.bar < tape.bars.length)) errors.push(`checkpoint[${i}].bar out of range`);
+  });
+  return errors;
+}
+
+/* ------------------------------------------------------------------ */
+/* Adapters: where tapes come from                                     */
+/* ------------------------------------------------------------------ */
+
+/** Replay adapter: tapes are already in memory (bundled JSON). */
+export class ReplayAdapter {
+  constructor(tapes) { this.tapes = new Map(tapes.map(t => [t.id, t])); }
+  async list() { return [...this.tapes.values()].map(summary); }
+  async load(id) {
+    const t = this.tapes.get(id);
+    if (!t) throw new Error(`unknown tape ${id}`);
+    const errs = validateTape(t);
+    if (errs.length) throw new Error(`invalid tape ${id}: ${errs.join('; ')}`);
+    return t;
+  }
+}
+
+/**
+ * Live adapter: the same shape, produced by a server. `fetchJson(url)` is injected
+ * so the engine never touches the network itself (and tests can stub it).
+ * Expected endpoints:
+ *   GET {base}/events           -> [summary]
+ *   GET {base}/events/{id}      -> tape (bars may be partial until the event settles)
+ */
+export class LiveAdapter {
+  constructor(base, fetchJson) { this.base = base; this.fetchJson = fetchJson; }
+  async list() { return this.fetchJson(`${this.base}/events`); }
+  async load(id) {
+    const t = await this.fetchJson(`${this.base}/events/${id}`);
+    const errs = validateTape(t);
+    if (errs.length) throw new Error(`invalid live tape ${id}: ${errs.join('; ')}`);
+    return t;
+  }
+}
+
+export function summary(t) {
+  return { id: t.id, title: t.title, boss: t.boss, date: t.bars[0].t, market: t.market, settled: t.settled !== false };
+}
+
+/* ------------------------------------------------------------------ */
+/* Party                                                               */
+/* ------------------------------------------------------------------ */
+
+export function defaultParty(tape) {
+  const bySkill = Object.fromEntries(tape.skills.map(s => [s.id, s]));
+  const pick = role => tape.skills.find(s => s.role === role && s.default) || tape.skills.find(s => s.role === role);
+  return {
+    weights: { tank: 25, dealer: 40, healer: 20, support: 15 },
+    skills: Object.fromEntries(ROLES.map(r => [r, pick(r).id])),
+    _bySkill: bySkill,
+  };
+}
+
+export function validateParty(party, tape) {
+  const errors = [];
+  const sum = ROLES.reduce((a, r) => a + (party.weights[r] || 0), 0);
+  if (sum !== 100) errors.push(`weights must sum to 100 (got ${sum})`);
+  ROLES.forEach(r => {
+    const w = party.weights[r];
+    if (!(w >= 0 && w <= 100)) errors.push(`weight.${r} out of range`);
+    const s = tape.skills.find(k => k.id === party.skills[r]);
+    if (!s) errors.push(`skill for ${r} not found: ${party.skills[r]}`);
+    else if (s.role !== r) errors.push(`skill ${s.id} cannot be equipped by ${r}`);
+  });
+  return errors;
+}
+
+/* ------------------------------------------------------------------ */
+/* Core math                                                           */
+/* ------------------------------------------------------------------ */
+
+/** Simple return of instrument `id` from bar i-1 to bar i, in percent. */
+export function barReturnPct(tape, id, i) {
+  const a = tape.bars[i - 1].prices[id], b = tape.bars[i].prices[id];
+  return (b / a - 1) * 100;
+}
+
+/**
+ * Return of a SKILL for one bar. A skill is normally one instrument; a `blend` skill splits its slot
+ * across instruments (e.g. 25% put option + 75% cash = an insurance budget).
+ */
+export function skillReturnPct(tape, skill, i) {
+  if (!skill.blend) return barReturnPct(tape, skill.instrument, i);
+  let r = 0;
+  for (const [id, share] of Object.entries(skill.blend)) r += share * barReturnPct(tape, id, i);
+  return r;
+}
+
+/** Portfolio return for one bar given party (weights + equipped skills), in percent. */
+export function portfolioReturnPct(tape, party, i) {
+  let r = 0;
+  for (const role of ROLES) {
+    const skill = party._bySkill[party.skills[role]];
+    r += (party.weights[role] / 100) * skillReturnPct(tape, skill, i);
+  }
+  return r;
+}
+
+/* ------------------------------------------------------------------ */
+/* Battle state machine                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * createBattle(tape, party) -> state
+ * step(state)                -> advances one bar; returns the turn log (or null at a checkpoint / end)
+ * intervene(state, action)   -> apply a checkpoint action, then clear the pause
+ *
+ * The scene layer only reads `state` and plays the returned logs. It never computes damage itself.
+ */
+export function createBattle(tape, party, opts = {}) {
+  const errs = [...validateTape(tape), ...validateParty(party, tape)];
+  if (errs.length) throw new Error(errs.join('; '));
+  const hpScale = opts.hpPerPct ?? HP_PER_PCT;
+  const bossScale = opts.bossHpPerPct ?? BOSS_HP_PER_PCT;
+  return {
+    tape, party: clone(party), hpScale, bossScale,
+    bar: 0,                                   // index of the last processed bar
+    slot: Object.fromEntries(ROLES.map(r => [r, 100])),      // each role's value, start 100, amplified by hpScale
+    partyHp: Object.fromEntries(ROLES.map(r => [r, 100])),   // min(100, slot)
+    shield: Object.fromEntries(ROLES.map(r => [r, 0])),      // max(0, slot - 100)
+    bossHp: 100,
+    equity: 100,                              // portfolio value, start 100
+    benchmark: 100,                           // equal-weight-of-default-skills value, for grading
+    log: [],
+    paused: null,                             // checkpoint object when waiting for the player
+    done: false,
+    history: [],                              // per-bar snapshots for the chart
+    _benchParty: defaultParty(tape),
+  };
+}
+
+export function nextCheckpoint(state) {
+  return (state.tape.checkpoints || []).find(c => c.bar === state.bar + 1) || null;
+}
+
+export function step(state) {
+  if (state.done) return null;
+  if (state.paused) return null;                    // must intervene() first (or skip())
+  const cp = nextCheckpoint(state);
+  if (cp && !state._cpSeen?.has(cp.bar)) {           // pause BEFORE processing the checkpoint bar
+    state.paused = cp;
+    (state._cpSeen ||= new Set()).add(cp.bar);
+    return null;
+  }
+  const i = state.bar + 1;
+  const tape = state.tape, party = state.party;
+  const turn = { bar: i, t: tape.bars[i].t, label: tape.bars[i].label || '', roles: {}, boss: {}, events: [] };
+
+  // per-role damage / recovery from each role's own instrument
+  let portfolio = 0;
+  for (const role of ROLES) {
+    const skill = party._bySkill[party.skills[role]];
+    const ret = skillReturnPct(tape, skill, i);
+    const w = party.weights[role] / 100;
+    portfolio += w * ret;
+    // slot value compounds with the instrument; the move is amplified so intraday % reads as damage.
+    // A dead slot (0) stays dead for the battle.
+    const before = state.partyHp[role];
+    const kind = tape.instruments[skill.instrument].kind;
+    const scale = HP_SCALE_BY_KIND[kind] ?? state.hpScale;
+    if (state.slot[role] > 0) state.slot[role] = Math.max(0, state.slot[role] * (1 + (ret * scale) / 100));
+    state.partyHp[role] = clamp(state.slot[role], 0, 100);
+    state.shield[role] = Math.max(0, state.slot[role] - 100);
+    turn.roles[role] = { skill: skill.id, skillName: skill.name, instrument: skill.instrument, weight: party.weights[role], ret,
+      hpBefore: before, hpAfter: state.partyHp[role], shield: state.shield[role], fainted: before > 0 && state.partyHp[role] === 0 };
+  }
+  // boss HP mirrors cumulative P&L: gains cut it, losses let it recover (never above 100)
+  const bossBefore = state.bossHp;
+  state.equity *= 1 + portfolio / 100;
+  state.bossHp = clamp(100 - (state.equity - 100) * state.bossScale, 0, 100);
+  turn.boss = { portfolioRet: portfolio, hpBefore: bossBefore, hpAfter: state.bossHp };
+  turn.cut = classifyCut(portfolio, turn.roles);
+
+  state.benchmark *= 1 + portfolioReturnPct(tape, state._benchParty, i) / 100;
+  state.bar = i;
+  state.history.push({ bar: i, t: tape.bars[i].t, equity: state.equity, benchmark: state.benchmark, bossHp: state.bossHp, partyHp: { ...state.partyHp } });
+  state.log.push(turn);
+
+  if (state.bar >= tape.bars.length - 1) { state.done = true; state.result = settle(state); }
+  else if (ROLES.every(r => state.partyHp[r] === 0)) { state.done = true; state.result = settle(state); }
+  return turn;
+}
+
+/** Checkpoint actions. All of them are just party edits; the market does the rest. */
+export function intervene(state, action) {
+  if (!state.paused) throw new Error('not at a checkpoint');
+  const party = state.party, tape = state.tape;
+  const applied = { type: action.type, at: state.paused.bar };
+  switch (action.type) {
+    case 'hold':
+      break;
+    case 'equip': {                                   // swap one role's skill
+      const s = tape.skills.find(k => k.id === action.skill);
+      if (!s) throw new Error(`unknown skill ${action.skill}`);
+      if (s.role !== action.role) throw new Error(`skill ${s.id} is not for ${action.role}`);
+      if (s.unlockLevel && (action.level ?? 99) < s.unlockLevel) throw new Error(`skill ${s.id} locked until level ${s.unlockLevel}`);
+      applied.from = party.skills[action.role]; applied.to = s.id;
+      party.skills[action.role] = s.id;
+      break;
+    }
+    case 'rebalance': {                               // new weights, must sum to 100
+      const w = { ...party.weights, ...action.weights };
+      const sum = ROLES.reduce((a, r) => a + w[r], 0);
+      if (sum !== 100) throw new Error(`weights must sum to 100 (got ${sum})`);
+      applied.from = { ...party.weights }; applied.to = w;
+      party.weights = w;
+      break;
+    }
+    default: throw new Error(`unknown action ${action.type}`);
+  }
+  (state.actions ||= []).push(applied);
+  state.paused = null;
+  return applied;
+}
+
+export function runToEnd(state, decide = () => ({ type: 'hold' })) {
+  // decide(checkpoint, state) -> action. Used by tests and by the auto-play demo.
+  for (let guard = 0; guard < 10000 && !state.done; guard++) {
+    if (state.paused) intervene(state, decide(state.paused, state));
+    step(state);
+  }
+  return state;
+}
+
+/* ------------------------------------------------------------------ */
+/* Result, grading, EXP                                                */
+/* ------------------------------------------------------------------ */
+
+export function settle(state) {
+  const ret = state.equity - 100;
+  const bench = state.benchmark - 100;
+  const alive = ROLES.filter(r => state.partyHp[r] > 0).length;
+  const bossDown = state.bossHp <= 0;
+  const grade = gradeOf(ret, bench, alive);
+  const exp = Math.max(5, Math.round(20 + ret * 6 + (bossDown ? 30 : 0) + alive * 3 + gradeBonus(grade)));
+  const mvp = ROLES.map(r => ({ role: r, contrib: contribution(state, r) })).sort((a, b) => b.contrib - a.contrib)[0];
+  return { returnPct: ret, benchmarkPct: bench, alpha: ret - bench, alive, bossDown, grade, exp, mvp: mvp.role, victory: bossDown || (ret >= 0 && alive >= 2) };
+}
+
+/** Sum of a role's weighted returns over the battle, in portfolio-% points. */
+export function contribution(state, role) {
+  return state.log.reduce((a, t) => a + t.roles[role].ret * (t.roles[role].weight / 100), 0);
+}
+
+export function gradeOf(ret, bench, alive) {
+  if (alive === 0) return 'F';
+  const a = ret - bench;
+  if (ret > 0 && a >= 0.5) return 'S';
+  if (ret > 0 && a >= 0) return 'A';
+  if (ret > -0.5) return 'B';
+  if (ret > -2) return 'C';
+  return 'D';
+}
+const gradeBonus = g => ({ S: 25, A: 15, B: 5, C: 0, D: 0, F: 0 }[g] || 0);
+
+/** Level curve: exp needed to go from L to L+1. */
+export const expNext = L => 40 + L * 20;
+export function applyExp(profile, exp) {
+  const out = { ...profile, exp: profile.exp + exp, levelUps: [] };
+  while (out.exp >= expNext(out.level)) { out.exp -= expNext(out.level); out.level++; out.levelUps.push(out.level); }
+  return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Cut-in classification & coach text (deterministic; LLM can replace) */
+/* ------------------------------------------------------------------ */
+
+export function classifyCut(portfolioRet, roles) {
+  const worst = Object.entries(roles).sort((a, b) => a[1].ret - b[1].ret)[0];
+  const best = Object.entries(roles).sort((a, b) => b[1].ret - a[1].ret)[0];
+  if (portfolioRet <= -1.0) return { kind: 'critical_hit', role: worst[0], text: '필살기!' };
+  if (portfolioRet >= 1.0) return { kind: 'critical_deal', role: best[0], text: '크리티컬!' };
+  if (worst[1].ret <= -2.0) return { kind: 'role_crushed', role: worst[0], text: `${ROLE_META[worst[0]].char} 대피해!` };
+  if (best[1].ret >= 2.0) return { kind: 'role_shine', role: best[0], text: `${ROLE_META[best[0]].char} 맹활약!` };
+  return null;
+}
+
+export function coachText(state) {
+  const r = state.result || settle(state);
+  const byRole = ROLES.map(role => ({ role, c: contribution(state, role), w: state.party.weights[role], skill: state.party._bySkill[state.party.skills[role]] }));
+  const worst = [...byRole].sort((a, b) => a.c - b.c)[0];
+  const best = [...byRole].sort((a, b) => b.c - a.c)[0];
+  const lines = [];
+  const sign = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  lines.push(`이번 레이드 수익률은 ${sign(r.returnPct)}, 기본 파티 대비 ${sign(r.alpha)}였어요.`);
+  if (worst.c < -0.3) lines.push(`가장 크게 다친 건 ${ROLE_META[worst.role].char}(${worst.skill.name}, 비중 ${worst.w}%)예요. ${worst.skill.lesson || ''}`.trim());
+  if (best.c > 0.3) lines.push(`${ROLE_META[best.role].char}(${best.skill.name})가 파티를 지탱했어요. ${best.skill.lesson || ''}`.trim());
+  const maxW = Math.max(...ROLES.map(x => state.party.weights[x]));
+  if (maxW >= 60) lines.push(`한 역할에 ${maxW}%를 몰아줬네요. 이번엔 ${maxW === worst.w ? '그 선택이 피해를 키웠어요' : '운이 좋았지만, 반대 방향이었다면 파티가 무너졌을 거예요'}.`);
+  if (state.actions?.some(a => a.type === 'equip')) {
+    const a = state.actions.find(a => a.type === 'equip');
+    const s = state.party._bySkill[a.to];
+    lines.push(`체크포인트에서 ${s.name}(으)로 바꾼 선택이 ${afterCheckpointRet(state, a.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}. ${s.lesson || ''}`.trim());
+  }
+  if (state.tape.lesson) lines.push(state.tape.lesson);
+  return lines;
+}
+function afterCheckpointRet(state, bar) {
+  return state.log.filter(t => t.bar >= bar).reduce((a, t) => a + t.boss.portfolioRet, 0);
+}
+
+/* ------------------------------------------------------------------ */
+/* utils                                                               */
+/* ------------------------------------------------------------------ */
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+function clone(p) { return { weights: { ...p.weights }, skills: { ...p.skills }, _bySkill: p._bySkill }; }
+
+/* ------------------------------------------------------------------ */
+/* What-if: the same market with different checkpoint choices          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Enumerates single-action strategies (hold everywhere; or one equip at one checkpoint) from the same
+ * starting party and returns their settled results, best first. Pure and deterministic.
+ */
+export function alternatives(tape, baseParty) {
+  const start = () => ({ weights: { ...baseParty.weights }, skills: { ...baseParty.skills }, _bySkill: baseParty._bySkill });
+  const out = [];
+  const run = (label, decide, detail) => {
+    const s = runToEnd(createBattle(tape, start()), decide);
+    out.push({ label, detail, returnPct: s.result.returnPct, grade: s.result.grade, bossDown: s.result.bossDown });
+  };
+  run('모두 버티기', () => ({ type: 'hold' }), { type: 'hold' });
+  for (const cp of tape.checkpoints || []) {
+    for (const role of ROLES) {
+      for (const sk of tape.skills.filter(k => k.role === role && k.id !== baseParty.skills[role])) {
+        run(`${cp.title}에 ${ROLE_META[role].char} → ${sk.name}`, c => c.bar === cp.bar ? { type: 'equip', role, skill: sk.id, level: 99 } : { type: 'hold' }, { type: 'equip', bar: cp.bar, role, skill: sk.id, unlockLevel: sk.unlockLevel || 1 });
+      }
+    }
+  }
+  out.sort((a, b) => b.returnPct - a.returnPct);
+  return out;
+}
+
+/* ===== src/art.js ===== */
+// Original character art as SVG strings. Rasterized at runtime into Phaser textures and used inline in HTML.
+// Style: yurukawa animal adventurers (round, flat pastel, thin brown outline). All drawn in code; no external assets.
+const INK = '#5C4636';
+
+export const CHARACTERS = {
+  turtle: { name: '듬직이', role: 'tank', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220"><ellipse cx="100" cy="208" rx="56" ry="7" fill="#000" opacity=".12"/><ellipse cx="78" cy="194" rx="14" ry="9" fill="#BFE3B4" stroke="${INK}" stroke-width="3"/><ellipse cx="122" cy="194" rx="14" ry="9" fill="#BFE3B4" stroke="${INK}" stroke-width="3"/><ellipse cx="102" cy="152" rx="52" ry="44" fill="#C9D1DA" stroke="${INK}" stroke-width="3"/><ellipse cx="108" cy="150" rx="28" ry="24" fill="#DDE3EA" stroke="${INK}" stroke-width="2"/><path d="M108 126 L108 112 M132 142 L150 134 M130 166 L144 180 M86 166 L72 180" stroke="${INK}" stroke-width="2" fill="none"/><ellipse cx="152" cy="154" rx="11" ry="9" fill="#BFE3B4" stroke="${INK}" stroke-width="3"/><circle cx="100" cy="84" r="50" fill="#BFE3B4" stroke="${INK}" stroke-width="3"/><path d="M52 78 Q100 16 148 78 Q100 62 52 78 Z" fill="#C9D1DA" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="40" r="6" fill="#E3B341" stroke="${INK}" stroke-width="2"/><path d="M76 96 q7 6 14 0 M110 96 q7 6 14 0" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="70" cy="108" rx="9" ry="5" fill="#F7A8A0" opacity=".8"/><ellipse cx="130" cy="108" rx="9" ry="5" fill="#F7A8A0" opacity=".8"/><path d="M95 112 q5 4 10 0" stroke="${INK}" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="56" cy="154" r="36" fill="#E9EEF2" stroke="${INK}" stroke-width="3"/><circle cx="56" cy="154" r="25" fill="none" stroke="#9AA6B2" stroke-width="2" stroke-dasharray="4 4"/><path d="M50 162 L46 178 L53 173 L56 180 L59 166 Z M62 162 L66 178 L59 173 L56 180 Z" fill="#D9534F" stroke="${INK}" stroke-width="1.5" stroke-linejoin="round"/><circle cx="56" cy="154" r="10" fill="#E3B341" stroke="${INK}" stroke-width="2"/></svg>` },
+  cheetah: { name: '쌩쌩이', role: 'dealer', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220"><ellipse cx="100" cy="208" rx="56" ry="7" fill="#000" opacity=".12"/><g transform="rotate(-5 100 140)"><path d="M134 170 Q174 176 170 140" stroke="${INK}" stroke-width="14" fill="none" stroke-linecap="round"/><path d="M134 170 Q174 176 170 140" stroke="#F7D58B" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="160" cy="166" r="2.5" fill="#C9935A"/><circle cx="170" cy="152" r="2.5" fill="#C9935A"/><ellipse cx="80" cy="196" rx="14" ry="8" fill="#F7D58B" stroke="${INK}" stroke-width="3"/><ellipse cx="124" cy="190" rx="14" ry="8" fill="#F7D58B" stroke="${INK}" stroke-width="3"/><ellipse cx="100" cy="154" rx="40" ry="38" fill="#7C9BEA" stroke="${INK}" stroke-width="3"/><path d="M64 162 Q100 176 136 162" stroke="#4E6FD6" stroke-width="5" fill="none"/><circle cx="60" cy="44" r="14" fill="#F7D58B" stroke="${INK}" stroke-width="3"/><circle cx="140" cy="44" r="14" fill="#F7D58B" stroke="${INK}" stroke-width="3"/><circle cx="60" cy="44" r="7" fill="#F2B880"/><circle cx="140" cy="44" r="7" fill="#F2B880"/><circle cx="100" cy="84" r="50" fill="#F7D58B" stroke="${INK}" stroke-width="3"/><circle cx="70" cy="64" r="3" fill="#C9935A"/><circle cx="82" cy="52" r="3" fill="#C9935A"/><circle cx="118" cy="50" r="3" fill="#C9935A"/><circle cx="130" cy="64" r="3" fill="#C9935A"/><circle cx="100" cy="44" r="3" fill="#C9935A"/><path d="M80 100 l-3 11 M120 100 l3 11" stroke="#8A6A4A" stroke-width="2" stroke-linecap="round"/><ellipse cx="83" cy="90" rx="7" ry="9" fill="#3A2E26"/><ellipse cx="117" cy="90" rx="7" ry="9" fill="#3A2E26"/><circle cx="85" cy="86" r="2.5" fill="#FFFFFF"/><circle cx="119" cy="86" r="2.5" fill="#FFFFFF"/><ellipse cx="70" cy="106" rx="9" ry="5" fill="#F7A8A0" opacity=".8"/><ellipse cx="130" cy="106" rx="9" ry="5" fill="#F7A8A0" opacity=".8"/><path d="M93 106 q3.5 4 7 0 q3.5 4 7 0" stroke="${INK}" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M62 122 Q100 138 138 122 L136 133 Q100 148 64 133 Z" fill="#4E6FD6" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M66 128 Q40 134 26 120 Q40 146 70 140 Z" fill="#4E6FD6" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M138 150 L168 92 L160 88 L182 66 L184 98 L176 94 L146 152 Z" fill="#EEF2FF" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><circle cx="140" cy="152" r="9" fill="#F7D58B" stroke="${INK}" stroke-width="3"/></g></svg>` },
+  squirrel: { name: '알뜰이', role: 'healer', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220"><ellipse cx="100" cy="208" rx="56" ry="7" fill="#000" opacity=".12"/><path d="M128 192 C192 192 198 118 170 94 C150 78 130 94 146 112 C162 130 152 162 120 172 Z" fill="#D98E52" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M140 176 C176 170 180 126 164 108" stroke="#F0B47E" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M62 198 Q64 132 100 126 Q136 132 138 198 Z" fill="#FFF4DC" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M64 186 Q100 196 136 186" stroke="#E3B341" stroke-width="5" fill="none"/><path d="M100 130 L100 196" stroke="#E3B341" stroke-width="4"/><ellipse cx="122" cy="172" rx="9" ry="10" fill="#C98A4E" stroke="${INK}" stroke-width="2"/><path d="M112 166 Q122 156 132 166 Z" fill="#7A5232" stroke="${INK}" stroke-width="2"/><path d="M56 204 L56 96" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="M56 204 L56 96" stroke="#B8844E" stroke-width="5" stroke-linecap="round"/><circle cx="56" cy="84" r="17" fill="#F4C542" stroke="${INK}" stroke-width="3"/><circle cx="56" cy="84" r="10" fill="none" stroke="#C99A22" stroke-width="2"/><circle cx="62" cy="150" r="9" fill="#E8A86B" stroke="${INK}" stroke-width="3"/><path d="M60 58 L56 22 L84 44 Z" fill="#E8A86B" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M140 58 L144 22 L116 44 Z" fill="#E8A86B" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><circle cx="100" cy="86" r="48" fill="#E8A86B" stroke="${INK}" stroke-width="3"/><path d="M138 44 l4 -6 l4 6 l-4 6 Z" fill="#F4C542" stroke="${INK}" stroke-width="1.5"/><ellipse cx="100" cy="102" rx="28" ry="20" fill="#F6D2AE"/><circle cx="70" cy="104" r="15" fill="#F6D2AE" stroke="${INK}" stroke-width="2.5"/><circle cx="130" cy="104" r="15" fill="#F6D2AE" stroke="${INK}" stroke-width="2.5"/><ellipse cx="70" cy="106" rx="8" ry="5" fill="#F7A8A0" opacity=".85"/><ellipse cx="130" cy="106" rx="8" ry="5" fill="#F7A8A0" opacity=".85"/><path d="M80 90 q6 -7 12 0 M108 90 q6 -7 12 0" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M94 104 q6 6 12 0" stroke="${INK}" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="97" y="106" width="6" height="5" rx="1" fill="#FFFFFF" stroke="${INK}" stroke-width="1.5"/></svg>` },
+  bee: { name: '꼬박이', role: 'support', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220"><ellipse cx="100" cy="208" rx="56" ry="7" fill="#000" opacity=".12"/><ellipse cx="66" cy="126" rx="22" ry="14" fill="#E3F3FF" stroke="${INK}" stroke-width="2.5" transform="rotate(-30 66 126)"/><ellipse cx="134" cy="126" rx="22" ry="14" fill="#E3F3FF" stroke="${INK}" stroke-width="2.5" transform="rotate(30 134 126)"/><ellipse cx="84" cy="196" rx="11" ry="7" fill="#6B4F2A" stroke="${INK}" stroke-width="2"/><ellipse cx="116" cy="196" rx="11" ry="7" fill="#6B4F2A" stroke="${INK}" stroke-width="2"/><ellipse cx="100" cy="158" rx="40" ry="36" fill="#9ED39A" stroke="${INK}" stroke-width="3"/><path d="M66 172 Q100 186 134 172 M70 182 Q100 194 130 182" stroke="#7CB078" stroke-width="3" fill="none"/><path d="M74 126 Q86 116 98 128 Q86 136 74 126 Z M102 128 Q114 116 126 126 Q114 136 102 128 Z" fill="#7CC27A" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><path d="M152 204 L152 98" stroke="${INK}" stroke-width="9" stroke-linecap="round"/><path d="M152 204 L152 98" stroke="#B8844E" stroke-width="5" stroke-linecap="round"/><path d="M152 98 Q138 88 140 76 Q152 82 152 98 Z M152 98 Q166 86 168 76 Q156 80 152 98 Z" fill="#7CC27A" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><circle cx="142" cy="92" r="6" fill="#F06C6C" stroke="${INK}" stroke-width="2"/><circle cx="162" cy="92" r="6" fill="#F06C6C" stroke="${INK}" stroke-width="2"/><circle cx="152" cy="80" r="6" fill="#F06C6C" stroke="${INK}" stroke-width="2"/><circle cx="146" cy="152" r="9" fill="#FFE070" stroke="${INK}" stroke-width="3"/><rect x="38" y="152" width="30" height="30" rx="8" fill="#F4C542" stroke="${INK}" stroke-width="3"/><rect x="36" y="146" width="34" height="9" rx="3" fill="#B8844E" stroke="${INK}" stroke-width="2.5"/><circle cx="66" cy="166" r="9" fill="#FFE070" stroke="${INK}" stroke-width="3"/><path d="M84 46 Q76 30 72 16" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="72" cy="14" r="5" fill="${INK}"/><path d="M116 46 Q124 30 128 18" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="122" cy="13" r="5" fill="#FFB3C7" stroke="${INK}" stroke-width="1.5"/><circle cx="134" cy="13" r="5" fill="#FFB3C7" stroke="${INK}" stroke-width="1.5"/><circle cx="128" cy="6" r="5" fill="#FFB3C7" stroke="${INK}" stroke-width="1.5"/><circle cx="128" cy="19" r="5" fill="#FFB3C7" stroke="${INK}" stroke-width="1.5"/><circle cx="128" cy="13" r="3.5" fill="#F4C542"/><circle cx="100" cy="86" r="46" fill="#FFE070" stroke="${INK}" stroke-width="3"/><path d="M60 70 Q100 50 140 70" stroke="#8A6A3A" stroke-width="7" fill="none" stroke-linecap="round"/><ellipse cx="84" cy="88" rx="6" ry="8" fill="#3A2E26"/><ellipse cx="116" cy="88" rx="6" ry="8" fill="#3A2E26"/><circle cx="86" cy="85" r="2.2" fill="#FFFFFF"/><circle cx="118" cy="85" r="2.2" fill="#FFFFFF"/><ellipse cx="72" cy="104" rx="8" ry="5" fill="#F7A8A0" opacity=".85"/><ellipse cx="128" cy="104" rx="8" ry="5" fill="#F7A8A0" opacity=".85"/><path d="M92 102 Q100 114 108 102 Z" fill="#E86A6A" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/></svg>` },
+};
+
+export const BOSSES = {
+  golem: { name: '동결의 골렘', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220"><ellipse cx="110" cy="210" rx="74" ry="8" fill="#000" opacity=".16"/><rect x="68" y="172" width="30" height="34" rx="10" fill="#8E9DAE" stroke="#3E4756" stroke-width="3"/><rect x="122" y="172" width="30" height="34" rx="10" fill="#8E9DAE" stroke="#3E4756" stroke-width="3"/><ellipse cx="38" cy="150" rx="22" ry="24" fill="#9FAEBF" stroke="#3E4756" stroke-width="3"/><ellipse cx="182" cy="150" rx="22" ry="24" fill="#9FAEBF" stroke="#3E4756" stroke-width="3"/><ellipse cx="110" cy="138" rx="68" ry="54" fill="#A9B8C8" stroke="#3E4756" stroke-width="3"/><path d="M70 120 l12 10 l-4 14 M150 112 l-10 14 l6 10" stroke="#7C8B9C" stroke-width="2.5" fill="none"/><circle cx="110" cy="144" r="22" fill="#E2F6FF" stroke="#3E4756" stroke-width="3"/><text x="110" y="153" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="26" fill="#3C8DD8">%</text><path d="M44 98 l8 -26 l8 20 l8 -18 l4 28 Z" fill="#CFEFFF" stroke="#3E4756" stroke-width="2.5" stroke-linejoin="round"/><path d="M148 98 l6 -28 l8 20 l8 -16 l6 26 Z" fill="#CFEFFF" stroke="#3E4756" stroke-width="2.5" stroke-linejoin="round"/><circle cx="110" cy="74" r="38" fill="#B7C5D3" stroke="#3E4756" stroke-width="3"/><path d="M86 44 l6 -14 l6 12 l6 -16 l6 16 l6 -12 l6 14" fill="#CFEFFF" stroke="#3E4756" stroke-width="2.5" stroke-linejoin="round"/><path d="M88 66 l14 6 M132 66 l-14 6" stroke="#3E4756" stroke-width="4" stroke-linecap="round"/><circle cx="96" cy="80" r="5" fill="#2E3644"/><circle cx="124" cy="80" r="5" fill="#2E3644"/><circle cx="97.5" cy="78.5" r="1.6" fill="#BFE8FF"/><circle cx="125.5" cy="78.5" r="1.6" fill="#BFE8FF"/><ellipse cx="86" cy="92" rx="7" ry="4" fill="#F7A8A0" opacity=".7"/><ellipse cx="134" cy="92" rx="7" ry="4" fill="#F7A8A0" opacity=".7"/><path d="M102 96 q8 -6 16 0" stroke="#3E4756" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
+  hydra: { name: '설비투자 히드라', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220"><ellipse cx="110" cy="210" rx="72" ry="8" fill="#000" opacity=".16"/><path d="M70 150 Q48 110 58 74" stroke="#3E4756" stroke-width="22" fill="none" stroke-linecap="round"/><path d="M70 150 Q48 110 58 74" stroke="#86B2F0" stroke-width="15" fill="none" stroke-linecap="round"/><path d="M150 150 Q172 110 162 74" stroke="#3E4756" stroke-width="22" fill="none" stroke-linecap="round"/><path d="M150 150 Q172 110 162 74" stroke="#86B2F0" stroke-width="15" fill="none" stroke-linecap="round"/><path d="M110 150 L110 60" stroke="#3E4756" stroke-width="24" fill="none" stroke-linecap="round"/><path d="M110 150 L110 60" stroke="#86B2F0" stroke-width="17" fill="none" stroke-linecap="round"/><ellipse cx="110" cy="166" rx="66" ry="40" fill="#7FA7E8" stroke="#3E4756" stroke-width="3"/><path d="M70 164 h20 v-10 h16 M124 172 h18 v10 h14 M96 182 h22" stroke="#C9E0FF" stroke-width="3" fill="none"/><circle cx="90" cy="154" r="3" fill="#C9E0FF"/><circle cx="156" cy="182" r="3" fill="#C9E0FF"/><circle cx="58" cy="70" r="24" fill="#86B2F0" stroke="#3E4756" stroke-width="3"/><circle cx="162" cy="70" r="24" fill="#86B2F0" stroke="#3E4756" stroke-width="3"/><circle cx="110" cy="50" r="27" fill="#86B2F0" stroke="#3E4756" stroke-width="3"/><rect x="40" y="60" width="36" height="12" rx="6" fill="#FF7A7A" stroke="#3E4756" stroke-width="2.5"/><rect x="144" y="60" width="36" height="12" rx="6" fill="#7AE2A0" stroke="#3E4756" stroke-width="2.5"/><rect x="90" y="40" width="40" height="13" rx="6" fill="#FFD54A" stroke="#3E4756" stroke-width="2.5"/><path d="M50 84 q8 5 16 0 M154 84 q8 5 16 0 M101 66 q9 6 18 0" stroke="#3E4756" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M106 18 l4 -10 l4 10 M54 44 l4 -10 l4 10 M158 44 l4 -10 l4 10" stroke="#3E4756" stroke-width="2.5" fill="#FFD54A"/></svg>` },
+  slime: { name: '인플레 슬라임', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220"><ellipse cx="100" cy="208" rx="66" ry="8" fill="#000" opacity=".14"/><path d="M168 200 Q186 186 176 170 Q164 160 154 176 Q148 194 168 200 Z" fill="#FFB46B" stroke="${INK}" stroke-width="2.5"/><path d="M28 196 Q14 184 22 170 Q34 162 42 176 Q46 192 28 196 Z" fill="#FFB46B" stroke="${INK}" stroke-width="2.5"/><path d="M34 200 Q24 120 100 76 Q176 120 166 200 Z" fill="#FFB46B" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M66 112 Q80 96 96 94" stroke="#FFE2C4" stroke-width="8" fill="none" stroke-linecap="round"/><g transform="rotate(-14 62 160)"><rect x="50" y="150" width="26" height="16" rx="3" fill="#FFF8E7" stroke="${INK}" stroke-width="2"/><text x="63" y="162" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="10" fill="#E5584C">+3%</text></g><g transform="rotate(12 140 168)"><rect x="126" y="160" width="28" height="16" rx="3" fill="#FFF8E7" stroke="${INK}" stroke-width="2"/><text x="140" y="172" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="10" fill="#E5584C">UP</text></g><ellipse cx="82" cy="132" rx="7" ry="9" fill="#3A2E26"/><ellipse cx="118" cy="132" rx="7" ry="9" fill="#3A2E26"/><circle cx="84" cy="128" r="2.4" fill="#fff"/><circle cx="120" cy="128" r="2.4" fill="#fff"/><ellipse cx="68" cy="146" rx="9" ry="5" fill="#F27C6C" opacity=".6"/><ellipse cx="132" cy="146" rx="9" ry="5" fill="#F27C6C" opacity=".6"/><path d="M92 146 q8 8 16 -2" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>` },
+  bear: { name: '하락곰 대왕', svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><ellipse cx="150" cy="288" rx="96" ry="9" fill="#000" opacity=".18"/><path d="M66 276 Q56 160 150 142 Q244 160 234 276 Z" fill="#7A3B4E" stroke="#2E1F26" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="112" cy="276" rx="26" ry="14" fill="#8A5A3C" stroke="#2E1F26" stroke-width="3.5"/><ellipse cx="188" cy="276" rx="26" ry="14" fill="#8A5A3C" stroke="#2E1F26" stroke-width="3.5"/><ellipse cx="150" cy="214" rx="76" ry="66" fill="#8A5A3C" stroke="#2E1F26" stroke-width="3.5"/><ellipse cx="150" cy="228" rx="46" ry="38" fill="#B98A63"/><circle cx="150" cy="226" r="20" fill="#F2E6D0" stroke="#2E1F26" stroke-width="3"/><path d="M150 212 L150 236 M140 226 L150 238 L160 226" stroke="#D9534F" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="78" cy="212" rx="20" ry="27" fill="#8A5A3C" stroke="#2E1F26" stroke-width="3.5"/><ellipse cx="222" cy="212" rx="20" ry="27" fill="#8A5A3C" stroke="#2E1F26" stroke-width="3.5"/><path d="M84 160 Q150 192 216 160 L210 178 Q150 206 90 178 Z" fill="#9B4A62" stroke="#2E1F26" stroke-width="3" stroke-linejoin="round"/><circle cx="92" cy="58" r="24" fill="#8A5A3C" stroke="#2E1F26" stroke-width="3.5"/><circle cx="208" cy="58" r="24" fill="#8A5A3C" stroke="#2E1F26" stroke-width="3.5"/><circle cx="92" cy="58" r="12" fill="#B98A63"/><circle cx="208" cy="58" r="12" fill="#B98A63"/><circle cx="150" cy="112" r="70" fill="#8A5A3C" stroke="#2E1F26" stroke-width="3.5"/><path d="M106 52 L114 18 L132 42 L150 10 L168 42 L186 18 L194 52 Z" fill="#F4C542" stroke="#2E1F26" stroke-width="3" stroke-linejoin="round" transform="rotate(-6 150 40)"/><ellipse cx="150" cy="136" rx="34" ry="24" fill="#B98A63"/><ellipse cx="150" cy="126" rx="10" ry="7" fill="#2E1F26"/><path d="M138 146 q12 -8 24 0" stroke="#2E1F26" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M106 92 l22 9 M194 92 l-22 9" stroke="#2E1F26" stroke-width="4.5" stroke-linecap="round"/><circle cx="124" cy="110" r="6" fill="#2E1F26"/><circle cx="176" cy="110" r="6" fill="#2E1F26"/><ellipse cx="106" cy="134" rx="11" ry="6" fill="#F7A8A0" opacity=".75"/><ellipse cx="194" cy="134" rx="11" ry="6" fill="#F7A8A0" opacity=".75"/></svg>` },
+};
+
+/** Face anchors for expression overlays: eye centers, mouth center, and the fill behind each. */
+const FACE = {
+  turtle:   { eyes: [[83, 96], [117, 96]], mouth: [100, 112], eyeBg: '#BFE3B4', mouthBg: '#BFE3B4' },
+  cheetah:  { eyes: [[83, 90], [117, 90]], mouth: [100, 106], eyeBg: '#F7D58B', mouthBg: '#F7D58B', rotate: -5 },
+  squirrel: { eyes: [[86, 90], [114, 90]], mouth: [100, 104], eyeBg: '#E8A86B', mouthBg: '#F6D2AE' },
+  bee:      { eyes: [[84, 88], [116, 88]], mouth: [100, 104], eyeBg: '#FFE070', mouthBg: '#FFE070' },
+};
+/** Same character with a hurt face (>< eyes, wobbly mouth, sweat drop). Used for hit cut-ins and faints. */
+export function hurtSvg(species) {
+  const c = CHARACTERS[species], f = FACE[species];
+  if (!c || !f) return c?.svg;
+  const x = ([ex, ey]) => `<circle cx="${ex}" cy="${ey}" r="11" fill="${f.eyeBg}"/><path d="M${ex - 6} ${ey - 6} l12 12 M${ex + 6} ${ey - 6} l-12 12" stroke="${INK}" stroke-width="3.2" stroke-linecap="round"/>`;
+  const [mx, my] = f.mouth;
+  const overlay = `<g${f.rotate ? ` transform="rotate(${f.rotate} 100 140)"` : ''}>${f.eyes.map(x).join('')}<circle cx="${mx}" cy="${my}" r="9" fill="${f.mouthBg}"/><path d="M${mx - 9} ${my + 1} q4.5 -6 9 0 q4.5 6 9 0" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M${mx + 34} ${my - 40} q-6 10 0 14 q6 -4 0 -14 Z" fill="#9CD3F7" stroke="${INK}" stroke-width="1.5"/></g>`;
+  return c.svg.replace('</svg>', overlay + '</svg>');
+}
+
+/** data: URI for an SVG string (unicode-safe). */
+export function svgUri(svg) { return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }
+
+/** Rasterize an SVG string to an HTMLImageElement of the given pixel size (for Phaser textures). */
+export function rasterize(svg, w, h) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = svgUri(svg.replace('<svg ', `<svg width="${w}" height="${h}" `));
+  });
+}
+
+/* ===== src/audio.js ===== */
+// Synthesized sound effects (WebAudio). No audio files, so no asset or licensing dependency.
+let ac = null, muted = false, bgmTimer = null;
+
+export function unlock() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch { ac = null; } }
+  if (ac && ac.state === 'suspended') ac.resume().catch(() => {});
+}
+export function setMuted(m) { muted = m; if (m) stopBgm(); }
+export function isMuted() { return muted; }
+
+function tone(freq, dur, type = 'square', vol = .05, slide = 0, delay = 0) {
+  if (muted || !ac) return;
+  const t = ac.currentTime + delay;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + .02);
+}
+function noise(dur, vol = .12, lowpass = 0) {
+  if (muted || !ac) return;
+  const buf = ac.createBuffer(1, Math.floor(ac.sampleRate * dur), ac.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const s = ac.createBufferSource(), g = ac.createGain(); g.gain.value = vol;
+  s.buffer = buf;
+  if (lowpass) { const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lowpass; s.connect(f).connect(g).connect(ac.destination); }
+  else s.connect(g).connect(ac.destination);
+  s.start();
+}
+
+export const sfx = {
+  blip: () => tone(880, .03, 'square', .012),
+  select: () => tone(660, .06, 'square', .035),
+  back: () => tone(440, .06, 'square', .03),
+  hit: () => noise(.16, .12),
+  bigHit: () => { noise(.3, .18, 900); tone(160, .25, 'sawtooth', .06, -100); },
+  slash: () => { noise(.08, .08); tone(1200, .08, 'square', .03, -700); },
+  crit: () => { noise(.25, .14); [880, 1320, 1760].forEach((f, i) => tone(f, .09, 'square', .04, 0, i * .05)); },
+  heal: () => [660, 880, 1100].forEach((f, i) => tone(f, .12, 'triangle', .045, 0, i * .09)),
+  shield: () => tone(520, .18, 'triangle', .04, 300),
+  faint: () => tone(520, .5, 'triangle', .06, -440),
+  roar: () => { noise(.6, .2, 400); tone(90, .6, 'sawtooth', .08, -40); },
+  pause: () => { tone(740, .08, 'square', .04); tone(740, .08, 'square', .04, 0, .12); },
+  cutin: () => { noise(.12, .1); tone(220, .35, 'sawtooth', .07, 600); },
+  level: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, .14, 'square', .04, 0, i * .11)),
+  win: () => [784, 784, 784, 1046, 0, 932, 1046].forEach((f, i) => f && tone(f, i === 6 ? .5 : .12, 'square', .04, 0, i * .13)),
+  lose: () => [440, 415, 392, 349].forEach((f, i) => tone(f, .25, 'triangle', .05, 0, i * .22)),
+  stamp: () => { noise(.1, .15, 600); tone(110, .2, 'square', .06, -60); },
+  tick: () => tone(1500, .02, 'square', .01),
+};
+
+/** Minimal looping BGM: a 4-bar bass + arpeggio pattern. Intensity 0..1 raises tempo and brightness. */
+export function startBgm(intensity = .3) {
+  stopBgm();
+  if (muted || !ac) return;
+  const bass = [55, 55, 65.4, 49], arp = [[220, 277, 330], [220, 277, 330], [261, 330, 392], [196, 247, 294]];
+  let bar = 0, beat = 0;
+  const bpm = 96 + intensity * 40, beatMs = 60000 / bpm / 2;
+  bgmTimer = setInterval(() => {
+    if (muted) return;
+    const b = bass[bar % 4], a = arp[bar % 4];
+    if (beat % 2 === 0) tone(b, .22, 'triangle', .05);
+    tone(a[beat % 3] * (beat % 4 === 3 ? 2 : 1), .1, 'square', .012 + intensity * .01);
+    beat++; if (beat >= 8) { beat = 0; bar++; }
+  }, beatMs);
+}
+export function stopBgm() { if (bgmTimer) { clearInterval(bgmTimer); bgmTimer = null; } }
+
+/* ===== src/game.js ===== */
+// Game layer: screens, Phaser battle scene, cut-ins, checkpoint modal, chart, result.
+// The build concatenates engine.js + art.js + audio.js + this file into one inline module, so these imports
+// exist for editors/tests only and are stripped at build time.
+
+const TAPES = window.__TAPES__ || [];
+const adapter = new ReplayAdapter(TAPES);
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fmtPct = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+const fmtTime = iso => iso.slice(11, 16);
+const fmtDate = iso => `${iso.slice(0, 4)}.${iso.slice(5, 7)}.${iso.slice(8, 10)}`;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const charOf = role => CHARACTERS[ROLE_META[role].species];
+const ROLE_COLOR = { tank: 'var(--tank)', dealer: 'var(--dealer)', healer: 'var(--healer)', support: 'var(--support)' };
+const ROLE_HEX = { tank: 0x8EA0B8, dealer: 0x6E9BFF, healer: 0xF2C14E, support: 0x6FD39A };
+const UNLOCKS = { 5: '폭주 돌진 (레버리지 ETF)', 10: '도토리 보험 (풋옵션)' };
+
+/* ------------------------------------------------------------------ */
+/* Profile (per-viewer convenience only; wrapped in try/catch)         */
+/* ------------------------------------------------------------------ */
+const PROFILE_KEY = 'invest-rpg.profile.v1';
+let profile = loadProfile();
+function loadProfile() {
+  try { const p = JSON.parse(localStorage.getItem(PROFILE_KEY)); if (p && p.level) return { plays: {}, ...p }; } catch {}
+  return { level: 1, exp: 0, unlockAll: false, plays: {} };
+}
+function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch {} }
+function effectiveLevel() { return profile.unlockAll ? 99 : profile.level; }
+function renderProfile() {
+  $('#pLv').textContent = 'Lv.' + profile.level;
+  $('#pExp').style.width = (100 * profile.exp / expNext(profile.level)) + '%';
+  $('#pExpTxt').textContent = `${profile.exp} / ${expNext(profile.level)}`;
+  $('#unlockBtn').setAttribute('aria-pressed', String(!!profile.unlockAll));
+  $('#unlockBtn').textContent = profile.unlockAll ? '전 기술 해금 중' : '전 기술 해금';
+}
+
+/* ------------------------------------------------------------------ */
+/* Screens                                                             */
+/* ------------------------------------------------------------------ */
+const SCREENS = ['select', 'brief', 'party', 'battle', 'result'];
+function showScreen(name) {
+  SCREENS.forEach(s => { $('#screen-' + s).hidden = s !== name; });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function toast(msg, ms = 1800) {
+  const t = $('#toast'); t.textContent = msg;
+  gsap.killTweensOf(t);
+  gsap.fromTo(t, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .25, onComplete: () => gsap.to(t, { opacity: 0, y: 10, duration: .3, delay: ms / 1000 }) });
+}
+
+/* ---------- 1. raid select ---------- */
+let currentTape = null, party = null;
+function renderSelect() {
+  $('#partyPreview').innerHTML = ROLES.map(r => `<img src="${svgUri(charOf(r).svg)}" alt="${charOf(r).name}">`).join('');
+  $('#raids').innerHTML = '';
+  TAPES.forEach(t => {
+    const best = profile.plays[t.id]?.best;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'raid';
+    b.innerHTML = `<img src="${svgUri(BOSSES[t.bossSpecies].svg)}" alt="">
+      <div class="meta"><h3>${t.title}</h3>
+      <div class="row" style="gap:6px"><span class="chip ${t.market === 'US' ? 'us' : 'kr'}">${t.market === 'US' ? '미국' : '국내'} · ${fmtDate(t.bars[0].t)}</span>${t.example ? '<span class="chip example">예시 데이터</span>' : ''}</div>
+      <span class="small muted">${t.bars.length - 1}구간 · 체크포인트 ${t.checkpoints.length}회${best ? ` · <span class="best">최고 ${best}</span>` : ''}</span></div>`;
+    b.addEventListener('click', () => { unlock(); sfx.select(); openBrief(t.id); });
+    $('#raids').appendChild(b);
+  });
+}
+
+/* ---------- 2. briefing ---------- */
+async function openBrief(id) {
+  currentTape = await adapter.load(id);
+  const t = currentTape;
+  $('#bArt').src = svgUri(BOSSES[t.bossSpecies].svg);
+  $('#bArt').alt = t.boss;
+  $('#bTag').textContent = `${t.market === 'US' ? '미국' : '국내'} 레이드${t.example ? ' · 예시 데이터' : ''}`;
+  $('#bDate').textContent = `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
+  $('#bTitle').textContent = `${t.boss} 출현!`;
+  $('#bBrief').innerHTML = `<b>[시스템]</b> ${t.briefing}`;
+  // labels after the first checkpoint describe what happened; keep them hidden until the raid reaches them
+  const reveal = Math.min(...t.checkpoints.map(c => c.bar), t.bars.length - 1);
+  $('#bTimeline').innerHTML = t.bars.map((b, i) => `<span class="${t.checkpoints.some(c => c.bar === i) ? 'cp' : ''}">${fmtTime(b.t)} ${i <= reveal ? b.label : '???'}</span>`).join('');
+  $('#bConcepts').innerHTML = (t.concepts || []).map(c => `<span class="chip" style="color:var(--gold)">${c.name}</span>`).join('');
+  showScreen('brief');
+  gsap.fromTo('#bArt', { scale: .6, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .6, ease: 'back.out(1.6)' });
+  if (!reduceMotion) gsap.fromTo('.boss-stage', { x: -6 }, { x: 6, duration: .06, repeat: 5, yoyo: true, clearProps: 'x', delay: .35 });
+  sfx.roar();
+}
+
+/* ---------- 3. party setup ---------- */
+function openParty() {
+  party = party && party._tapeId === currentTape.id ? party : Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
+  renderPartyScreen();
+  showScreen('party');
+}
+function renderPartyScreen() {
+  const t = currentTape, lvl = effectiveLevel();
+  $('#roles').innerHTML = '';
+  ROLES.forEach(role => {
+    const m = ROLE_META[role], c = charOf(role);
+    const card = document.createElement('div'); card.className = 'role'; card.style.setProperty('--rc', ROLE_COLOR[role]);
+    card.innerHTML = `<img src="${svgUri(c.svg)}" alt="${c.name}">
+      <h3>${c.name} <small>${m.name} · ${m.asset}</small></h3>
+      <div class="weight"><label for="w-${role}"><span>비중</span><output id="o-${role}">${party.weights[role]}%</output></label>
+      <input type="range" id="w-${role}" min="0" max="100" step="5" value="${party.weights[role]}" aria-label="${c.name} 비중"></div>
+      <div class="skills" id="sk-${role}"></div>`;
+    $('#roles').appendChild(card);
+    card.querySelector('input').addEventListener('input', e => { party.weights[role] = +e.target.value; $('#o-' + role).value = party.weights[role] + '%'; renderSum(); });
+    renderSkillList(card.querySelector('#sk-' + role), role, lvl);
+  });
+  renderSum();
+}
+function renderSkillList(box, role, lvl) {
+  box.innerHTML = '';
+  currentTape.skills.filter(s => s.role === role).forEach(s => {
+    const locked = s.unlockLevel && lvl < s.unlockLevel;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'skill';
+    b.setAttribute('aria-pressed', String(party.skills[role] === s.id));
+    const ins = currentTape.instruments[s.instrument];
+    b.innerHTML = `<span><span class="n">${s.name}</span><span class="i">${ins.name}${s.blend ? ' 25% + 현금 75%' : ''}</span></span>${locked ? `<span class="lock">Lv.${s.unlockLevel} 해금</span>` : ''}`;
+    b.addEventListener('click', () => {
+      if (locked) { sfx.back(); toast(`Lv.${s.unlockLevel}에 해금돼요. 상단 '전 기술 해금'으로 미리 써볼 수 있어요.`, 2600); return; }
+      sfx.select(); party.skills[role] = s.id;
+      box.querySelectorAll('.skill').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true');
+    });
+    box.appendChild(b);
+  });
+}
+function renderSum() {
+  const sum = ROLES.reduce((a, r) => a + party.weights[r], 0);
+  const el = $('#sumTxt'); el.textContent = `${sum} / 100`; el.classList.toggle('bad', sum !== 100);
+  $('#alloc').innerHTML = ROLES.map(r => `<i style="width:${party.weights[r]}%;background:${ROLE_COLOR[r]}" title="${charOf(r).name} ${party.weights[r]}%"></i>`).join('');
+  $('#startBattle').disabled = sum !== 100;
+}
+
+/* ------------------------------------------------------------------ */
+/* Phaser battle scene                                                 */
+/* ------------------------------------------------------------------ */
+const W = 960, H = 540;
+const FORMATION = { tank: { x: 335, y: 405, s: .36 }, dealer: { x: 220, y: 350, s: .33 }, support: { x: 145, y: 445, s: .34 }, healer: { x: 250, y: 490, s: .36 } };
+const BOSS_POS = { x: 715, y: 455 };
+
+class BattleScene extends Phaser.Scene {
+  constructor() { super('battle'); this.sprites = {}; this.idle = []; }
+  create() {
+    this.drawBackground();
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    g.fillStyle(0xffffff, 1); g.fillCircle(8, 8, 8); g.generateTexture('spark', 16, 16); g.destroy();
+    this.flashRect = this.add.rectangle(W / 2, H / 2, W, H, 0xffffff, 0).setDepth(50);
+    this.ready = true;
+  }
+  drawBackground() {
+    const g = this.add.graphics().setDepth(0);
+    g.fillGradientStyle(0x151A2E, 0x151A2E, 0x2B2140, 0x2B2140, 1); g.fillRect(0, 0, W, H * .72);
+    g.fillStyle(0xFFF3C4, .9); g.fillCircle(790, 86, 34); g.fillStyle(0x151A2E, 1); g.fillCircle(804, 76, 28);
+    // Yeouido-ish skyline, deterministic
+    const bld = [[0, 300, 70], [60, 250, 90], [140, 330, 60], [195, 210, 110], [300, 280, 80], [375, 170, 70], [440, 240, 120], [555, 300, 60], [610, 200, 90], [695, 260, 70], [760, 150, 100], [855, 290, 60], [905, 230, 80]];
+    bld.forEach(([x, top, w], i) => {
+      g.fillStyle(0x0E1220, 1); g.fillRect(x, top, w, H * .72 - top);
+      g.fillStyle(0xF4C542, .35);
+      for (let yy = top + 12; yy < H * .72 - 10; yy += 18) for (let xx = x + 8; xx < x + w - 8; xx += 14) if ((xx * 7 + yy * 13 + i) % 5 < 2) g.fillRect(xx, yy, 5, 8);
+    });
+    g.fillStyle(0x1B2233, 1); g.fillRect(0, H * .72, W, H * .28);
+    g.lineStyle(1, 0x2C3650, 1);
+    for (let i = 0; i <= 12; i++) { const x = i * (W / 12); g.lineBetween(x, H * .72, (x - W / 2) * 2.2 + W / 2, H); }
+    for (let i = 0; i < 6; i++) { const y = H * .72 + i * i * 6; g.lineBetween(0, y, W, y); }
+    g.fillStyle(0x0D1018, .35); g.fillEllipse(BOSS_POS.x, BOSS_POS.y + 6, 300, 44);
+  }
+  async loadArt(tape) {
+    const add = async (key, svg, w, h) => { if (this.textures.exists(key)) this.textures.remove(key); this.textures.addImage(key, await rasterize(svg, w, h)); };
+    await Promise.all([...ROLES.map(r => add('c_' + r, charOf(r).svg, 400, 440)), ...ROLES.map(r => add('h_' + r, hurtSvg(ROLE_META[r].species), 400, 440)), add('boss', BOSSES[tape.bossSpecies].svg, 480, 480)]);
+  }
+  async setup(tape) {
+    // tear down the previous raid BEFORE swapping textures (a live sprite must never point at a removed texture)
+    this.idle.forEach(t => t.stop()); this.idle = [];
+    this.tweens.killAll();
+    Object.values(this.sprites).forEach(s => s.destroy()); this.sprites = {};
+    this.emitter?.destroy(); this.emitter = null;
+    await this.loadArt(tape);
+    ROLES.forEach(role => {
+      const f = FORMATION[role];
+      const s = this.add.image(f.x, f.y, 'c_' + role).setOrigin(.5, 1).setScale(f.s).setDepth(10 + f.y / 100);
+      s.home = { x: f.x, y: f.y, s: f.s }; this.sprites[role] = s;
+      this.idle.push(this.tweens.add({ targets: s, y: f.y - 5, duration: 900 + ROLES.indexOf(role) * 120, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
+    });
+    const b = this.add.image(BOSS_POS.x, BOSS_POS.y, 'boss').setOrigin(.5, 1).setScale(.72).setDepth(9);
+    b.home = { x: BOSS_POS.x, y: BOSS_POS.y, s: .72 }; this.sprites.boss = b;
+    this.idle.push(this.tweens.add({ targets: b, scaleY: .74, scaleX: .71, duration: 1400, yoyo: true, repeat: -1, ease: 'sine.inOut' }));
+    this.emitter = this.add.particles(0, 0, 'spark', { speed: { min: 90, max: 320 }, angle: { min: 0, max: 360 }, scale: { start: .8, end: 0 }, lifespan: { min: 300, max: 650 }, gravityY: 300, emitting: false }).setDepth(40);
+    gsapLike(this, b, { alpha: { from: 0, to: 1 }, y: { from: BOSS_POS.y - 40, to: BOSS_POS.y } }, 500);
+  }
+  tw(cfg) { return new Promise(res => this.tweens.add({ ...cfg, onComplete: () => { cfg.onComplete?.(); res(); } })); }
+  number(x, y, text, color, size = 28) {
+    const t = this.add.text(x, y, text, { fontFamily: 'Jua, sans-serif', fontSize: size + 'px', color, stroke: '#14161c', strokeThickness: 6 }).setOrigin(.5).setDepth(60);
+    this.tweens.add({ targets: t, y: y - 60, alpha: { from: 1, to: 0 }, scale: { from: .6, to: 1.1 }, duration: 900, ease: 'cubic.out', onComplete: () => t.destroy() });
+  }
+  flash(color, alpha, dur) {
+    this.flashRect.setFillStyle(color, alpha);
+    this.tweens.add({ targets: this.flashRect, fillAlpha: 0, duration: dur });
+  }
+  shake(dur, intensity) { if (!reduceMotion) this.cameras.main.shake(dur, intensity); }
+  slash(x, y, color) {
+    const g = this.add.graphics().setDepth(45); g.lineStyle(6, color, 1);
+    for (let i = 0; i < 3; i++) g.lineBetween(x - 60 + i * 14, y - 50 + i * 10, x + 40 + i * 14, y + 40 + i * 10);
+    this.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
+  }
+  /** Plays one engine turn. speed >= 1 shortens every duration. */
+  async playTurn(turn, speed = 1, hooks = {}) {
+    const d = ms => Math.max(30, ms / speed);
+    const boss = this.sprites.boss, ret = turn.boss.portfolioRet;
+    const mag = Math.min(1, Math.abs(ret) / 1.5);
+    if (ret < 0) {
+      // boss attack: lunge, impact on party
+      sfx.roar();
+      await this.tw({ targets: boss, x: boss.home.x - 70 - 60 * mag, scaleX: .78, duration: d(170), ease: 'power2.in' });
+      this.shake(d(280), .004 + .018 * mag); this.flash(0xff4d4d, .18 + .25 * mag, d(300)); (mag > .5 ? sfx.bigHit : sfx.hit)();
+      ROLES.forEach((role, i) => {
+        const r = turn.roles[role], s = this.sprites[role];
+        if (r.ret < 0) {
+          const loss = Math.round(r.hpBefore - r.hpAfter);
+          this.time.delayedCall(d(40 * i), () => {
+            s.setTint(0xff6b6b);
+            this.tweens.add({ targets: s, x: s.home.x - 18, duration: d(60), yoyo: true, repeat: 2, onComplete: () => { s.clearTint(); s.x = s.home.x; } });
+            this.number(s.x, s.y - 150 * s.scale * 3, '-' + Math.max(1, loss), '#ff6b6b', 24 + 20 * Math.min(1, loss / 40));
+            this.emitter.explode(6 + Math.round(10 * mag), s.x, s.y - 60);
+          });
+        } else if (r.ret > 0) this.time.delayedCall(d(120), () => this.number(s.x, s.y - 130, '+' + Math.max(1, Math.round(r.hpAfter - r.hpBefore + (r.shield || 0) * 0)), '#4fd18b', 20));
+      });
+      hooks.onImpact?.();
+      await this.tw({ targets: boss, x: boss.home.x, scaleX: boss.home.s, duration: d(320), ease: 'back.out(1.5)' });
+    } else {
+      // party attack: each gaining role dashes in; boss takes the portfolio gain
+      const attackers = ROLES.filter(r => turn.roles[r].ret > 0);
+      for (let i = 0; i < attackers.length; i++) {
+        const role = attackers[i], s = this.sprites[role];
+        if (s.dead) continue;
+        const r = turn.roles[role];
+        const str = Math.min(1, r.ret / 1.2);
+        await this.tw({ targets: s, x: boss.home.x - 150, y: boss.home.y - 10, duration: d(150), ease: 'power2.in' });
+        sfx.slash(); this.slash(boss.home.x - 40, boss.home.y - 140, ROLE_HEX[role]);
+        this.emitter.explode(8 + Math.round(14 * str), boss.home.x - 30, boss.home.y - 140);
+        boss.setTint(0xffffff); this.tweens.add({ targets: boss, x: boss.home.x + 16, duration: d(50), yoyo: true, repeat: 1, onComplete: () => { boss.clearTint(); boss.x = boss.home.x; } });
+        this.number(boss.home.x, boss.home.y - 260, '+' + fmtPct(r.ret * r.weight / 100).replace('+', '').replace('%', ''), '#F4C542', 22 + 22 * str);
+        if (i === 0) hooks.onImpact?.();
+        this.tw({ targets: s, x: s.home.x, y: s.home.y, duration: d(220), ease: 'power2.out' });
+        await sleep(d(110));
+      }
+      ROLES.filter(r => turn.roles[r].ret < 0).forEach(role => { const s = this.sprites[role]; s.setTint(0xffa0a0); this.time.delayedCall(d(200), () => s.clearTint()); this.number(s.x, s.y - 120, '-' + Math.max(1, Math.round(turn.roles[role].hpBefore - turn.roles[role].hpAfter)), '#ff9b9b', 18); });
+      if (attackers.length === 0) hooks.onImpact?.();
+      if (ret >= 1) { this.shake(d(200), .006); this.flash(0xF4C542, .25, d(300)); sfx.crit(); }
+      await sleep(d(260));
+    }
+    // shields and faints
+    ROLES.forEach(role => {
+      const r = turn.roles[role], s = this.sprites[role];
+      if (r.shield > 0 && r.hpAfter >= 100 && r.ret > 0) { const ring = this.add.circle(s.x, s.y - 70, 60).setStrokeStyle(4, 0xF4C542, .9).setDepth(30); this.tweens.add({ targets: ring, scale: 1.6, alpha: 0, duration: d(500), onComplete: () => ring.destroy() }); sfx.shield(); }
+      if (r.fainted && !s.dead) { s.dead = true; s.setTexture('h_' + role); sfx.faint(); this.tweens.add({ targets: s, angle: 90, alpha: .45, y: s.home.y + 30, duration: d(450), ease: 'bounce.out' }); }
+      else if (!s.dead && r.hpBefore - r.hpAfter >= 8) { s.setTexture('h_' + role); this.time.delayedCall(d(900), () => { if (!s.dead) s.setTexture('c_' + role); }); }
+    });
+    await sleep(d(200));
+  }
+  async bossDefeated(speed = 1) {
+    const b = this.sprites.boss; sfx.win(); this.shake(400 / speed, .01); this.flash(0xffffff, .8, 600 / speed);
+    for (let i = 0; i < 6; i++) { this.emitter.explode(24, b.home.x - 100 + Math.random() * 200, b.home.y - 300 + Math.random() * 260); await sleep(90 / speed); }
+    await this.tw({ targets: b, angle: 12, alpha: 0, scale: .2, y: b.home.y + 60, duration: 700 / speed, ease: 'back.in(2)' });
+  }
+  async partyWiped(speed = 1) { sfx.lose(); this.flash(0x000000, .7, 900 / speed); await sleep(900 / speed); }
+}
+function gsapLike(scene, target, props, dur) { Object.entries(props).forEach(([k, v]) => { target[k] = v.from; }); scene.tweens.add({ targets: target, ...Object.fromEntries(Object.entries(props).map(([k, v]) => [k, v.to])), duration: dur, ease: 'back.out(1.4)' }); }
+
+let game = null, scene = null;
+async function ensureGame() {
+  if (game) return scene;
+  try { await document.fonts.load('20px Jua'); } catch {}
+  game = new Phaser.Game({ type: Phaser.AUTO, parent: 'arena', width: W, height: H, backgroundColor: '#0D1018', scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, scene: [BattleScene], render: { antialias: true, pixelArt: false } });
+  scene = game.scene.getScene('battle');
+  while (!scene?.ready) { await sleep(30); scene = game.scene.getScene('battle'); }
+  return scene;
+}
+
+/* ------------------------------------------------------------------ */
+/* Cut-in (webtoon panel)                                              */
+/* ------------------------------------------------------------------ */
+function cutIn({ text, sub, bg, artL, artR, hit }, speed = 1) {
+  return new Promise(res => {
+    const c = $('#cutin'); c.hidden = false; c.style.setProperty('--cut-bg', bg);
+    $('#cutText').textContent = text; $('#cutSub').textContent = sub || '';
+    const L = $('#cutArtL'), R = $('#cutArtR'); L.hidden = !artL; R.hidden = !artR; if (artL) L.src = artL; if (artR) R.src = artR;
+    sfx.cutin();
+    const tl = gsap.timeline({ onComplete: () => { c.hidden = true; res(); } }); tl.timeScale(speed);
+    tl.fromTo('#cutin .band', { scaleY: 0 }, { scaleY: 1, duration: .16, ease: 'power3.out' })
+      .fromTo('#cutin .lines', { opacity: 0, rotate: 0 }, { opacity: 1, rotate: 25, duration: 1.1, ease: 'none' }, 0)
+      .fromTo(L, { opacity: 0, x: -120 }, { opacity: 1, x: 0, duration: .22, ease: 'power3.out' }, .08)
+      .fromTo(R, { opacity: 0, x: 120 }, { opacity: 1, x: 0, duration: .22, ease: 'power3.out' }, .08)
+      .fromTo('#cutText', { opacity: 0, scale: 2.4, rotate: -6 }, { opacity: 1, scale: 1, rotate: -6, duration: .28, ease: 'back.out(2.5)' }, .18)
+      .fromTo('#cutSub', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .2 }, .4);
+    if (hit && !reduceMotion) tl.fromTo(L, { x: -10, rotate: -4 }, { x: 10, rotate: 4, duration: .05, repeat: 7, yoyo: true }, .3);
+    tl.to({}, { duration: .75 })
+      .to('#cutin .band, #cutin .lines, #cutin .art, #cutText, #cutSub', { opacity: 0, duration: .18 });
+  });
+}
+function cutForTurn(turn) {
+  const cut = turn.cut; if (!cut) return null;
+  const sub = `${fmtTime(turn.t)} ${turn.label} · 파티 ${fmtPct(turn.boss.portfolioRet)}`;
+  const bossArt = svgUri(BOSSES[currentTape.bossSpecies].svg), roleArt = svgUri(charOf(cut.role).svg), hurtArt = svgUri(hurtSvg(ROLE_META[cut.role].species));
+  if (cut.kind === 'critical_hit') return { text: cut.text, sub, bg: '#4A1522', artL: hurtArt, artR: bossArt, hit: true };
+  if (cut.kind === 'role_crushed') return { text: cut.text, sub, bg: '#3A1A2E', artL: hurtArt, artR: bossArt, hit: true };
+  if (cut.kind === 'critical_deal') return { text: cut.text, sub, bg: '#0F3A2E', artL: roleArt, artR: null };
+  return { text: cut.text, sub, bg: '#1F3A14', artL: roleArt, artR: null };
+}
+
+/* ------------------------------------------------------------------ */
+/* Battle flow                                                         */
+/* ------------------------------------------------------------------ */
+let battle = null, speed = 1, userPaused = false, aborted = false, chart = null, series = null, resumeWaiters = [];
+const speedFactor = () => reduceMotion ? Math.max(4, speed) : speed;
+
+$$('.seg [data-speed]').forEach(b => b.addEventListener('click', () => { speed = +b.dataset.speed; $$('.seg [data-speed]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); sfx.select(); }));
+$('#pauseBtn').addEventListener('click', () => { userPaused = !userPaused; $('#pauseBtn').textContent = userPaused ? '계속' : '일시정지'; if (!userPaused) { resumeWaiters.splice(0).forEach(r => r()); } sfx.select(); });
+let abortArmed = 0;
+$('#abortBtn').addEventListener('click', () => {
+  if (Date.now() - abortArmed < 3000) { aborted = true; userPaused = false; resumeWaiters.splice(0).forEach(r => r()); $('#abortBtn').textContent = '레이드 포기'; stopBgm(); showScreen('select'); return; }
+  abortArmed = Date.now(); $('#abortBtn').textContent = '정말 포기? (한 번 더)'; setTimeout(() => { $('#abortBtn').textContent = '레이드 포기'; }, 3000);
+});
+const waitResume = () => userPaused ? new Promise(r => resumeWaiters.push(r)) : Promise.resolve();
+
+function hpClass(v) { return v > 50 ? '' : v > 20 ? 'mid' : 'low'; }
+function renderPartyHud(turn) {
+  const s = battle;
+  $('#partyhud').innerHTML = ROLES.map(role => {
+    const sk = s.party._bySkill[s.party.skills[role]], hp = s.partyHp[role], sh = s.shield[role];
+    const r = turn?.roles[role]?.ret;
+    return `<div class="phud ${hp <= 0 ? 'dead' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]}">
+      <div class="t"><b>${charOf(role).name} ${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</b><small>${sk.name} · ${s.party.weights[role]}%</small></div>
+      <div class="hp"><i class="${hpClass(hp)}" style="width:${hp}%"></i><em style="width:${Math.min(100, sh)}%"></em></div>
+      <div class="num"><span>HP <b class="tabular">${Math.round(hp)}</b>${sh > 0 ? ` <span style="color:var(--gold)">+${Math.round(sh)}</span>` : ''}</span><span class="tabular">${currentTape.instruments[sk.instrument].name}</span></div></div>`;
+  }).join('');
+}
+function renderBossHud() {
+  $('#hBossName').textContent = currentTape.boss;
+  $('#hBossHp').style.width = battle.bossHp + '%'; $('#hBossHpTxt').textContent = Math.round(battle.bossHp);
+}
+function renderTurnLine(turn) {
+  if (!turn) { $('#hLabel').textContent = `${fmtTime(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '—'; $('#hRet').className = 'ret tabular'; $('#hCum').textContent = '0.00%'; $('#hCum').className = 'ret tabular'; return; }
+  $('#hLabel').textContent = turn.label; $('#hTime').textContent = fmtTime(turn.t) + ' KST';
+  const r = turn.boss.portfolioRet; $('#hRet').textContent = fmtPct(r); $('#hRet').className = 'ret tabular ' + (r >= 0 ? 'up' : 'down');
+  const c = battle.equity - 100; $('#hCum').textContent = fmtPct(c); $('#hCum').className = 'ret tabular ' + (c >= 0 ? 'up' : 'down');
+}
+
+function makeChart(container, withBoss) {
+  const c = LightweightCharts.createChart(container, {
+    autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#A6AEBE', fontFamily: 'Gowun Dodum, sans-serif', fontSize: 11 },
+    grid: { vertLines: { color: '#232A38' }, horzLines: { color: '#232A38' } }, rightPriceScale: { borderColor: '#343D4F' }, leftPriceScale: { visible: withBoss, borderColor: '#343D4F' },
+    timeScale: { borderColor: '#343D4F', timeVisible: true, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true }, crosshair: { mode: 0 }, handleScroll: false, handleScale: false,
+  });
+  const pct = { type: 'custom', formatter: v => fmtPct(v), minMove: .01 };
+  const eq = c.addLineSeries({ color: '#F4C542', lineWidth: 3, priceScaleId: 'right', lastValueVisible: true, priceLineVisible: false, priceFormat: pct });
+  const bm = c.addLineSeries({ color: '#7C8597', lineWidth: 2, lineStyle: 2, priceScaleId: 'right', lastValueVisible: false, priceLineVisible: false, priceFormat: pct });
+  const bo = withBoss ? c.addAreaSeries({ priceScaleId: 'left', lineColor: '#FF6B6B', topColor: 'rgba(255,107,107,.22)', bottomColor: 'rgba(255,107,107,0)', lineWidth: 1, lastValueVisible: false, priceLineVisible: false,
+    priceFormat: { type: 'custom', formatter: v => 'HP ' + Math.round(v), minMove: 1 }, autoscaleInfoProvider: () => ({ priceRange: { minValue: 0, maxValue: 100 } }) }) : null;
+  if (bo) c.priceScale('left').applyOptions({ scaleMargins: { top: .05, bottom: 0 } });
+  c.priceScale('right').applyOptions({ scaleMargins: { top: .15, bottom: .15 } });
+  return { c, eq, bm, bo };
+}
+const ts = iso => Math.floor(Date.parse(iso) / 1000) + 9 * 3600;   // shift so the axis prints KST clock times
+function feedChart(S, s) {
+  const pts = [{ bar: 0, t: s.tape.bars[0].t, equity: 100, benchmark: 100, bossHp: 100 }, ...s.history];
+  S.eq.setData(pts.map(p => ({ time: ts(p.t), value: p.equity - 100 })));
+  S.bm.setData(pts.map(p => ({ time: ts(p.t), value: p.benchmark - 100 })));
+  S.bo?.setData(pts.map(p => ({ time: ts(p.t), value: p.bossHp })));
+  const marks = (s.actions || []).filter(a => a.type !== 'hold').map(a => ({ time: ts(s.tape.bars[a.at].t), position: 'aboveBar', color: '#F4C542', shape: 'arrowDown', text: a.type === 'equip' ? '교체' : '비중' }));
+  S.eq.setMarkers(marks);
+  S.c.timeScale().fitContent();
+}
+
+async function startBattle() {
+  const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
+  unlock(); sfx.select();
+  battle = createBattle(currentTape, party); aborted = false; userPaused = false; $('#pauseBtn').textContent = '일시정지';
+  showScreen('battle');
+  const sc = await ensureGame(); game.scale.refresh();
+  await sc.setup(currentTape);
+  renderBossHud(); renderPartyHud(); renderTurnLine(null);
+  chart?.c.remove(); chart = makeChart($('#chart'), true); feedChart(chart, battle);
+  $('#chartNote').textContent = `${currentTape.bars.length - 1}구간 · 30분~1시간 단위${currentTape.example ? ' · 예시 데이터' : ''}`;
+  startBgm(.3);
+  await cutIn({ text: `${currentTape.boss} 출현!`, sub: `${fmtDate(currentTape.bars[0].t)} · ${currentTape.bars.length - 1}구간 레이드`, bg: '#2A1A3A', artL: null, artR: svgUri(BOSSES[currentTape.bossSpecies].svg) }, Math.max(1, speedFactor() / 2));
+  await sleep(300 / speedFactor());
+  await raidLoop();
+}
+async function raidLoop() {
+  while (!battle.done && !aborted) {
+    await waitResume(); if (aborted) return;
+    const turn = step(battle);
+    if (!turn) { if (battle.paused) { await showCheckpoint(battle.paused); continue; } break; }
+    const sp = speedFactor();
+    await scene.playTurn(turn, sp, { onImpact: () => { renderPartyHud(turn); renderBossHud(); renderTurnLine(turn); } });
+    feedChart(chart, battle);
+    const cut = cutForTurn(turn);
+    if (cut && speed < 4) await cutIn(cut, sp);
+    if (battle.bossHp <= 0 && !battle._bossShown) { battle._bossShown = true; startBgm(.8); }
+  }
+  if (aborted) return;
+  stopBgm();
+  const r = battle.result;
+  if (r.bossDown) await scene.bossDefeated(speedFactor()); else if (r.alive === 0) await scene.partyWiped(speedFactor()); else await sleep(400);
+  showResult();
+}
+
+/* ---------- checkpoint modal ---------- */
+function showCheckpoint(cp) {
+  return new Promise(resolve => {
+    sfx.pause();
+    const m = $('#cp'); m.hidden = false;
+    $('#cpTitle span:last-child').textContent = `${fmtTime(currentTape.bars[cp.bar].t)} ${cp.title}`;
+    const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
+    $('#cpHint').innerHTML = `<b>[시스템]</b> ${cp.hint}<br><span class="muted">지금까지 파티 <b style="color:${cum >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(cum)}</b> · 다음 구간 <b>${fmtTime(next.t)} ${next.label}</b> · 체크포인트마다 한 가지 행동만 할 수 있어요.</span>`;
+    const tabs = $$('#cp .tabs [data-tab]');
+    const setTab = name => { tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpHold').hidden = name !== 'hold'; $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
+    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
+    setTab('hold');
+    const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } m.hidden = true; if (msg) toast(msg); renderPartyHud(); resolve(); };
+    $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '버틴다!'); };
+    // equip
+    const lvl = effectiveLevel();
+    $('#cpEquip').innerHTML = '';
+    ROLES.forEach(role => {
+      const cur = battle.party._bySkill[battle.party.skills[role]];
+      const box = document.createElement('div'); box.className = 'cp-role'; box.style.setProperty('--rc', ROLE_COLOR[role]);
+      box.innerHTML = `<img src="${svgUri(charOf(role).svg)}" alt=""><div><div class="hdr"><b>${charOf(role).name}</b><span>지금: ${cur.name} · ${battle.party.weights[role]}%</span></div><div class="opts"></div></div>`;
+      const opts = box.querySelector('.opts');
+      currentTape.skills.filter(s => s.role === role && s.id !== cur.id).forEach(s => {
+        const locked = s.unlockLevel && lvl < s.unlockLevel;
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked;
+        b.innerHTML = `<span class="n">${s.name}</span><span class="i">${currentTape.instruments[s.instrument].name}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>`;
+        b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: lvl }, `${charOf(role).name}: ${s.name} 장착!`); };
+        opts.appendChild(b);
+      });
+      if (!opts.children.length) opts.innerHTML = '<span class="small muted">바꿀 기술이 없어요</span>';
+      $('#cpEquip').appendChild(box);
+    });
+    // rebalance
+    const w = { ...battle.party.weights };
+    const renderSl = () => {
+      $('#cpSliders').innerHTML = ROLES.map(role => `<div class="weight" style="--rc:${ROLE_COLOR[role]}"><label for="cw-${role}"><span>${charOf(role).name}</span><output>${w[role]}%</output></label><input type="range" id="cw-${role}" min="0" max="100" step="5" value="${w[role]}" aria-label="${charOf(role).name} 비중"></div>`).join('');
+      ROLES.forEach(role => $('#cw-' + role).addEventListener('input', e => { w[role] = +e.target.value; e.target.previousElementSibling.querySelector('output').value = w[role] + '%'; const sum = ROLES.reduce((a, r) => a + w[r], 0); $('#cpSum').textContent = `${sum} / 100`; $('#cpSum').classList.toggle('bad', sum !== 100); $('#cpRebalBtn').disabled = sum !== 100; }));
+      $('#cpSum').textContent = '100 / 100'; $('#cpSum').classList.remove('bad'); $('#cpRebalBtn').disabled = false;
+    };
+    renderSl();
+    $('#cpRebalBtn').onclick = () => { sfx.select(); done({ type: 'rebalance', weights: w }, '비중 조정!'); };
+    $('#cpHoldBtn').focus();
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Result                                                              */
+/* ------------------------------------------------------------------ */
+let rChart = null;
+async function showResult() {
+  const s = battle, r = s.result;
+  showScreen('result');
+  // persist play & exp
+  const before = { ...profile };
+  const after = applyExp(profile, r.exp);
+  const play = profile.plays[currentTape.id] || { count: 0 };
+  const order = ['F', 'D', 'C', 'B', 'A', 'S'];
+  play.count++; if (!play.best || order.indexOf(r.grade) > order.indexOf(play.best)) play.best = r.grade;
+  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play } }; saveProfile();
+
+  const stamp = $('#rStamp'); stamp.textContent = r.grade; stamp.className = 'stamp ' + r.grade;
+  $('#rVerdict').textContent = r.bossDown ? `${currentTape.boss} 격파!` : r.alive === 0 ? '파티 전멸…' : r.returnPct >= 0 ? '레이드 생존 · 보스는 버텼다' : '보스에게 밀렸다';
+  $('#rRet').textContent = fmtPct(r.returnPct); $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
+  $('#rAlpha').textContent = fmtPct(r.alpha); $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)';
+  $('#rBoss').textContent = r.bossDown ? '격파' : `HP ${Math.round(s.bossHp)} 남음`;
+  $('#rAlive').textContent = `${r.alive} / 4`;
+  const cs = ROLES.map(role => ({ role, c: contribution(s, role) })); const mx = Math.max(.2, ...cs.map(x => Math.abs(x.c)));
+  $('#rContribs').innerHTML = cs.map(({ role, c }) => `<div class="contrib" style="--rc:${ROLE_COLOR[role]}"><span>${charOf(role).name}</span><div class="bar"><i style="${c >= 0 ? 'left:50%' : 'right:50%'};width:${50 * Math.abs(c) / mx}%"></i></div><span class="v tabular" style="color:${c >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(c)}</span></div>`).join('');
+  const acts = (s.actions || []);
+  $('#rDecisions').innerHTML = acts.length ? acts.map(a => {
+    const bar = currentTape.bars[a.at]; const after = s.log.filter(t => t.bar >= a.at).reduce((x, t) => x + t.boss.portfolioRet, 0);
+    const what = a.type === 'hold' ? '버티기' : a.type === 'equip' ? `${charOf(ROLES.find(r => s.party._bySkill[a.to]?.role === r) || 'dealer').name} → ${s.party._bySkill[a.to].name}` : '비중 조정 ' + ROLES.map(r => a.to[r]).join('/');
+    return `<div><span class="t">${fmtTime(bar.t)}</span><span>${what}</span><span class="muted">· 이후 파티 ${fmtPct(after)}</span></div>`;
+  }).join('') : '<span class="muted">체크포인트 없음</span>';
+  // what-if: best / worst single-action strategies from the same starting party
+  const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
+  const best = alts[0], worst = alts.at(-1), lvl = effectiveLevel();
+  const row = (k, cls, a, v) => `<div><span class="k ${cls}">${k}</span><span>${a}</span><span class="v" style="color:${v >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(v)}</span></div>`;
+  const lockNote = a => a.detail.unlockLevel > lvl ? `<span class="lock">Lv.${a.detail.unlockLevel}</span>` : '';
+  $('#rWhatIf').innerHTML = [
+    row('내 선택', 'me', acts.some(a => a.type !== 'hold') ? '위 체크포인트 선택대로' : '모두 버티기', r.returnPct),
+    row('최고', 'best', best.label + lockNote(best), best.returnPct),
+    row('최악', 'worst', worst.label + lockNote(worst), worst.returnPct),
+  ].join('');
+  $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
+  rChart?.c.remove(); rChart = makeChart($('#rChart'), false); feedChart(rChart, s);
+  $('#coachAv').src = svgUri(CHARACTERS.squirrel.svg);
+  // animations
+  sfx.stamp();
+  gsap.fromTo(stamp, { scale: 3, opacity: 0, rotate: -30 }, { scale: 1, opacity: 1, rotate: -12, duration: .45, ease: 'back.out(1.2)' });
+  if (!reduceMotion) gsap.fromTo('.stamp-wrap', { x: -8 }, { x: 8, duration: .05, repeat: 5, yoyo: true, clearProps: 'x', delay: .35 });
+  // coach typing
+  const bubble = $('#coachBubble'); bubble.innerHTML = '';
+  const lines = coachText(s);
+  (async () => { for (const line of lines) { const p = document.createElement('p'); p.className = 'typing'; bubble.appendChild(p); for (const ch of line) { p.textContent += ch; if (!reduceMotion) await sleep(14); } p.classList.remove('typing'); await sleep(200); } })();
+  // exp
+  const expEl = $('#rExp'); const o = { v: 0 }; gsap.to(o, { v: r.exp, duration: 1, onUpdate: () => { expEl.textContent = '+' + Math.round(o.v); } });
+  const bar = $('#rExpBar'); bar.style.width = (100 * before.exp / expNext(before.level)) + '%';
+  $('#rExpTxt').textContent = `Lv.${before.level} ${before.exp} / ${expNext(before.level)}`;
+  await sleep(500);
+  if (after.levelUps.length) {
+    await animBar(bar, 100, 600);
+    for (const L of after.levelUps) { sfx.level(); toast(`레벨 업! Lv.${L}${UNLOCKS[L] ? ' · ' + UNLOCKS[L] + ' 해금' : ''}`, 2600); bar.style.transition = 'none'; bar.style.width = '0%'; await sleep(50); bar.style.transition = ''; if (L !== after.levelUps.at(-1)) await animBar(bar, 100, 500); await sleep(300); }
+    await animBar(bar, 100 * after.exp / expNext(after.level), 600);
+  } else await animBar(bar, 100 * after.exp / expNext(after.level), 900);
+  $('#rExpTxt').textContent = `Lv.${after.level} ${after.exp} / ${expNext(after.level)}`;
+  renderProfile();
+}
+function animBar(el, pct, ms) { return new Promise(res => { el.style.transition = `width ${ms}ms cubic-bezier(.2,.8,.2,1)`; requestAnimationFrame(() => { el.style.width = pct + '%'; setTimeout(res, ms); }); }); }
+
+/* ------------------------------------------------------------------ */
+/* Wiring                                                              */
+/* ------------------------------------------------------------------ */
+$('#toParty').addEventListener('click', () => { sfx.select(); openParty(); });
+$('#backToSelect').addEventListener('click', () => { sfx.back(); showScreen('select'); });
+$('#backToBrief').addEventListener('click', () => { sfx.back(); showScreen('brief'); });
+$('#presetBtn').addEventListener('click', () => { sfx.select(); party = Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id }); renderPartyScreen(); });
+$('#startBattle').addEventListener('click', startBattle);
+$('#retryBtn').addEventListener('click', () => { sfx.select(); openParty(); });
+$('#otherBtn').addEventListener('click', () => { sfx.select(); renderSelect(); showScreen('select'); });
+$('#etfBtn').addEventListener('click', () => { sfx.select(); $('#etfAlloc').innerHTML = ROLES.map(r => `<i style="width:${battle.party.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); $('#etfModal').hidden = false; });
+$('#etfClose').addEventListener('click', () => { sfx.back(); $('#etfModal').hidden = true; });
+$('#muteBtn').addEventListener('click', () => { unlock(); const m = !isMuted(); setMuted(m); $('#muteBtn').textContent = m ? '소리 꺼짐' : '소리 켜짐'; $('#muteBtn').setAttribute('aria-pressed', String(m)); });
+$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '데모 모드: 모든 기술을 쓸 수 있어요' : '레벨 제한을 다시 켰어요'); if (!$('#screen-party').hidden) renderPartyScreen(); });
+document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-battle').hidden && $('#cp').hidden && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); $('#pauseBtn').click(); } });
+
+renderProfile(); renderSelect(); showScreen('select');
+
+// test/automation hooks (not used by the UI)
+window.__rpg = { TAPES, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작 · 파티 +1.24%', bg: '#0F3A2E', artL: svgUri(CHARACTERS.cheetah.svg), artR: null } : { text: '필살기!', sub: '05:00 매파 발언 · 파티 -1.20%', bg: '#4A1522', artL: svgUri(hurtSvg('cheetah')), artR: svgUri(BOSSES.golem.svg), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; }, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
+
+</script>

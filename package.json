@@ -1,0 +1,25 @@
+{
+  "name": "invest-rpg",
+  "version": "1.0.0",
+  "description": "모험단 레이드: 실제 시장 이벤트가 보스가 되는 투자 교육 웹게임 엔진",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test/engine.test.mjs",
+    "tapes": "node scripts/make-tapes.mjs",
+    "build": "node scripts/build.mjs",
+    "play": "node test/play.mjs",
+    "play:shots": "node test/play.mjs --shots",
+    "all": "npm run tapes && npm test && npm run build && npm run play"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gsap": "^3.12.5",
+    "howler": "^2.2.4",
+    "lightweight-charts": "^4.2.0",
+    "phaser": "^3.80.1"
+  },
+  "type": "module",
+  "private": true
+}

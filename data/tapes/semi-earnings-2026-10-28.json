@@ -1,0 +1,285 @@
+{
+ "id": "semi-earnings-2026-10-28",
+ "title": "반도체 쌍두 히드라 레이드",
+ "boss": "반도체 쌍두 히드라",
+ "bossSpecies": "hydra",
+ "market": "KR",
+ "example": true,
+ "settled": true,
+ "briefing": "SK하이닉스 3분기 실적이 장 시작 전에 나온다. 컨센서스는 이미 높다. 좋은 실적이 아니라 \"기대보다 좋은\" 실적이어야 오른다.",
+ "lesson": "기대치가 이미 높을 때는 좋은 뉴스도 차익실현의 빌미가 돼요. 반도체 ETF는 결국 한 업종에 모여 있어서 함께 움직여요.",
+ "concepts": [
+  {
+   "name": "기대치 대비 실적",
+   "text": "좋은 실적이 아니라 \"기대보다 좋은\" 실적이어야 올라요. 기대가 이미 높으면 좋은 뉴스도 매물의 빌미가 돼요."
+  },
+  {
+   "name": "업종 집중의 위험",
+   "text": "반도체 ETF는 여러 종목이지만 결국 한 업종이에요. 업종 뉴스 하나에 다 같이 움직여요."
+  },
+  {
+   "name": "차익실현",
+   "text": "급등 직후엔 먼저 산 사람들이 이익을 챙기며 팔아요. 첫 10분의 방향이 하루를 결정하지 않아요."
+  }
+ ],
+ "instruments": {
+  "K200": {
+   "name": "코스피200 ETF",
+   "kind": "etf",
+   "currency": "KRW"
+  },
+  "K200L": {
+   "name": "코스피200 2배 레버리지",
+   "kind": "lev",
+   "currency": "KRW"
+  },
+  "KSEMI": {
+   "name": "반도체 ETF",
+   "kind": "etf",
+   "currency": "KRW"
+  },
+  "KBOND": {
+   "name": "국고채 10년 ETF",
+   "kind": "etf",
+   "currency": "KRW"
+  },
+  "KGOLD": {
+   "name": "금 현물 ETF",
+   "kind": "etf",
+   "currency": "KRW"
+  },
+  "KCASH": {
+   "name": "머니마켓 ETF",
+   "kind": "cash",
+   "currency": "KRW"
+  },
+  "KDIV": {
+   "name": "고배당 ETF",
+   "kind": "etf",
+   "currency": "KRW"
+  },
+  "K200_P": {
+   "name": "코스피200 풋옵션 (행사가 560)",
+   "kind": "option",
+   "currency": "KRW"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_kbond",
+   "role": "tank",
+   "instrument": "KBOND",
+   "name": "국고채 방패",
+   "default": true,
+   "lesson": "국내 금리 이벤트가 아닌 날, 채권은 조용히 버텨요."
+  },
+  {
+   "id": "dealer_k200",
+   "role": "dealer",
+   "instrument": "K200",
+   "name": "코스피 베기",
+   "default": true,
+   "lesson": "지수 ETF는 업종 뉴스를 희석해서 받아요."
+  },
+  {
+   "id": "dealer_ksemi",
+   "role": "dealer",
+   "instrument": "KSEMI",
+   "name": "반도체 돌격",
+   "lesson": "업종 ETF는 그 업종 뉴스에 지수보다 2배쯤 크게 움직여요."
+  },
+  {
+   "id": "dealer_k200l",
+   "role": "dealer",
+   "instrument": "K200L",
+   "name": "폭주 돌진",
+   "unlockLevel": 5,
+   "lesson": "레버리지는 하루 안에서도 반동이 두 배예요."
+  },
+  {
+   "id": "healer_kgold",
+   "role": "healer",
+   "instrument": "KGOLD",
+   "name": "황금 가호",
+   "default": true,
+   "lesson": "금은 주식이 흔들릴 때 조용히 버텨줘요."
+  },
+  {
+   "id": "healer_kcash",
+   "role": "healer",
+   "instrument": "KCASH",
+   "name": "현금 대기",
+   "lesson": "현금은 안 다치지만 보스도 못 때려요."
+  },
+  {
+   "id": "healer_kput",
+   "role": "healer",
+   "instrument": "K200_P",
+   "blend": {
+    "K200_P": 0.25,
+    "KCASH": 0.75
+   },
+   "name": "도토리 보험",
+   "unlockLevel": 10,
+   "lesson": "슬롯의 25%만 풋옵션, 나머지는 현금이에요. 급등 땐 보험료가 빠르게 녹아요. 타이밍이 전부예요."
+  },
+  {
+   "id": "support_kdiv",
+   "role": "support",
+   "instrument": "KDIV",
+   "name": "꿀 모으기",
+   "default": true,
+   "lesson": "고배당주는 성장주보다 덜 흔들려요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "bar": 1,
+   "title": "장 시작 직전",
+   "hint": "실적은 기대치를 넘었다. 그런데 기대치가 원래 높았다. 반도체로 몰아줄까?",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  },
+  {
+   "bar": 4,
+   "title": "차익실현 조짐",
+   "hint": "첫 급등 뒤 매물이 나오기 시작했다. 이익을 지킬까, 더 갈까?",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "t": "2026-10-28T08:30:00+09:00",
+   "label": "실적 발표",
+   "prices": {
+    "K200": 56800,
+    "K200L": 41250,
+    "KSEMI": 78400,
+    "KBOND": 121300,
+    "KGOLD": 31900,
+    "KCASH": 105320,
+    "KDIV": 17840,
+    "K200_P": 3.85
+   }
+  },
+  {
+   "t": "2026-10-28T09:00:00+09:00",
+   "label": "장 시작",
+   "prices": {
+    "K200": 57425,
+    "K200L": 42149,
+    "KSEMI": 80438,
+    "KBOND": 121239,
+    "KGOLD": 31868,
+    "KCASH": 105320,
+    "KDIV": 17911,
+    "K200_P": 3.31
+   }
+  },
+  {
+   "t": "2026-10-28T09:10:00+09:00",
+   "label": "첫 10분",
+   "prices": {
+    "K200": 57654,
+    "K200L": 42482,
+    "KSEMI": 81162,
+    "KBOND": 121215,
+    "KGOLD": 31852,
+    "KCASH": 105320,
+    "KDIV": 17929,
+    "K200_P": 3.15
+   }
+  },
+  {
+   "t": "2026-10-28T09:30:00+09:00",
+   "label": "초반 소화",
+   "prices": {
+    "K200": 57309,
+    "K200L": 41968,
+    "KSEMI": 79701,
+    "KBOND": 121264,
+    "KGOLD": 31884,
+    "KCASH": 105320,
+    "KDIV": 17893,
+    "K200_P": 3.43
+   }
+  },
+  {
+   "t": "2026-10-28T10:00:00+09:00",
+   "label": "차익실현",
+   "prices": {
+    "K200": 56793,
+    "K200L": 41209,
+    "KSEMI": 77789,
+    "KBOND": 121361,
+    "KGOLD": 31932,
+    "KCASH": 105320,
+    "KDIV": 17840,
+    "K200_P": 3.98
+   }
+  },
+  {
+   "t": "2026-10-28T11:00:00+09:00",
+   "label": "오전 마감",
+   "prices": {
+    "K200": 56622,
+    "K200L": 40957,
+    "KSEMI": 77244,
+    "KBOND": 121397,
+    "KGOLD": 31948,
+    "KCASH": 105320,
+    "KDIV": 17822,
+    "K200_P": 4.18
+   }
+  },
+  {
+   "t": "2026-10-28T13:00:00+09:00",
+   "label": "오후 시작",
+   "prices": {
+    "K200": 56679,
+    "K200L": 41035,
+    "KSEMI": 77399,
+    "KBOND": 121385,
+    "KGOLD": 31948,
+    "KCASH": 105320,
+    "KDIV": 17831,
+    "K200_P": 4.09
+   }
+  },
+  {
+   "t": "2026-10-28T14:30:00+09:00",
+   "label": "막판 반등",
+   "prices": {
+    "K200": 56962,
+    "K200L": 41441,
+    "KSEMI": 78250,
+    "KBOND": 121336,
+    "KGOLD": 31932,
+    "KCASH": 105320,
+    "KDIV": 17866,
+    "K200_P": 3.77
+   }
+  },
+  {
+   "t": "2026-10-28T15:30:00+09:00",
+   "label": "마감",
+   "prices": {
+    "K200": 57076,
+    "K200L": 41603,
+    "KSEMI": 78563,
+    "KBOND": 121312,
+    "KGOLD": 31932,
+    "KCASH": 105320,
+    "KDIV": 17884,
+    "K200_P": 3.65
+   }
+  }
+ ]
+}

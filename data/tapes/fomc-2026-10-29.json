@@ -1,0 +1,303 @@
+{
+ "id": "fomc-2026-10-29",
+ "title": "동결의 골렘 레이드",
+ "boss": "동결의 골렘",
+ "bossSpecies": "golem",
+ "market": "US",
+ "example": true,
+ "settled": true,
+ "briefing": "FOMC 결정은 동결이 90% 예상. 진짜 공격은 2페이즈 기자회견에서 온다. \"앞으로 더 올릴 수 있다\"는 한마디가 필살기다.",
+ "lesson": "시장은 결과 자체가 아니라 예상과의 차이에 반응해요. 동결은 이미 가격에 있었고, 기자회견의 톤이 새 정보였어요.",
+ "concepts": [
+  {
+   "name": "이미 가격에 반영된 뉴스",
+   "text": "90%가 예상한 동결은 발표 순간 거의 움직임이 없었어요. 시장은 \"예상과 다른 것\"에만 반응해요."
+  },
+  {
+   "name": "금리와 성장주",
+   "text": "성장주는 먼 미래의 이익을 기대받는 자산이라, 금리 전망이 올라가면 가장 먼저 흔들려요."
+  },
+  {
+   "name": "레버리지의 반동",
+   "text": "3배 레버리지는 같은 방향이면 3배 벌지만, 반대 방향이면 3배로 맞아요. 하루 안에서도요."
+  },
+  {
+   "name": "헤지와 보험료",
+   "text": "풋옵션은 평소에 보험료가 녹지만 급락 때 파티를 구해요. 그래서 소액으로, 타이밍이 중요해요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "현금성 단기국채 ETF",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "QQQ_P": {
+   "name": "QQQ 풋옵션 (행사가 480, 2주물)",
+   "kind": "option",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "장기채 방패",
+   "default": true,
+   "lesson": "장기채는 금리 전망에 민감해서, 매파 발언엔 방패도 금이 가요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "단기채 벽",
+   "lesson": "단기채는 거의 안 흔들리지만 공격력도 없어요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "질주 베기",
+   "default": true,
+   "lesson": "성장주는 금리 신호에 가장 민감한 자산이에요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "폭주 돌진",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 같은 방향이면 3배, 반대면 반동도 3배예요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "황금 가호",
+   "default": true,
+   "lesson": "금은 금리가 오를 땐 이자를 못 줘서 약해지기도 해요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금 대기",
+   "lesson": "현금은 안 다치지만 보스도 못 때려요."
+  },
+  {
+   "id": "healer_put",
+   "role": "healer",
+   "instrument": "QQQ_P",
+   "blend": {
+    "QQQ_P": 0.25,
+    "BIL": 0.75
+   },
+   "name": "도토리 보험",
+   "unlockLevel": 10,
+   "lesson": "보험은 소액이 원칙이에요. 슬롯의 25%만 풋옵션에 쓰고 나머지는 현금으로 뒀어요. 평소엔 보험료가 녹지만 급락 땐 파티를 구해요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "꿀 모으기",
+   "default": true,
+   "lesson": "배당주도 주식이라 하락장에선 같이 밀려요. 대신 덜 밀려요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "bar": 3,
+   "title": "금리 결정 발표 1분 전",
+   "hint": "시장은 동결을 90% 예상하고 있다. 지금 바꿀까, 버틸까?",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  },
+  {
+   "bar": 5,
+   "title": "기자회견 시작",
+   "hint": "의장의 첫 마디가 곧 나온다. 매파일까, 비둘기일까?",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "t": "2026-10-29T02:00:00+09:00",
+   "label": "장중 대기",
+   "prices": {
+    "QQQ": 482.1,
+    "TQQQ": 71.4,
+    "TLT": 92.3,
+    "SHY": 82.6,
+    "GLD": 251.8,
+    "BIL": 91.52,
+    "SCHD": 28.4,
+    "QQQ_P": 4.2
+   }
+  },
+  {
+   "t": "2026-10-29T02:30:00+09:00",
+   "label": "발표 1시간 전",
+   "prices": {
+    "QQQ": 482.34,
+    "TQQQ": 71.51,
+    "TLT": 92.32,
+    "SHY": 82.6,
+    "GLD": 251.88,
+    "BIL": 91.52,
+    "SCHD": 28.41,
+    "QQQ_P": 4.14
+   }
+  },
+  {
+   "t": "2026-10-29T03:00:00+09:00",
+   "label": "발표 30분 전",
+   "prices": {
+    "QQQ": 481.86,
+    "TQQQ": 71.29,
+    "TLT": 92.27,
+    "SHY": 82.59,
+    "GLD": 251.77,
+    "BIL": 91.52,
+    "SCHD": 28.39,
+    "QQQ_P": 4.19
+   }
+  },
+  {
+   "t": "2026-10-29T03:30:00+09:00",
+   "label": "금리 결정 발표",
+   "prices": {
+    "QQQ": 483.55,
+    "TQQQ": 72.03,
+    "TLT": 92.46,
+    "SHY": 82.62,
+    "GLD": 252.15,
+    "BIL": 91.52,
+    "SCHD": 28.44,
+    "QQQ_P": 3.81
+   }
+  },
+  {
+   "t": "2026-10-29T04:00:00+09:00",
+   "label": "결정 소화",
+   "prices": {
+    "QQQ": 484.03,
+    "TQQQ": 72.24,
+    "TLT": 92.41,
+    "SHY": 82.62,
+    "GLD": 252.2,
+    "BIL": 91.52,
+    "SCHD": 28.45,
+    "QQQ_P": 3.7
+   }
+  },
+  {
+   "t": "2026-10-29T04:30:00+09:00",
+   "label": "기자회견 시작",
+   "prices": {
+    "QQQ": 482.82,
+    "TQQQ": 71.69,
+    "TLT": 92.27,
+    "SHY": 82.6,
+    "GLD": 251.9,
+    "BIL": 91.52,
+    "SCHD": 28.41,
+    "QQQ_P": 3.99
+   }
+  },
+  {
+   "t": "2026-10-29T05:00:00+09:00",
+   "label": "매파 발언",
+   "prices": {
+    "QQQ": 477.02,
+    "TQQQ": 69.09,
+    "TLT": 91.63,
+    "SHY": 82.53,
+    "GLD": 250.51,
+    "BIL": 91.52,
+    "SCHD": 28.24,
+    "QQQ_P": 5.67
+   }
+  },
+  {
+   "t": "2026-10-29T05:30:00+09:00",
+   "label": "발언 확산",
+   "prices": {
+    "QQQ": 474.16,
+    "TQQQ": 67.83,
+    "TLT": 91.35,
+    "SHY": 82.51,
+    "GLD": 250.01,
+    "BIL": 91.52,
+    "SCHD": 28.16,
+    "QQQ_P": 6.91
+   }
+  },
+  {
+   "t": "2026-10-29T06:00:00+09:00",
+   "label": "진정 국면",
+   "prices": {
+    "QQQ": 475.59,
+    "TQQQ": 68.43,
+    "TLT": 91.49,
+    "SHY": 82.53,
+    "GLD": 250.46,
+    "BIL": 91.52,
+    "SCHD": 28.21,
+    "QQQ_P": 6.29
+   }
+  },
+  {
+   "t": "2026-10-29T06:30:00+09:00",
+   "label": "마감",
+   "prices": {
+    "QQQ": 476.06,
+    "TQQQ": 68.62,
+    "TLT": 91.53,
+    "SHY": 82.53,
+    "GLD": 250.61,
+    "BIL": 91.52,
+    "SCHD": 28.22,
+    "QQQ_P": 6.07
+   }
+  }
+ ]
+}

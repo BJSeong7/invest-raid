@@ -1,0 +1,285 @@
+{
+ "id": "pce-2026-10-29",
+ "title": "인플레 슬라임 레이드",
+ "boss": "인플레 슬라임",
+ "bossSpecies": "slime",
+ "market": "US",
+ "example": true,
+ "settled": true,
+ "briefing": "9월 PCE 물가가 미국 장 시작 1시간 전에 나온다. 예상은 전년 대비 3.7%. 숫자가 예상보다 높으면 슬라임이 분열한다. 현금의 회복력이 떨어지고, 금만 버틴다.",
+ "lesson": "현금은 가격이 안 변해서 안전해 보이지만, 물가가 오르면 같은 돈으로 살 수 있는 게 줄어요. 금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요.",
+ "concepts": [
+  {
+   "name": "인플레이션과 구매력",
+   "text": "물가가 오르면 현금의 실질 가치는 줄어요. 금융이해력 조사에서 가장 크게 떨어진 바로 그 문항이에요."
+  },
+  {
+   "name": "물가와 금리 기대",
+   "text": "물가가 예상보다 높으면 \"금리를 더 올리겠구나\"로 이어져서 채권과 성장주가 같이 흔들려요."
+  },
+  {
+   "name": "안전자산의 종류",
+   "text": "현금, 단기채, 금은 모두 안전자산이지만 물가 앞에서는 다르게 반응해요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "현금성 단기국채 ETF",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "QQQ_P": {
+   "name": "QQQ 풋옵션 (행사가 470, 2주물)",
+   "kind": "option",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "장기채 방패",
+   "default": true,
+   "lesson": "물가 서프라이즈는 금리 기대를 올려서 장기채도 같이 맞아요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "단기채 벽",
+   "lesson": "단기채는 거의 안 흔들리지만 공격력도 없어요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "질주 베기",
+   "default": true,
+   "lesson": "성장주는 금리 기대가 올라가면 먼저 밀려요. 대신 회복도 빨라요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "폭주 돌진",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 반등 구간에선 영웅, 급락 구간에선 반동이에요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "황금 가호",
+   "default": true,
+   "lesson": "금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요. 슬라임 앞에서 버틴 이유예요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금 대기",
+   "lesson": "현금은 숫자는 안 변하지만, 물가가 오르면 살 수 있는 게 줄어요. 슬라임의 진짜 공격이에요."
+  },
+  {
+   "id": "healer_put",
+   "role": "healer",
+   "instrument": "QQQ_P",
+   "blend": {
+    "QQQ_P": 0.25,
+    "BIL": 0.75
+   },
+   "name": "도토리 보험",
+   "unlockLevel": 10,
+   "lesson": "발표 전에 든 보험은 비쌌지만 분열 구간에서 값을 했어요. 반등이 오면 보험료는 다시 녹아요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "꿀 모으기",
+   "default": true,
+   "lesson": "배당주는 성장주보다 덜 밀리고 덜 올라요. 꾸준함이 무기예요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "bar": 1,
+   "title": "PCE 발표 직전",
+   "hint": "예상은 3.7%. 지난달보다 높은 숫자가 예고돼 있다. 보험을 들까, 금을 믿을까?",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  },
+  {
+   "bar": 3,
+   "title": "장 시작 직전",
+   "hint": "프리마켓에서 이미 많이 밀렸다. 여기서 더 방어할까, 반등을 노릴까?",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "t": "2026-10-29T21:00:00+09:00",
+   "label": "발표 1시간 전",
+   "prices": {
+    "QQQ": 474.3,
+    "TQQQ": 67.9,
+    "TLT": 91.4,
+    "SHY": 82.55,
+    "GLD": 250.6,
+    "BIL": 91.52,
+    "SCHD": 28.2,
+    "QQQ_P": 4.6
+   }
+  },
+  {
+   "t": "2026-10-29T21:30:00+09:00",
+   "label": "PCE 발표",
+   "prices": {
+    "QQQ": 470.98,
+    "TQQQ": 66.46,
+    "TLT": 90.9,
+    "SHY": 82.5,
+    "GLD": 251.73,
+    "BIL": 91.52,
+    "SCHD": 28.09,
+    "QQQ_P": 5.8
+   }
+  },
+  {
+   "t": "2026-10-29T22:00:00+09:00",
+   "label": "프리마켓 반응",
+   "prices": {
+    "QQQ": 469.57,
+    "TQQQ": 65.86,
+    "TLT": 90.72,
+    "SHY": 82.48,
+    "GLD": 252.11,
+    "BIL": 91.52,
+    "SCHD": 28.05,
+    "QQQ_P": 6.32
+   }
+  },
+  {
+   "t": "2026-10-29T22:30:00+09:00",
+   "label": "장 시작",
+   "prices": {
+    "QQQ": 467.45,
+    "TQQQ": 64.96,
+    "TLT": 90.49,
+    "SHY": 82.47,
+    "GLD": 252.36,
+    "BIL": 91.52,
+    "SCHD": 27.99,
+    "QQQ_P": 7.08
+   }
+  },
+  {
+   "t": "2026-10-29T23:00:00+09:00",
+   "label": "첫 30분",
+   "prices": {
+    "QQQ": 468.39,
+    "TQQQ": 65.34,
+    "TLT": 90.53,
+    "SHY": 82.48,
+    "GLD": 252.23,
+    "BIL": 91.52,
+    "SCHD": 28.02,
+    "QQQ_P": 6.65
+   }
+  },
+  {
+   "t": "2026-10-29T23:30:00+09:00",
+   "label": "소화 국면",
+   "prices": {
+    "QQQ": 470.03,
+    "TQQQ": 66.02,
+    "TLT": 90.62,
+    "SHY": 82.48,
+    "GLD": 252.36,
+    "BIL": 91.52,
+    "SCHD": 28.07,
+    "QQQ_P": 6.05
+   }
+  },
+  {
+   "t": "2026-10-30T00:30:00+09:00",
+   "label": "반등 시도",
+   "prices": {
+    "QQQ": 471.91,
+    "TQQQ": 66.81,
+    "TLT": 90.76,
+    "SHY": 82.49,
+    "GLD": 252.61,
+    "BIL": 91.52,
+    "SCHD": 28.13,
+    "QQQ_P": 5.45
+   }
+  },
+  {
+   "t": "2026-10-30T01:30:00+09:00",
+   "label": "오후장",
+   "prices": {
+    "QQQ": 471.2,
+    "TQQQ": 66.5,
+    "TLT": 90.72,
+    "SHY": 82.49,
+    "GLD": 252.74,
+    "BIL": 91.52,
+    "SCHD": 28.12,
+    "QQQ_P": 5.61
+   }
+  },
+  {
+   "t": "2026-10-30T02:30:00+09:00",
+   "label": "마감 전",
+   "prices": {
+    "QQQ": 471.67,
+    "TQQQ": 66.69,
+    "TLT": 90.76,
+    "SHY": 82.49,
+    "GLD": 252.74,
+    "BIL": 91.52,
+    "SCHD": 28.13,
+    "QQQ_P": 5.47
+   }
+  }
+ ]
+}
