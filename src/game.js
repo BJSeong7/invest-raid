@@ -151,6 +151,8 @@ function recordBoss(species, grade, bossDown) {
 function renderCollection() {
   $('#dexBosses').innerHTML = SPECIES_ALL.map(sp => { const e = profile.bosses[sp];
     return `<div class="dex ${e ? '' : 'unknown'}"><img src="${portrait(bossUnit(sp))}" alt=""><b>${e ? SPECIES_NAME[sp] : '???'}</b><span class="small muted">${e ? `조우 ${e.met} · 격파 ${e.down}` : '아직 만나지 못함'}</span>${e?.best ? `<i class="stamp-mini ${e.best}">${e.best}</i>` : ''}</div>`; }).join('');
+  $('#dexClasses').innerHTML = ROLES.map(role => Object.entries(CLASSES[role]).map(([br, name]) => { const got = hero(role).branch === br;
+    return `<div class="dex ${got ? '' : 'unknown'}" style="--bc:${BRANCH_COLOR[br]}"><img src="${portrait(heroUnit(role))}" alt=""><b>${got ? name : '???'}</b><span class="small muted">${charOf(role).name} · ${got ? '전직 완료' : `${STAT_LABEL[br === 'def' ? 'def' : br]} 성향으로 키우면`}</span></div>`; }).join('')).join('');
   const pr = profile.products || {};
   $('#dexProducts').innerHTML = Object.keys(PRODUCTS).map(id => pr[id] ? `<div class="pcard" style="--rc:${ROLE_COLOR[PRODUCTS[id].cls]}" title="${PRODUCTS[id].role}"><div class="ph"><b>${id}</b></div><span class="small muted">${PRODUCTS[id].index}</span><span class="small">${pr[id].uses}회 사용 · 보수 ${PRODUCTS[id].fee}</span></div>` : `<div class="pcard locked"><div class="ph"><b>???</b></div><span class="small muted">레이드에서 써보면 열려요</span></div>`).join('');
   $('#dexBadges').innerHTML = BADGES.map(b => `<div class="badge ${profile.badges[b.id] ? 'on' : ''}" title="${b.desc}"><i></i><b>${b.name}</b><span class="small muted">${profile.badges[b.id] ? profile.badges[b.id].replaceAll('-', '.') : b.desc}</span></div>`).join('');
@@ -188,7 +190,10 @@ function toast(msg, ms = 1800) {
 /* ---------- 1. raid select ---------- */
 let currentTape = null, party = null;
 function renderSelect() {
-  $('#partyPreview').innerHTML = ROLES.map(r => `<img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}">`).join('');
+  $('#partyPreview').innerHTML = ROLES.map(r => { const h = hero(r); return `<div class="actor ${h.branch ? 'evo' : ''}" style="--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}"><img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span><b>${charOf(r).name}</b>${heroTitle(r)}</span></div>`; }).join('');
+  const tp = profile.totalPnl || 0, plays = Object.values(profile.plays || {}).reduce((a, p) => a + p.count, 0);
+  $('#homeMoney').innerHTML = plays ? `지금까지 <b class="ret ${tp >= 0 ? 'up' : 'down'} tabular">${fmtKRWd(tp)}</b>` : '첫 레이드를 기다리는 중';
+  $('#homeTeam').innerHTML = ROLES.map(r => statusWindowHTML(r)).join('');
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
   const real = TAPES.filter(t => !t.example).slice().reverse(), examples = TAPES.filter(t => t.example);
@@ -288,12 +293,77 @@ function partyType(st) {
   return ['균형형', '공격과 방어를 나눠 든 파티. 체크포인트에서 기울기를 정한다.'];
 }
 const STAT_LABEL = { atk: '공격', def: '방어', stab: '안정', ins: '보험' };
+const STAT_KEYS = ['atk', 'def', 'stab', 'ins'];
+const STAT_COLOR = { atk: '#D6453F', def: '#2F6BD0', stab: '#2E9A58', ins: '#7458C9' };
+// one icon per stat, used everywhere the stat appears (choices, party, status windows, pop-ups)
+const STAT_SVG = {
+  atk: '<path d="M14.5 3.5 20.5 3.5 20.5 9.5 10 20 4 14z" fill="#FFB3AE" stroke="#D6453F" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 20l3-3" stroke="#D6453F" stroke-width="2.4" stroke-linecap="round"/>',
+  def: '<path d="M12 3 19 6v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" fill="#B9D0F5" stroke="#2F6BD0" stroke-width="1.8" stroke-linejoin="round"/>',
+  stab: '<circle cx="12" cy="12" r="8.5" fill="#BFE8CC" stroke="#2E9A58" stroke-width="1.8"/><path d="M7.5 12h9" stroke="#2E9A58" stroke-width="2.2" stroke-linecap="round"/>',
+  ins: '<path d="M3.5 12a8.5 8.5 0 0 1 17 0z" fill="#D9CCFA" stroke="#7458C9" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v6.5a2 2 0 0 1-4 0" fill="none" stroke="#7458C9" stroke-width="1.8" stroke-linecap="round"/>',
+};
+const statIcon = (k, size = 16) => `<svg class="sti" width="${size}" height="${size}" viewBox="0 0 24 24" aria-label="${STAT_LABEL[k]}">${STAT_SVG[k]}</svg>`;
+/** the two strongest stats of a skill, as icons — "이걸 고르면 이게 오른다" without reading */
+function skillStatChips(sk) { const st = skillStats(sk); return STAT_KEYS.filter(k => st[k] >= 2.5).sort((a, b) => st[b] - st[a]).slice(0, 2).map(k => `<span class="stchip">${statIcon(k, 14)}</span>`).join(''); }
+
+/* ---------- hero growth & 전직 ----------
+   Each raid adds to every hero's four stats from the product it ended with (scaled by weight) plus a bonus for a
+   checkpoint swap. At EVO_PTS total a hero changes class by its strongest stat group. */
+const EVO_PTS = 30, STEPS = 5;   // 전직 when a hero's four stats add up to EVO_PTS — heavier-weighted heroes get there first
+const CLASSES = {
+  tank: { def: '철벽 기사', atk: '돌격 기사', ins: '수호 기사' },
+  dealer: { def: '냉정한 검사', atk: '광전사', ins: '그림자 검사' },
+  healer: { def: '금고지기', atk: '연금술사', ins: '예언자' },
+  support: { def: '정원사', atk: '사냥꾼', ins: '순찰자' },
+};
+const BRANCH_COLOR = { def: '#2F6BD0', atk: '#D6453F', ins: '#7458C9' };
+const STAT_GROW = { atk: '날카로워졌어요', def: '단단해졌어요', stab: '침착해졌어요', ins: '신중해졌어요' };
+const josa = (word, a, b) => { const c = word.charCodeAt(word.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 ? a : b; };
+function hero(role) { profile.heroes = profile.heroes || {}; return profile.heroes[role] ||= { raids: 0, st: { atk: 0, def: 0, stab: 0, ins: 0 }, branch: null, last: 0 }; }
+const KNUM = n => ['', '한', '두', '세', '네', '다섯'][n] || String(n);
+const heroPts = h => STAT_KEYS.reduce((a, k) => a + h.st[k], 0);
+/** raids left until 전직, estimated from the last raid's gain */
+const raidsLeft = role => { const h = hero(role); if (h.branch) return 0; const need = EVO_PTS - heroPts(h); return need <= 0 ? 0 : Math.ceil(need / Math.max(4, h.last || 8)); };
+const branchOf = st => { const g = { atk: st.atk, ins: st.ins, def: (st.def + st.stab) / 2 }; return Object.keys(g).sort((a, b) => g[b] - g[a])[0]; };
+const heroTitle = role => { const h = hero(role); return h.branch ? CLASSES[role][h.branch] : ROLE_META[role].title; };
+function raidGains(state) {
+  const out = {};
+  ROLES.forEach(role => {
+    const sk = state.party._bySkill[state.party.skills[role]], st = skillStats(sk), w = state.party.weights[role];
+    const g = Object.fromEntries(STAT_KEYS.map(k => [k, Math.round(st[k] * (0.4 + w / 50))]));
+    (state.actions || []).filter(a => a.type === 'equip' && state.party._bySkill[a.to]?.role === role).forEach(a => { const st2 = skillStats(state.party._bySkill[a.to]); const top = STAT_KEYS.slice().sort((x, y) => st2[y] - st2[x])[0]; g[top] += 2; });
+    out[role] = g;
+  });
+  return out;
+}
+/** applies gains; returns { gains, evolved: [role...] } */
+function growHeroes(state) {
+  const gains = raidGains(state), evolved = [];
+  ROLES.forEach(role => { const h = hero(role); STAT_KEYS.forEach(k => { h.st[k] += gains[role][k]; }); h.last = STAT_KEYS.reduce((a, k) => a + gains[role][k], 0); h.raids++; if (!h.branch && heroPts(h) >= EVO_PTS) { h.branch = branchOf(h.st); evolved.push(role); } });
+  return { gains, evolved };
+}
+function statusWindowHTML(role, opts = {}) {
+  const h = hero(role), left = raidsLeft(role), on = Math.min(STEPS, Math.floor(heroPts(h) / EVO_PTS * STEPS));
+  const steps = Array.from({ length: STEPS }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('');
+  return `<div class="stwin ${h.branch ? 'evo' : ''}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}">
+    <div class="sw-h"><img src="${portrait(heroUnit(role))}" alt=""><div><b>${charOf(role).name}</b><span>${heroTitle(role)}</span></div></div>
+    <div class="sw-st">${STAT_KEYS.map(k => `<span>${statIcon(k, 14)}<b class="tabular">${h.st[k]}</b>${opts.gains?.[k] ? `<em>+${opts.gains[k]}</em>` : ''}</span>`).join('')}</div>
+    <div class="sw-ev">${h.branch ? `<span class="done">전직 완료</span>` : `<span class="steps">${steps}</span><small>${!h.raids ? '레이드를 하면 자라요' : left ? `${KNUM(left)} 판 더 하면 전직` : '전직 준비 완료'}</small>`}</div></div>`;
+}
+function nextBossSentence() {
+  const now = Date.now(), up = UPCOMING.map(u => ({ ...u, t: Date.parse(u.date) })).filter(u => u.t > now).sort((a, b) => a.t - b.t)[0];
+  if (!up) return '';
+  const days = Math.ceil((up.t - now) / 86400000), d = new Date(up.t + 9 * 3600000);
+  const when = days <= 6 ? `${WD[d.getUTCDay()]}요일` : `${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일`;
+  return `다음 보스 ${up.boss}${josa(up.boss, '은', '는')} ${when}에 와요.`;
+}
+const wonWords = v => { const a = Math.abs(Math.round(v)); return a >= 10000 ? `${Math.round(a / 10000).toLocaleString('ko-KR')}만원` : a >= 1000 ? `${Math.round(a / 1000)}천원` : `${a}원`; };
 function radarSVG(st, size = 150) {
   const c = size / 2, R = c - 22, keys = ['atk', 'def', 'stab', 'ins'];
   const pt = (i, v) => { const a = -Math.PI / 2 + i * Math.PI / 2; return [c + Math.cos(a) * R * v / 5, c + Math.sin(a) * R * v / 5]; };
   const ring = v => keys.map((_, i) => pt(i, v).join(',')).join(' ');
   const poly = keys.map((k, i) => pt(i, Math.max(.3, st[k])).join(',')).join(' ');
-  const labels = keys.map((k, i) => { const [x, y] = pt(i, 6.3); return `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="12" font-family="Jua, sans-serif" fill="#24405F">${STAT_LABEL[k]} ${st[k].toFixed(1)}</text>`; }).join('');
+  const labels = keys.map((k, i) => { const [x, y] = pt(i, 6.3); return `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="13" font-family="Jua, sans-serif" fill="${STAT_COLOR[k]}">${STAT_LABEL[k]} ${st[k].toFixed(1)}</text>`; }).join('');
   return `<svg viewBox="-28 0 ${size + 56} ${size}" width="${size + 56}" height="${size}" role="img" aria-label="파티 스탯">
     ${[1, 2, 3, 4, 5].map(v => `<polygon points="${ring(v)}" fill="none" stroke="#D8C9A3" stroke-width="${v === 5 ? 1.5 : .8}"/>`).join('')}
     ${keys.map((_, i) => `<line x1="${c}" y1="${c}" x2="${pt(i, 5)[0]}" y2="${pt(i, 5)[1]}" stroke="#D8C9A3" stroke-width=".8"/>`).join('')}
@@ -400,7 +470,7 @@ function renderSkillList(box, role, lvl) {
     b.setAttribute('aria-pressed', String(party.skills[role] === s.id));
     const ins = currentTape.instruments[s.instrument];
     const tick = s.blend ? Object.entries(s.blend).map(([id, w]) => `${id === 'BIL' || id === 'KCASH' ? '현금' : id.endsWith('_P') ? id.slice(0, -2) + ' 풋' : id} ${Math.round(w * 100)}%`).join(' + ') : s.instrument;
-    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span>${locked ? `<span class="lock">Lv.${s.unlockLevel}</span>` : ''}`;
+    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span><span class="chips">${locked ? `<span class="lock">Lv.${s.unlockLevel}</span>` : skillStatChips(s)}</span>`;
     b.addEventListener('click', () => {
       if (locked) { sfx.back(); toast(`Lv.${s.unlockLevel}에 열려요. 상단 '체험 모드'로 미리 써볼 수 있어요.`, 2600); return; }
       sfx.select(); party.skills[role] = s.id;
@@ -727,6 +797,11 @@ function cutForTurn(turn) {
   return { text: cut.text, sub, bg: '#4C9A2E', artL: roleArt, artR: null };
 }
 
+function evolveCut(role) {
+  const h = hero(role); sfx.level();
+  return cutIn({ text: '전직!', sub: `${charOf(role).name} · ${heroTitle(role)}`, bg: BRANCH_COLOR[h.branch], artL: cutArt(heroUnit(role)), artR: null }, 1);
+}
+
 /* ---------- VS intro: party vs boss, 1.6s ---------- */
 function vsIntro(speed = 1) {
   return new Promise(res => {
@@ -778,12 +853,11 @@ function renderPartyHud(turn) {
   $('#partyhud').innerHTML = ROLES.map(role => {
     const sk = s.party._bySkill[s.party.skills[role]], hp = s.partyHp[role], sh = s.shield[role];
     const r = turn?.roles[role]?.ret;
-    return `<div class="phud ${hp <= 0 ? 'dead' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]}">
-      <div class="t"><b>${charOf(role).name}</b>${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</div>
-      <div class="sk">${sk.name} ${s.party.weights[role]}%</div>
+    const h = hero(role);
+    return `<div class="phud ${hp <= 0 ? 'dead' : ''} ${h.branch ? 'evo' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}">
+      <div class="t"><img src="${portrait(heroUnit(role))}" alt=""><b>${charOf(role).name}</b><small>${heroTitle(role)}</small>${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</div>
       <div class="hp"><i class="${hpClass(hp)}" style="width:${hp}%"></i><em style="width:${Math.min(100, sh)}%"></em></div>
-      <div class="num"><span>HP <b class="tabular">${Math.round(hp)}</b>${sh > 0 ? ` <span style="color:var(--gold)">+${Math.round(sh)}</span>` : ''}</span><span class="tabular">${(() => { const q = quote(sk.instrument); return `${sk.instrument} ${fmtMoney(q.p, q.cur)}`; })()}</span></div>
-      <div class="num"><span class="muted">평가금</span><b class="tabular">${fmtKRW(roleValue(role))}</b></div></div>`;
+      <div class="num"><span>${skillStatChips(sk)}<b>${sk.name}</b> ${s.party.weights[role]}%</span><b class="tabular">${fmtKRW(roleValue(role))}</b></div></div>`;
   }).join('');
 }
 function renderBossHud() {
@@ -795,7 +869,13 @@ function renderBossHud() {
   $('#hPhase').innerHTML = `<span>페이즈 ${Math.min(passed + 1, cps.length + 1)}/${cps.length + 1}</span>` + Array.from({ length: cps.length + 1 }, (_, i) => `<i class="${i < passed ? 'done' : i === passed ? 'now' : ''}"></i>`).join('');
 }
 function renderTurnLine(turn) {
-  const renderBalance = () => { const c = battle.equity - 100, v = totalValue(); $('#hBal').textContent = fmtKRW(v); $('#hBalD').textContent = `${fmtKRWd(v - SEED)} (${fmtPct(c)})`; $('#hBalD').className = 'ret tabular ' + (c >= 0 ? 'up' : 'down'); };
+  const renderBalance = () => {
+    const c = battle.equity - 100, v = totalValue(), el = $('#hMoney');
+    const from = +(el.dataset.v || SEED); el.dataset.v = v;
+    const o = { v: from }; gsap.to(o, { v, duration: reduceMotion ? 0 : .6, ease: 'power2.out', onUpdate: () => { el.textContent = fmtKRW(o.v); } });
+    if (v !== from && !reduceMotion) gsap.fromTo(el, { scale: 1.08 }, { scale: 1, duration: .35, ease: 'back.out(3)' });
+    $('#hMoneyD').textContent = `${fmtKRWd(v - SEED)} (${fmtPct(c)})`; $('#hMoneyD').className = 'ret tabular ' + (c >= 0 ? 'up' : 'down');
+  };
   if (!turn) { $('#hLabel').textContent = `${fmtBar(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '—'; $('#hRet').className = 'ret tabular'; renderBalance(); return; }
   $('#hLabel').textContent = turn.label; $('#hTime').textContent = `${fmtBar(turn.t)} ${unitNote()}`;
   const r = turn.boss.portfolioRet; $('#hRet').textContent = fmtPct(r); $('#hRet').className = 'ret tabular ' + (r >= 0 ? 'up' : 'down');
@@ -939,6 +1019,7 @@ function flashChart(ret) { const box = $('#battleChartBox'); box.classList.remov
 async function startBattle() {
   const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
   unlock(); sfx.select();
+  $('#hMoney').dataset.v = SEED; $('#hMoney').textContent = fmtKRW(SEED);
   battle = createBattle(currentTape, party); aborted = false; userPaused = false; skipping = false; justDecided = false; nextWaiter = null; $('#nextBtn').hidden = true; $('#skipBtn').disabled = false; $('#pauseBtn').textContent = '일시정지';
   showScreen('battle');
   let sc; try { sc = await ensureGame(); } catch (e) { toast(e.message, 5000); try { game?.destroy(true); } catch {} game = null; scene = null; showScreen('party'); return; }
@@ -1085,7 +1166,7 @@ async function showCheckpoint(cp) {
         const locked = s.unlockLevel && lvl < s.unlockLevel;
         const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked; if (s.lesson) b.title = s.lesson;
         const skills2 = { ...battle.party.skills, [role]: s.id };
-        b.innerHTML = `<span class="n">${s.name}</span><span class="i">${s.instrument}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
+        b.innerHTML = `<span class="n">${s.name} ${locked ? '' : skillStatChips(s)}</span><span class="i">${s.instrument}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
         b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: lvl }, `${charOf(role).name} → ${s.name}`); };
         opts.appendChild(b);
       });
@@ -1117,12 +1198,14 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
+  const growth = growHeroes(s);
+  profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
   const newBadges = awardBadges({ s, r, drama });
   const after = applyExp(profile, r.exp + bonus);
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
   play.count++; if (!play.best || order.indexOf(r.grade) > order.indexOf(play.best)) play.best = r.grade;
-  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, products: profile.products, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
+  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, products: profile.products, heroes: profile.heroes, totalPnl: profile.totalPnl, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
   $('#rBadges').innerHTML = newBadges.length ? newBadges.map(b => `<div class="badge on pop"><i></i><b>${b.name}</b><span class="small muted">${b.desc}</span></div>`).join('') : '';
   $('#rBadgesWrap').hidden = !newBadges.length;
   $('#rBonus').textContent = bonus ? `연출 보너스 +${bonus} (연속 ${drama.maxCombo} · 가드 ${drama.guards})` : '';
@@ -1167,6 +1250,21 @@ async function showResult() {
   rPriceChart?.remove(); rPriceChart = new BattleChart($('#rPriceChart'), currentTape, 'compare', { state: s, upto: currentTape.bars.length - 1, ids: battleInstruments().slice(0, 5) });
   $('#rPriceLegend').innerHTML = rPriceChart.legend();
   $('#coachAv').src = portrait('hero_healer');
+  // growth: plain sentences + status windows with this raid's gains
+  const pnl = totalValue() - SEED, top = ROLES.map(role => { const g = growth.gains[role], k = STAT_KEYS.slice().sort((a, b) => g[b] - g[a])[0]; return { role, k, v: g[k] }; }).sort((a, b) => b.v - a.v)[0];
+  const nm = charOf(top.role).name, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
+  const nameList = rs => rs.map(r => charOf(r).name).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
+  const evoNames = nameList(growth.evolved), evoLast = charOf(growth.evolved[growth.evolved.length - 1] || 'tank').name;
+  const soonN = soon ? raidsLeft(soon) : 0, soonName = soon ? charOf(soon).name : '';
+  const lines2 = [
+    pnl >= 0 ? `${wonWords(pnl)}을 벌었어요.` : r.alpha > 0 ? `이번엔 ${wonWords(pnl)}을 잃었지만, 시장보다는 덜 잃었어요.` : `이번엔 ${wonWords(pnl)}을 잃었어요.`,
+    growth.evolved.length === 1 ? `${evoNames}${josa(evoLast, '이', '가')} ${heroTitle(growth.evolved[0])}${josa(heroTitle(growth.evolved[0]), '으로', '로')} 전직했어요!`
+      : growth.evolved.length ? `${evoNames}${josa(evoLast, '이', '가')} 전직했어요!` : `${nm}${josa(nm, '이', '가')} 한층 ${STAT_GROW[top.k]}`,
+    soon && soonN ? `${KNUM(soonN)} 판만 더 하면 ${soonName}${josa(soonName, '이', '가')} 전직해요. ${nextBossSentence()}` : nextBossSentence(),
+  ].filter(Boolean);
+  $('#rGrowthText').innerHTML = lines2.map(l => `<p>${l}</p>`).join('');
+  $('#rGrowth').innerHTML = ROLES.map(role => statusWindowHTML(role, { gains: growth.gains[role] })).join('');
+  if (growth.evolved.length) setTimeout(() => evolveCut(growth.evolved[0]), 900);
   // animations
   sfx.stamp();
   gsap.fromTo(stamp, { scale: 3, opacity: 0, rotate: -30 }, { scale: 1, opacity: 1, rotate: -12, duration: .45, ease: 'back.out(1.2)' });
