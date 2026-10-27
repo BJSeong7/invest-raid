@@ -118,17 +118,20 @@ const CATS = [
   { id: 'found', name: '창업 연도', q: n => `${n}${josa(n, '은', '는')} 창업이`, up: '더 최근', dn: '더 먼저', rows: FOUNDED, fmt: v => `${v}년`, ratio: false },
   { id: 'peremp', name: '직원 1명당 매출', q: n => `${n}의 직원 1명당 매출은`, up: '더 많다', dn: '더 적다', rows: PER_EMP, fmt: v => v >= 1000 ? `${(v / 1000).toFixed(1)}백만 달러` : `${v}천 달러`, ratio: true },
 ];
-let hiloCat = 'cap';
 function runHiLo(host, onEnd) {
-  const cat = CATS.find(c => c.id === hiloCat) || CATS[0], box = host.querySelector('.mg-pick');
-  const rows = cat.rows, order = rows.map((_, i) => i).sort(() => Math.random() - 0.5);
-  let k = 0, streak = 0, lives = 3, correct = 0, best = 0, timer = 0, locked = false, cancelled = false;
+  const box = host.querySelector('.mg-pick');
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  let cat, A, B, lastCat = null, k = 0, streak = 0, lives = 3, correct = 0, best = 0, timer = 0, locked = false, cancelled = false;
+  function nextQ() {
+    cat = pick(CATS.filter(c => c.id !== lastCat && c.rows.length >= 2)); lastCat = cat.id;
+    const rows = cat.rows; A = pick(rows); let tries = 0; do { B = pick(rows); } while ((B === A || B[1] === A[1]) && ++tries < 20);
+  }
   const card = (c, reveal, cls = '') => `<div class="cap-card ${cls}"><small>${c[2] || cat.name}</small><b>${c[0]}</b><span class="cap">${reveal ? cat.fmt(c[1]) : '?'}</span></div>`;
   function show() {
     if (cancelled) return;
-    if (lives <= 0 || k + 1 >= order.length) { onEnd({ score: correct * 100 + best * 30, correct, total: k, best, lives, cat: cat.name }); return; }
-    const A = rows[order[k]], B = rows[order[k + 1]]; locked = false;
-    box.innerHTML = `<div class="mg-q"><small>${cat.name} 비교 · ${k + 1}번째</small><b>${cat.q(B[0])} ${A[0]}보다?</b><i class="mg-timer"><em style="width:100%"></em></i></div>
+    if (lives <= 0 || k >= 20) { onEnd({ score: correct * 100 + best * 30, correct, total: k, best, lives }); return; }
+    nextQ(); locked = false;
+    box.innerHTML = `<div class="mg-q"><small class="mg-cat">${cat.name}</small><b>${cat.q(B[0])} ${A[0]}보다?</b><i class="mg-timer"><em style="width:100%"></em></i></div>
       <div class="mg-two caps">${card(A, true, 'known')}${card(B, false, 'ask')}</div>
       <div class="mg-two"><button type="button" class="mg-btn up" data-k="up">▲ ${cat.up}</button><button type="button" class="mg-btn dn" data-k="dn">▼ ${cat.dn}</button></div>
       <div class="mg-score">${'♥'.repeat(lives)}${'♡'.repeat(3 - lives)} · 연속 ${streak}</div>`;
@@ -138,7 +141,7 @@ function runHiLo(host, onEnd) {
   }
   function answer(ans) {
     if (locked) return; locked = true; clearInterval(timer);
-    const A = rows[order[k]], B = rows[order[k + 1]], right = B[1] >= A[1] ? 'up' : 'dn', ok = ans === right;
+    const right = B[1] >= A[1] ? 'up' : 'dn', ok = ans === right;
     if (ok) { correct++; streak++; best = Math.max(best, streak); sfx.crit?.(); } else { lives--; streak = 0; sfx.faint?.(); }
     box.querySelector('.cap-card.ask').outerHTML = card(B, true, 'ask ' + (ok ? 'win' : 'lose'));
     box.querySelectorAll('.mg-btn').forEach(b => { b.disabled = true; b.classList.add(b.dataset.k === right ? 'win' : 'lose'); });
@@ -154,7 +157,7 @@ function runHiLo(host, onEnd) {
 /* ---------- shell: list, play, result ---------- */
 const MINIGAMES = [
   { id: 'runner', name: '달려달려', how: '화면을 탭하면 점프해요. 실제 나스닥 차트 위를 달리다가, 하루 3% 넘게 빠진 날(빨간 구멍)은 뛰어넘으세요.', learn: '폭락은 예고 없이 와요. 2020년 3월과 2025년 4월 구간을 지나 보세요.', art: 'hero_dealer', run: runRunner, unit: '점' },
-  { id: 'hilo', name: '더높이 더낮게', how: '회사 하나의 숫자를 보여 줘요. 다음 회사가 그보다 높은지 낮은지 5초 안에 고르세요. 맞히면 그 회사가 다음 기준이 돼요. 목숨은 셋이에요.', learn: '엔비디아 직원 한 명이 1년에 720만 달러를 벌고, 세븐일레븐 매장은 8만 5천 곳이에요. 회사의 크기를 숫자로 익혀요.', art: 'hero_healer', run: runHiLo, unit: '점', cats: true },
+  { id: 'hilo', name: '더높이 더낮게', how: '시가총액, 매출, 임직원 수, 매장 수, 창업 연도 같은 질문이 매번 바뀌어요. 5초 안에 높은지 낮은지 고르세요. 목숨은 셋, 20문제예요.', learn: '엔비디아 직원 한 명이 1년에 720만 달러를 벌고, 세븐일레븐 매장은 8만 5천 곳이에요. 회사의 크기를 숫자로 익혀요.', art: 'hero_healer', run: runHiLo, unit: '점', cats: true },
 ];
 let mgStop = null;
 function openMinigame(id) {
@@ -162,16 +165,15 @@ function openMinigame(id) {
   m.hidden = false; $('#tip').hidden = true;
   m.querySelector('.box').innerHTML = `<div class="mg-head"><img src="${portrait(g.art)}" alt=""><div><small>미니게임</small><h2>${g.name}</h2></div><span class="mg-best">최고 ${best}${g.unit}</span><button type="button" class="iconbtn" id="mgClose">닫기</button></div>
     <p class="mg-how">${g.how}</p>
-    <div class="mg-stage" id="mgStage">${id === 'runner' ? '<canvas></canvas><div class="mg-hud"></div>' : '<div class="mg-pick"></div>'}${g.cats ? `<div class="mg-cats" id="mgCats">${CATS.map(c => `<button type="button" class="chipbtn ${c.id === hiloCat ? 'on' : ''}" data-cat="${c.id}">${c.name}</button>`).join('')}</div>` : ''}<button type="button" class="btn mg-start" id="mgStart">시작</button></div>
+    <div class="mg-stage" id="mgStage">${id === 'runner' ? '<canvas></canvas><div class="mg-hud"></div>' : '<div class="mg-pick"></div>'}<button type="button" class="btn mg-start" id="mgStart">시작</button></div>
     <div class="mg-end" id="mgEnd" hidden></div>`;
   const close = () => { mgStop?.(); mgStop = null; m.hidden = true; renderMinigames?.(); };
-  m.querySelectorAll('#mgCats .chipbtn').forEach(b => b.onclick = () => { hiloCat = b.dataset.cat; m.querySelectorAll('#mgCats .chipbtn').forEach(x => x.classList.toggle('on', x === b)); sfx.select(); });
   $('#mgClose').onclick = close;
   $('#mgStart').onclick = () => {
     sfx.select(); $('#mgStart').hidden = true; $('#mgEnd').hidden = true; const cats = $('#mgCats'); if (cats) cats.hidden = true;
     mgStop = g.run($('#mgStage'), res => {
       mgStop = null; const r = mgSaveBest(id, res.score);
-      const line = id === 'runner' ? (res.won ? `끝까지 달렸어요! ${res.days}일을 버텼어요.` : `${res.days}일 버텼어요. ${res.where}`) : `${res.cat ? res.cat + ' · ' : ''}${res.total}문제 중 ${res.correct}개를 맞혔어요. 최고 연속 ${res.best}개예요.`;
+      const line = id === 'runner' ? (res.won ? `끝까지 달렸어요! ${res.days}일을 버텼어요.` : `${res.days}일 버텼어요. ${res.where}`) : `${res.total}문제 중 ${res.correct}개를 맞혔어요. 최고 연속 ${res.best}개예요.`;
       $('#mgEnd').hidden = false;
       $('#mgEnd').innerHTML = `<b>${res.score}${g.unit}</b><p>${line}</p><p class="small muted">${r.first ? '첫 기록이에요.' : r.isNew ? `최고 기록을 넘었어요! (전 ${r.prev}${g.unit})` : `최고 기록 ${r.best}${g.unit}`}</p><p class="small muted">${g.learn}</p>
         <div class="row" style="justify-content:center"><button type="button" class="btn" id="mgAgain">다시 하기</button><button type="button" class="btn secondary" id="mgDone">그만하기</button></div>`;
