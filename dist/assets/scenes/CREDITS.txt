@@ -1,0 +1,8 @@
+Scenario thumbnails: Unsplash License (free for commercial use, no attribution required). Credited anyway.
+fed.jpg        Joshua Woroniecki   https://unsplash.com/photos/Skfy8ljB7X4
+chifed.jpg     Yang-Chen Lin       https://unsplash.com/photos/74Fa_EIeLsY
+datacenter.jpg Tony Marinescu      https://unsplash.com/photos/fImCPTZ026U
+wafer.jpg      Maxence Pira        https://unsplash.com/photos/7hR3FrFs4Q0
+grocery.jpg    Jack Lee            https://unsplash.com/photos/IH65r4HEQWQ
+nyse.jpg       David Vives         https://unsplash.com/photos/xnzSgqyP8Hs
+office.jpg     Arlington Research  https://unsplash.com/photos/kN_kViDchA0

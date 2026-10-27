@@ -202,6 +202,10 @@ function toast(msg, ms = 1800) {
   gsap.fromTo(t, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .25, onComplete: () => gsap.to(t, { opacity: 0, y: 10, duration: .3, delay: ms / 1000 }) });
 }
 
+/* scenario thumbnails (Unsplash, see assets/scenes/CREDITS.txt) — shown in chart mode */
+const SCENE = { 'fomc-2026-09-16': 'fed', 'capex-2026-10-22': 'datacenter', 'daily-2026-10-27': 'nyse', 'semi-earnings-2026-10-28': 'wafer', 'fomc-2026-10-29': 'chifed', 'pce-2026-10-29': 'grocery' };
+const sceneOf = x => `assets/scenes/${SCENE[x.id] || (/고용/.test(x.title || '') ? 'office' : /FOMC/.test(x.title || '') ? (/12월/.test(x.title) ? 'chifed' : 'fed') : 'nyse')}.jpg`;
+const thumbHTML = x => `<span class="thumb" style="background-image:url(${sceneOf(x)})"></span>`;
 /* ---------- 1. raid select ---------- */
 let currentTape = null, party = null;
 function renderSelect() {
@@ -214,7 +218,7 @@ function renderSelect() {
     const best = profile.plays[t.id]?.best;
     const b = document.createElement('button'); b.type = 'button'; b.className = 'raid';
     const span = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)}` : fmtDate(t.bars[0].t);
-    b.innerHTML = `<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
+    b.innerHTML = `${thumbHTML(t)}<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
       <div class="meta"><h3>${evTitle(t.title)}</h3>
       <div class="row" style="gap:6px"><span class="chip ${t.market === 'US' ? 'us' : 'kr'}">${t.market === 'US' ? '미국' : '국내'} · ${span}</span></div>
       ${best ? `<span class="small"><span class="best">최고 ${best}</span></span>` : ''}</div>`;
@@ -223,7 +227,7 @@ function renderSelect() {
   });
   UPCOMING.forEach(u => {
     const d = document.createElement('div'); d.className = 'raid upcoming';
-    d.innerHTML = `<img src="${portrait(bossUnit(u.species))}" alt="" class="pf" style="filter:brightness(.25) contrast(1.2) sepia(.4)">
+    d.innerHTML = `${thumbHTML(u)}<img src="${portrait(bossUnit(u.species))}" alt="" class="pf" style="filter:brightness(.25) contrast(1.2) sepia(.4)">
       <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)}</span></div><span class="small muted">${chartMode() ? u.note : '보스 ' + u.boss}</span></div>`;
     $('#raidsUpcoming').appendChild(d);
   });
@@ -236,7 +240,7 @@ function renderRhythm() {
   const tc = $('#todayCard');
   if (t) {
     tc.hidden = false; tc.classList.toggle('done', !!done);
-    tc.innerHTML = `<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
+    tc.innerHTML = `${thumbHTML(t)}<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
       <div class="tx"><small>오늘의 한 판</small><b>${done ? '오늘 판은 끝났어요' : t.headline || t.title}</b><span>${done ? `내일 아침에 새 판이 열려요` : `3턴${chartMode() ? '' : ' · 보스 ' + t.boss}`}</span></div>
       <span class="go">${done ? '다시 하기' : '시작'}</span>`;
     tc.onclick = async () => { unlock(); sfx.select(); await openBrief(t.id); openParty(); };
@@ -244,7 +248,7 @@ function renderRhythm() {
   const now = Date.now(), up = UPCOMING.map(u => ({ ...u, t: Date.parse(u.date) })).filter(u => u.t > now).sort((a, b) => a.t - b.t)[0];
   const wc = $('#weekCard');
   if (up) { const days = Math.ceil((up.t - now) / 86400000), d = new Date(up.t + 9 * 3600000);
-    wc.innerHTML = `<img src="${portrait(bossUnit(up.species))}" alt="" class="pf">
+    wc.innerHTML = `${thumbHTML(up)}<img src="${portrait(bossUnit(up.species))}" alt="" class="pf">
       <div class="tx"><small>${chartMode() ? '이번 주 이벤트' : '이번 주 보스'}</small><b>${chartMode() ? up.title : up.boss}</b><span>${chartMode() ? up.note : up.title}</span></div>
       <span class="dday"><b>${days <= 0 ? '오늘' : 'D-' + days}</b><small>${WD[d.getUTCDay()]}요일</small></span>`; }
 }
@@ -280,6 +284,7 @@ async function openBrief(id) {
   $('#bTag').textContent = `${t.market === 'US' ? '미국' : '국내'} 레이드 · ${t.example ? '예시 데이터' : '실제 종가 데이터'}`;
   $('#bDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} · 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ' · 출처 ' + t.source : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
   $('#bTitle').textContent = chartMode() ? evTitle(t.title) : `${t.boss} 출현`;
+  $('#bThumb').style.backgroundImage = `url(${sceneOf(t)})`; $('#bThumbTitle').textContent = evTitle(t.title); $('#bThumbDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} · ${t.example ? '예시 시세' : '실제 종가'}` : `${fmtDate(t.bars[0].t)} · ${t.example ? '예시 시세' : '실제 시세'}`;
   $('#bBrief').textContent = t.briefing;
   // labels after the first checkpoint describe what happened; keep them hidden until the raid reaches them
   const reveal = Math.min(...t.checkpoints.map(c => c.bar), t.bars.length - 1);
