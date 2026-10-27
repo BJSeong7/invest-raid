@@ -580,15 +580,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       </div>
     </div>
     <div class="row">
-      <div class="profile" title="레벨과 경험치">
-        <span class="lv" id="pLv">Lv.1</span>
-        <div class="expbar" aria-label="경험치"><i id="pExp"></i></div>
-        <span class="small muted tabular" id="pExpTxt">0 / 60</span>
-        <span class="chip" id="pStreak" hidden style="color:var(--orange)"></span>
-      </div>
       <button class="iconbtn" id="dexBtn" type="button">도감</button>
       <button class="iconbtn" id="helpBtn" type="button" title="게임 방법">?</button>
-      <button class="iconbtn" id="unlockBtn" type="button" aria-pressed="false" title="레벨 제한 없이 모든 상품을 써보는 체험 모드">체험 모드</button>
+      <button class="iconbtn" id="unlockBtn" type="button" aria-pressed="false" title="전직 전에도 모든 상품을 써 보는 체험 모드">체험 모드</button>
       <button class="iconbtn" id="muteBtn" type="button" aria-pressed="false">소리</button>
     </div>
   </header>
@@ -698,8 +692,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
           <div class="stat"><small>보스</small><b id="rBoss"></b></div>
           <div class="stat"><small>살아남은 동료</small><b id="rAlive">4 / 4</b></div>
         </div>
-        <div class="expgain"><div class="big">경험치 <span id="rExp" class="tabular">+0</span> <span class="small muted" id="rBonus"></span></div><div class="expbar lg"><i id="rExpBar"></i></div><div class="small muted" id="rExpTxt"></div></div>
-        <div id="rBadgesWrap" hidden><div class="small muted" style="margin-bottom:6px">새 배지</div><div class="badges" id="rBadges"></div></div>
       </div>
       <div class="card" style="display:flex;flex-direction:column;gap:14px">
         <div class="growth-text" id="rGrowthText"></div>
@@ -778,8 +770,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="dexgrid" id="dexClasses"></div>
     <div class="small muted">상품 도감 · 레이드에서 써본 상품이 열려요</div>
     <div class="pgrid mini" id="dexProducts"></div>
-    <div class="small muted">배지</div>
-    <div class="badges" id="dexBadges"></div>
     <button class="btn secondary" id="dexClose" type="button">닫기</button>
   </div>
 </div>

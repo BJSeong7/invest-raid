@@ -74,6 +74,9 @@ function loadProfile() {
 }
 function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch {} }
 function effectiveLevel() { return profile.unlockAll ? 99 : profile.level; }
+/** products open with the hero, not a player level: a stronger product unlocks when its holder changes class */
+function skillOpen(s) { return !s.unlockLevel || profile.unlockAll || !!hero(s.role).branch; }
+const lockLabel = s => `${charOf(s.role).name} 전직 후`;
 /* ---------- product catalog (상품 도감) ----------
    Facts verified on stockanalysis.com, 2026-10-27. The game role line explains how the product behaved in raids. */
 const PRODUCTS = {
@@ -155,16 +158,12 @@ function renderCollection() {
     return `<div class="dex ${got ? '' : 'unknown'}" style="--bc:${BRANCH_COLOR[br]}"><img src="${portrait(heroUnit(role))}" alt=""><b>${got ? name : '???'}</b><span class="small muted">${charOf(role).name} · ${got ? '전직 완료' : `${STAT_LABEL[br === 'def' ? 'def' : br]} 성향으로 키우면`}</span></div>`; }).join('')).join('');
   const pr = profile.products || {};
   $('#dexProducts').innerHTML = Object.keys(PRODUCTS).map(id => pr[id] ? `<div class="pcard" style="--rc:${ROLE_COLOR[PRODUCTS[id].cls]}" title="${PRODUCTS[id].role}"><div class="ph"><b>${id}</b></div><span class="small muted">${PRODUCTS[id].index}</span><span class="small">${pr[id].uses}회 사용 · 보수 ${PRODUCTS[id].fee}</span></div>` : `<div class="pcard locked"><div class="ph"><b>???</b></div><span class="small muted">레이드에서 써보면 열려요</span></div>`).join('');
-  $('#dexBadges').innerHTML = BADGES.map(b => `<div class="badge ${profile.badges[b.id] ? 'on' : ''}" title="${b.desc}"><i></i><b>${b.name}</b><span class="small muted">${profile.badges[b.id] ? profile.badges[b.id].replaceAll('-', '.') : b.desc}</span></div>`).join('');
-  const n = Object.keys(profile.badges).length, met = Object.keys(profile.bosses).length;
-  $('#dexSummary').textContent = `보스 ${met}/${SPECIES_ALL.length} · 상품 ${Object.keys(pr).length}/${Object.keys(PRODUCTS).length} · 배지 ${n}/${BADGES.length} · 연속 ${profile.streak || 0}일`;
+  const met = Object.keys(profile.bosses).length, cls = ROLES.filter(r => hero(r).branch).length;
+  $('#dexSummary').textContent = `전직 ${cls}/12 · 만난 보스 ${met}/${SPECIES_ALL.length} · 써 본 상품 ${Object.keys(pr).length}/${Object.keys(PRODUCTS).length}`;
 }
 function renderProfile() {
-  $('#pLv').textContent = 'Lv.' + profile.level;
-  $('#pStreak').textContent = profile.streak >= 2 ? `연속 ${profile.streak}일` : ''; $('#pStreak').hidden = !(profile.streak >= 2);
-  $('#dexBtn').textContent = `도감 ${Object.keys(profile.badges).length}/${BADGES.length}`;
-  $('#pExp').style.width = (100 * profile.exp / expNext(profile.level)) + '%';
-  $('#pExpTxt').textContent = `${profile.exp} / ${expNext(profile.level)}`;
+  const got = ROLES.filter(r => hero(r).branch).length;
+  $('#dexBtn').textContent = got ? `도감 ${got}/12` : '도감';
   $('#unlockBtn').setAttribute('aria-pressed', String(!!profile.unlockAll));
   $('#unlockBtn').textContent = profile.unlockAll ? '체험 모드 ON' : '체험 모드';
 }
@@ -439,7 +438,7 @@ function applyAccount() {
   toast('내 계좌 비중으로 편성했어요');
 }
 function pickSkill(role, prefs, lvl) {
-  const list = currentTape.skills.filter(k => k.role === role), open = k => !(k.unlockLevel && lvl < k.unlockLevel);
+  const list = currentTape.skills.filter(k => k.role === role), open = k => skillOpen(k);
   const by = { longbond: k => /장기채|국고채/.test(currentTape.instruments[k.instrument].name), lev: k => currentTape.instruments[k.instrument].kind === 'lev', sector: k => /반도체/.test(currentTape.instruments[k.instrument].name), cash: k => currentTape.instruments[k.instrument].kind === 'cash', option: k => k.blend || currentTape.instruments[k.instrument].kind === 'option', gold: k => /금/.test(currentTape.instruments[k.instrument].name) };
   for (const pref of prefs) { const hit = list.find(k => by[pref]?.(k) && open(k)); if (hit) return hit.id; }
   return (list.find(k => k.default) || list[0]).id;
@@ -492,14 +491,14 @@ function renderPartyScreen() {
 function renderSkillList(box, role, lvl) {
   box.innerHTML = '';
   currentTape.skills.filter(s => s.role === role).forEach(s => {
-    const locked = s.unlockLevel && lvl < s.unlockLevel;
+    const locked = !skillOpen(s);
     const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; if (s.lesson) b.title = s.lesson;
     b.setAttribute('aria-pressed', String(party.skills[role] === s.id));
     const ins = currentTape.instruments[s.instrument];
     const tick = s.blend ? Object.entries(s.blend).map(([id, w]) => `${id === 'BIL' || id === 'KCASH' ? '현금' : id.endsWith('_P') ? id.slice(0, -2) + ' 풋' : id} ${Math.round(w * 100)}%`).join(' + ') : s.instrument;
-    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span><span class="chips">${locked ? `<span class="lock">Lv.${s.unlockLevel}</span>` : skillStatChips(s)}</span>`;
+    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span><span class="chips">${locked ? `<span class="lock">${lockLabel(s)}</span>` : skillStatChips(s)}</span>`;
     b.addEventListener('click', () => {
-      if (locked) { sfx.back(); toast(`Lv.${s.unlockLevel}에 열려요. 상단 '체험 모드'로 미리 써볼 수 있어요.`, 2600); return; }
+      if (locked) { sfx.back(); toast(`${charOf(role).name}${josa(charOf(role).name, '이', '가')} 전직하면 열려요. 위쪽 '체험 모드'로 미리 써 볼 수 있어요.`, 2800); return; }
       sfx.select(); party.skills[role] = s.id;
       box.querySelectorAll('.skill').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true');
       renderPartyMeta();
@@ -1150,11 +1149,11 @@ const CP_SECONDS = 30;
 function heroLines(cp) {
   const last = battle.history.at(-1), lvl = effectiveLevel();
   const hp = r => battle.partyHp[r], ret = r => last?.roles?.[r]?.ret ?? 0;
-  const lockedOpt = currentTape.skills.find(k => k.role === 'healer' && k.unlockLevel && k.unlockLevel > lvl);
+  const lockedOpt = currentTape.skills.find(k => k.role === 'healer' && !skillOpen(k));
   return [
     ['tank', hp('tank') <= 0 ? '…(기절)' : hp('tank') < 50 ? '방패가 무거워… 그래도 버틴다!' : ret('tank') < 0 ? '다음 공격은 내가 막을게.' : '이대로 가도 괜찮아 보여.'],
     ['dealer', hp('dealer') <= 0 ? '…(기절)' : ret('dealer') > 0 ? '기세 좋아! 더 밀어붙이자!' : ret('dealer') < 0 ? '한 방 맞았지만 역전 가능해.' : '시장이 조용하네. 다음은 크게 움직일걸?'],
-    ['healer', hp('healer') <= 0 ? '…(기절)' : lockedOpt ? `${lockedOpt.name}은 Lv.${lockedOpt.unlockLevel}부터 쓸 수 있어.` : '보험을 들지 말지는 네 선택이야.'],
+    ['healer', hp('healer') <= 0 ? '…(기절)' : lockedOpt ? `${lockedOpt.name}${josa(lockedOpt.name, '은', '는')} 내가 전직하면 쓸 수 있어.` : '보험을 들지 말지는 네 선택이야.'],
     ['support', `체크포인트는 딱 한 번. ${CP_SECONDS}초 안에 정하자.`],
   ];
 }
@@ -1207,11 +1206,11 @@ async function showCheckpoint(cp) {
       box.innerHTML = `<img src="${portrait(heroUnit(role))}" alt="" class="pf"><div><div class="hdr"><b>${charOf(role).name} <span class="muted small">${battle.party.weights[role]}%</span></b><span>지금 ${cur.name} (${cur.instrument})</span></div><div class="opts"></div></div>`;
       const opts = box.querySelector('.opts');
       currentTape.skills.filter(s => s.role === role && s.id !== cur.id).forEach(s => {
-        const locked = s.unlockLevel && lvl < s.unlockLevel;
+        const locked = !skillOpen(s);
         const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked; if (s.lesson) b.title = s.lesson;
         const skills2 = { ...battle.party.skills, [role]: s.id };
-        b.innerHTML = `<span class="n">${s.name} ${locked ? '' : skillStatChips(s)}</span><span class="i">${s.instrument}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
-        b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: lvl }, `${charOf(role).name} → ${s.name}`); };
+        b.innerHTML = `<span class="n">${s.name} ${locked ? '' : skillStatChips(s)}</span><span class="i">${s.instrument}${locked ? ` · ${lockLabel(s)}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
+        b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: 99 }, `${charOf(role).name} → ${s.name}`); };
         opts.appendChild(b);
       });
       if (!opts.children.length) opts.innerHTML = '<span class="small muted">바꿀 상품이 없어요</span>';
@@ -1244,15 +1243,11 @@ async function showResult() {
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
   const growth = growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
-  const newBadges = awardBadges({ s, r, drama });
-  const after = applyExp(profile, r.exp + bonus);
+  const after = { ...profile };
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
   play.count++; if (!play.best || order.indexOf(r.grade) > order.indexOf(play.best)) play.best = r.grade;
   profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, products: profile.products, heroes: profile.heroes, totalPnl: profile.totalPnl, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
-  $('#rBadges').innerHTML = newBadges.length ? newBadges.map(b => `<div class="badge on pop"><i></i><b>${b.name}</b><span class="small muted">${b.desc}</span></div>`).join('') : '';
-  $('#rBadgesWrap').hidden = !newBadges.length;
-  $('#rBonus').textContent = bonus ? `연출 보너스 +${bonus} (연속 ${drama.maxCombo} · 가드 ${drama.guards})` : '';
 
   const stamp = $('#rStamp'); stamp.textContent = r.grade; stamp.className = 'stamp ' + r.grade;
   $('#rVerdict').textContent = r.bossDown ? `${currentTape.boss}${josa(currentTape.boss, '을', '를')} 쓰러뜨렸어요!` : r.alive === 0 ? '모두 쓰러졌어요' : r.returnPct >= 0 ? '보스는 남았지만 돈은 지켰어요' : '이번엔 보스가 더 셌어요';
@@ -1281,7 +1276,7 @@ async function showResult() {
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
   const best = alts[0], worst = alts.at(-1), lvl = effectiveLevel();
   const row = (k, cls, a, v) => `<div><span class="k ${cls}">${k}</span><span>${a}</span><span class="v" style="color:${v >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(v)}</span></div>`;
-  const lockNote = a => a.detail.unlockLevel > lvl ? `<span class="lock">Lv.${a.detail.unlockLevel}</span>` : '';
+  const lockNote = a => a.detail.unlockLevel && !skillOpen(a.detail) ? `<span class="lock">${lockLabel(a.detail)}</span>` : '';
   $('#rWhatIf').innerHTML = [
     row('내 선택', 'me', acts.some(a => a.type !== 'hold') ? '체크포인트 선택대로' : '끝까지 그대로', r.returnPct),
     row('최고', 'best', best.label + lockNote(best), best.returnPct),
@@ -1304,6 +1299,7 @@ async function showResult() {
     pnl >= 0 ? `${wonWords(pnl)}을 벌었어요.` : r.alpha > 0 ? `이번엔 ${wonWords(pnl)}을 잃었지만, 시장보다는 덜 잃었어요.` : `이번엔 ${wonWords(pnl)}을 잃었어요.`,
     growth.evolved.length === 1 ? `${evoNames}${josa(evoLast, '이', '가')} ${heroTitle(growth.evolved[0])}${josa(heroTitle(growth.evolved[0]), '으로', '로')} 전직했어요!`
       : growth.evolved.length ? `${evoNames}${josa(evoLast, '이', '가')} 전직했어요!` : `${nm}${josa(nm, '이', '가')} 한층 ${STAT_GROW[top.k]}`,
+    (() => { const opened = currentTape.skills.filter(k => k.unlockLevel && growth.evolved.includes(k.role)).map(k => k.name); return opened.length ? `이제 ${opened.join(', ')}${josa(opened.at(-1), '을', '를')} 쓸 수 있어요.` : ''; })(),
     soon && soonN ? `${KNUM(soonN)} 판만 더 하면 ${soonName}${josa(soonName, '이', '가')} 전직해요. ${nextBossSentence()}` : nextBossSentence(),
   ].filter(Boolean);
   $('#rGrowthText').innerHTML = lines2.map(l => `<p>${l}</p>`).join('');
@@ -1317,18 +1313,6 @@ async function showResult() {
   const bubble = $('#coachBubble'); bubble.innerHTML = '';
   const lines = coachText(s);
   (async () => { for (const line of lines) { const p = document.createElement('p'); p.className = 'typing'; bubble.appendChild(p); for (const ch of line) { p.textContent += ch; if (!reduceMotion) await sleep(14); } p.classList.remove('typing'); await sleep(200); } })();
-  // exp
-  const expEl = $('#rExp'); const o = { v: 0 }; gsap.to(o, { v: r.exp + bonus, duration: 1, onUpdate: () => { expEl.textContent = '+' + Math.round(o.v); } });
-  if (newBadges.length) { await sleep(600); sfx.level(); toast(`배지 획득: ${newBadges.map(b => b.name).join(', ')}`, 3000); }
-  const bar = $('#rExpBar'); bar.style.width = (100 * before.exp / expNext(before.level)) + '%';
-  $('#rExpTxt').textContent = `Lv.${before.level} ${before.exp} / ${expNext(before.level)}`;
-  await sleep(500);
-  if (after.levelUps.length) {
-    await animBar(bar, 100, 600);
-    for (const L of after.levelUps) { sfx.level(); toast(`레벨 업! Lv.${L}${UNLOCKS[L] ? ' · ' + UNLOCKS[L] + ' 해금' : ''}`, 2600); bar.style.transition = 'none'; bar.style.width = '0%'; await sleep(50); bar.style.transition = ''; if (L !== after.levelUps.at(-1)) await animBar(bar, 100, 500); await sleep(300); }
-    await animBar(bar, 100 * after.exp / expNext(after.level), 600);
-  } else await animBar(bar, 100 * after.exp / expNext(after.level), 900);
-  $('#rExpTxt').textContent = `Lv.${after.level} ${after.exp} / ${expNext(after.level)}`;
   renderProfile();
 }
 function animBar(el, pct, ms) { return new Promise(res => { el.style.transition = `width ${ms}ms cubic-bezier(.2,.8,.2,1)`; requestAnimationFrame(() => { el.style.width = pct + '%'; setTimeout(res, ms); }); }); }
@@ -1391,7 +1375,7 @@ $('#resetBtn').addEventListener('click', () => {
   if (Date.now() - (window.__resetArmed || 0) < 3000) { profile = { level: 1, exp: 0, unlockAll: false, plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: true }; saveProfile(); renderProfile(); renderSelect(); toast('진행 상황을 초기화했어요'); $('#resetBtn').textContent = '진행 초기화'; return; }
   window.__resetArmed = Date.now(); $('#resetBtn').textContent = '정말 초기화? (한 번 더)'; setTimeout(() => { $('#resetBtn').textContent = '진행 초기화'; }, 3000);
 });
-$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '체험 모드: 모든 상품을 쓸 수 있어요' : '레벨 제한을 다시 켰어요'); if (!$('#screen-party').hidden) renderPartyScreen(); });
+$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '체험 모드: 모든 상품을 쓸 수 있어요' : '체험 모드를 껐어요'); if (!$('#screen-party').hidden) renderPartyScreen(); });
 document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-battle').hidden && $('#cp').hidden && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); $('#pauseBtn').click(); } });
 
 renderProfile(); renderSelect(); showScreen('select');
