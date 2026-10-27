@@ -60,7 +60,7 @@ const heroUnit = role => ({ tank: 'hero_tank', dealer: 'hero_dealer', healer: 'h
 const bossUnit = species => ({ minotaur: 'boss_minotaur', wyvern: 'boss_wyvern', fireant: 'boss_fireant', skeleton: 'boss_skeleton', lich: 'boss_lich' })[species] || 'boss_minotaur';
 const ROLE_COLOR = { tank: 'var(--tank)', dealer: 'var(--dealer)', healer: 'var(--healer)', support: 'var(--support)' };
 const ROLE_HEX = { tank: 0x5B7693, dealer: 0x2F6BD0, healer: 0xC8921A, support: 0x2E9A58 };
-const UNLOCKS = { 5: '폭주 돌진 (레버리지 ETF)', 10: 'QQQ 풋옵션 (풋옵션)' };
+const UNLOCKS = { 5: '나스닥100 3배 레버리지', 10: 'QQQ 풋옵션' };
 const BOSS_MOVES = { minotaur: ['금리 동결 발표', '매파 발언', '점도표 충격'], wyvern: ['기대치 상향 부담', '설비투자 발표', '차익실현 매물'], fireant: ['물가 서프라이즈', '구매력 하락', '금리 인하 지연'], skeleton: ['고용 쇼크', '실업률 상승'], lich: ['금리 인상', '긴축 장기화 발언', '인하 기대 후퇴'] };
 // a plain one-line description shown with the boss name
 const BOSS_DESC = { minotaur: '금리 결정이 보스가 됐어요. 동결 발표와 강경한 발언으로 공격해요.', wyvern: '실적 발표가 보스가 됐어요. 높은 기대와 투자 계획 뉴스로 공격해요.', fireant: '물가 발표가 보스가 됐어요. 예상보다 높은 숫자로 공격해요.', skeleton: '고용 발표가 보스가 됐어요.', lich: '금리 인상이 보스가 됐어요. 금리를 오래 높게 두겠다는 말로 공격해요.' };
@@ -86,7 +86,7 @@ const INSIDE = {
   QQQ: { kind: 'stocks', count: 104, unit: '곳', names: ['엔비디아', '애플', '마이크로소프트', '마이크론', '아마존', 'AMD', '테슬라', '메타', '알파벳'], line: '회사 한 곳을 고르는 대신 이 100곳을 한 번에 사는 거예요. 이게 ETF예요.' },
   TQQQ: { kind: 'deriv', count: 0, unit: '', names: ['나스닥100 스왑 계약', '나스닥100 선물', '담보 현금'], line: '회사를 직접 들지 않아요. 나스닥100이 하루 움직인 만큼의 3배를 주는 계약을 들고 있어요.' },
   SOXX: { kind: 'stocks', count: 34, unit: '곳', names: ['AMD', '인텔', '엔비디아', '마이크론', '브로드컴', '텍사스인스트루먼트', '아날로그디바이스', '마벨', '퀄컴', 'KLA'], line: '반도체 회사 34곳만 모았어요. 한 업종이라 함께 오르고 함께 내려요.' },
-  TLT: { kind: 'bonds', count: 49, unit: '장', names: ['2055년 만기 국채', '2054년 만기 국채', '2053년 만기 국채', '2056년 만기 국채'], line: '미국 정부에 20년 넘게 돈을 빌려주는 증서 49장이에요. 주식이 흔들릴 때 받쳐 주는 쪽이에요.' },
+  TLT: { kind: 'bonds', count: 49, unit: '장', names: ['2055년 만기 국채', '2054년 만기 국채', '2053년 만기 국채', '2056년 만기 국채'], line: '미국 정부에 20년 넘게 돈을 빌려주는 증서 49장이에요. 경기 걱정으로 주식이 빠질 땐 오르는 경우가 많지만, 금리가 오를 땐 같이 빠져요.' },
   SHY: { kind: 'bonds', count: 0, unit: '', names: ['1년 만기 국채', '2년 만기 국채', '3년 만기 국채'], line: '만기가 1~3년으로 짧은 미국 국채예요. 거의 안 흔들리는 대신 크게 벌지도 않아요.' },
   GLD: { kind: 'gold', count: 0, unit: '', names: ['런던 금고의 금괴', '금괴', '금괴'], line: '회사가 아니라 금 그 자체를 담아요. 금괴가 런던 금고에 실제로 쌓여 있어요.' },
   BIL: { kind: 'bonds', count: 0, unit: '', names: ['1개월 만기 국채', '2개월 만기 국채', '3개월 만기 국채'], line: '만기 석 달 안쪽의 미국 국채예요. 현금과 거의 같아요.' },
@@ -105,11 +105,11 @@ const PRODUCTS = {
   QQQ:  { name: 'Invesco QQQ Trust', issuer: 'Invesco', index: '나스닥100', fee: '0.18%', role: '미국 대형 기술주와 성장주 100곳에 나눠 담아요. 금리 소식과 실적 발표에 가장 크게 움직여요.', cls: 'dealer' },
   TQQQ: { name: 'ProShares UltraPro QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 3배', fee: '0.78%', role: '나스닥100 하루 수익률의 3배로 움직여요. 맞히면 3배로 벌고, 틀리면 3배로 잃어요.', warn: '일간 배수라 여러 날 보유하면 지수×3과 결과가 달라질 수 있어요.', cls: 'dealer' },
   SOXX: { name: 'iShares Semiconductor ETF', issuer: 'BlackRock (iShares)', index: 'NYSE 반도체 지수 · 34종목', fee: '0.33%', role: '반도체 회사에만 모아 담아요. 지수보다 두 배쯤 크게 움직여요. 오를 때도, 내릴 때도요.', cls: 'dealer' },
-  TLT:  { name: 'iShares 20+ Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 20년 이상', fee: '0.15%', role: '주식이 흔들릴 때 버텨 주는 방패예요. 다만 금리가 더 오를 것 같으면 같이 떨어져요.', cls: 'tank' },
+  TLT:  { name: 'iShares 20+ Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 20년 이상', fee: '0.15%', role: '경기 걱정으로 주식이 빠질 땐 오르는 경우가 많아요. 다만 금리가 더 오를 것 같으면 같이 떨어져요.', cls: 'tank' },
   SHY:  { name: 'iShares 1-3 Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 1~3년', fee: '0.15%', role: '거의 흔들리지 않아요. 대신 크게 벌지도 않아요.', cls: 'tank' },
   GLD:  { name: 'SPDR Gold Shares', issuer: 'State Street', index: 'LBMA 금 가격 (실물 금 보관)', fee: '0.40%', role: '물가가 오르거나 시장이 불안할 때 강해요. 이자가 없어서 금리가 오르면 약해지기도 해요.', cls: 'healer' },
-  BIL:  { name: 'SPDR Bloomberg 1-3 Month T-Bill', issuer: 'State Street', index: '미국 단기국채 1~3개월', fee: '0.14%', role: '현금과 거의 같아요. 잃지는 않지만 보스를 때리지도 못해요.', cls: 'healer' },
-  PSQ:  { name: 'ProShares Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −1배', fee: '0.95%', role: '나스닥이 내리면 올라요. 떨어질 때를 대비하는 상품이라, 오르는 날엔 조금씩 깎여요.', warn: '방향이 틀리면 매일 손실이 쌓여요. 짧게 쓰는 도구예요.', cls: 'healer' },
+  BIL:  { name: 'SPDR Bloomberg 1-3 Month T-Bill', issuer: 'State Street', index: '미국 단기국채 1~3개월', fee: '0.14%', role: '현금과 거의 같아요. 거의 잃지 않지만 버는 것도 이자 정도예요.', cls: 'healer' },
+  PSQ:  { name: 'ProShares Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −1배', fee: '0.95%', role: '나스닥100 하루 수익률과 반대로 움직여요. 내리는 날 벌고, 오르는 날 그만큼 잃어요.', warn: '방향이 틀리면 매일 손실이 쌓여요. 짧게 쓰는 도구예요.', cls: 'healer' },
   SQQQ: { name: 'ProShares UltraPro Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −3배', fee: '0.94%', role: '나스닥 하루 수익률과 반대로 3배 움직여요. 급락한 날 크게 벌고, 반등한 날 크게 잃어요.', warn: '고위험 상품. 일간 배수라 장기 보유에 맞지 않아요.', cls: 'healer' },
   SCHD: { name: 'Schwab U.S. Dividend Equity', issuer: 'Charles Schwab', index: 'Dow Jones U.S. Dividend 100', fee: '0.06%', role: '배당을 꾸준히 주는 회사 100곳에 담아요. 크게 오를 땐 덜 오르고, 급락할 땐 덜 빠져요.', cls: 'support' },
 };
@@ -317,7 +317,7 @@ function openPeek(role, skillId) {
   const ins = currentTape.instruments[main] || {}, m = $('#peek'); if (!info) return;
   const name = charOf(role).name, total = info.count ? `${info.count}${info.unit}` : '';
   const tiles = info.names.map((n, i) => `<span class="tile ${info.kind}" style="--i:${i}">${n}</span>`).join('') + (info.count > info.names.length ? `<span class="tile more" style="--i:${info.names.length}">외 ${info.count - info.names.length}${info.unit}</span>` : '');
-  m.querySelector('.box').innerHTML = `<div class="pk-head"><img src="${portrait(heroUnit(role))}" alt=""><div><small>${name}의 가방</small><b>${sk.name}</b><span>${ins.name || main}${total ? ` · ${total}` : ''}${info.example ? ' · 예시' : ''}</span></div><button type="button" class="iconbtn" id="peekClose">닫기</button></div>
+  m.querySelector('.box').innerHTML = `<div class="pk-head"><img src="${portrait(heroUnit(role))}" alt=""><div><small>${name}에 담긴 것</small><b>${sk.name}</b><span>${ins.name || main}${total ? ` · ${total}` : ''}${info.example ? ' · 예시' : ''}</span></div><button type="button" class="iconbtn" id="peekClose">닫기</button></div>
     <div class="pk-bag ${info.kind}"><img class="pk-art" src="${cutArt(heroUnit(role))}" alt=""><div class="pk-tiles">${tiles}</div></div>
     <p class="pk-line">${info.line}</p>`;
   m.hidden = false; $('#tip').hidden = true; sfx.select();
@@ -484,7 +484,7 @@ const heroPts = h => STAT_KEYS.reduce((a, k) => a + h.st[k], 0);
 /** raids left until 전직, estimated from the last raid's gain */
 const raidsLeft = role => { const h = hero(role); if (h.branch) return 0; const need = EVO_PTS - heroPts(h); return need <= 0 ? 0 : Math.ceil(need / Math.max(4, h.last || 8)); };
 const branchOf = st => { const g = { atk: st.atk, ins: st.ins, def: (st.def + st.stab) / 2 }; return Object.keys(g).sort((a, b) => g[b] - g[a])[0]; };
-const ROLE_DESC = { tank: '지키는 자산', dealer: '버는 자산', healer: '피난처', support: '받쳐 주는 자산' };
+const ROLE_DESC = { tank: '장기·단기 국채', dealer: '기술·성장주', healer: '금·단기국채', support: '배당 많이 주는 주식' };
 const heroTitle = role => ROLE_DESC[role];
 function raidGains(state) {
   const out = {};
@@ -890,11 +890,11 @@ class BattleScene extends Phaser.Scene {
       if (hooks.backup && speed < 4) {   // 받쳐 주기: the defender steps in front of the hurt dealer, shield up
         const b = hooks.backup, def = this.sprites[b.role], dl = this.sprites.dealer;
         await sleep(d(260));
-        this.say(def, '내가 받칠게!', 1000);
+        this.say(def, '난 올랐어!', 1000);
         const hx = def.x, hy = def.y;
         await this.tw({ targets: def, x: dl.x - 70, y: dl.y + 6, duration: d(220), ease: 'power2.out' });
         this.fx('shield', dl.x - 20, this.mid(dl), 300, { inMs: 80, hold: 700, outMs: 240, depth: 46 }); sfx.shield?.();
-        this.callout('받쳐 줬어요!', '#9FE8FF', `${charOf(b.role).name} ${fmtPct(b.ret)} · 성장주 ${fmtPct(b.dealerRet)}`);
+        this.callout('반대로 움직였어요!', '#9FE8FF', `${charOf(b.role).name} ${fmtPct(b.ret)} · 성장주 ${fmtPct(b.dealerRet)}`);
         await sleep(d(900));
         await this.tw({ targets: def, x: hx, y: hy, duration: d(260), ease: 'power2.inOut' });
       }
@@ -1564,8 +1564,8 @@ $('#dexBtn').addEventListener('click', () => { sfx.select(); renderCollection();
 $('#dexClose').addEventListener('click', () => { sfx.back(); $('#dex').hidden = true; });
 let tutStep = 0;
 const TUT = [
-  { art: 'hero_dealer', title: '캐릭터 하나 = ETF 하나', text: '성장주는 회사 한 곳이 아니라 나스닥100 기업 100곳을 한꺼번에 들고 있어요. 이렇게 여러 종목을 한 바구니에 담은 게 ETF예요. 파티 화면에서 🔍를 누르면 가방 속이 보여요.' },
-  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '채권·성장주·금·현금·배당주에게 비중을 나눠요. 비중을 어떻게 나누느냐가 곧 내 포트폴리오예요. 한쪽이 맞을 때 다른 쪽이 받쳐 주는 게 나눠 담는 이유예요.' },
+  { art: 'hero_dealer', title: '캐릭터 하나 = ETF 하나', text: '성장주는 회사 한 곳이 아니라 나스닥100 기업 100곳을 한꺼번에 들고 있어요. 여러 종목을 묶어 주식처럼 한 번에 사고파는 상품이 ETF예요. 파티 화면에서 🔍를 누르면 안에 든 종목이 보여요.' },
+  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '채권·성장주·금·현금·배당주에게 비중을 나눠요. 비중을 어떻게 나누느냐가 곧 내 포트폴리오예요. 자산마다 같은 뉴스에 다르게 움직여서, 나눠 담으면 전체 등락이 줄어들 수 있어요.' },
   { art: 'boss_lich', title: '보스 = 실제 시장 이벤트', text: 'FOMC, 실적 발표, 물가 지표가 보스로 나타나요. 데미지는 전부 그날 실제 가격 변동으로 계산돼요. 난수는 없어요.' },
   { art: 'hero_healer', title: '체크포인트에서 개입', text: '레이드는 자동으로 흘러가다 중요한 순간에 멈춰요. 30초 안에 버티기·기술 교체·비중 조정 중 하나를 고르세요. 차트와 자금 평가를 보고 결정하면 돼요.' },
 ];
