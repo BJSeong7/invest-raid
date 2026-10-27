@@ -324,6 +324,16 @@ export function gradeOf(ret, bench, alive) {
   return 'D';
 }
 const gradeBonus = g => ({ S: 25, A: 15, B: 5, C: 0, D: 0, F: 0 }[g] || 0);
+/** one line that says why this grade, in the player's words */
+export function gradeReason(r) {
+  const p = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  if (r.grade === 'F') return '파티가 전멸했어요.';
+  if (r.grade === 'S') return `수익 ${p(r.returnPct)}, 기본 파티보다 ${p(r.alpha)}p 앞섰어요 (S는 +0.5%p 이상).`;
+  if (r.grade === 'A') return `수익 ${p(r.returnPct)}, 기본 파티보다 앞섰어요 (+0.5%p 이상이면 S).`;
+  if (r.grade === 'B') return `수익 ${p(r.returnPct)} — 플러스로 마치고 기본 파티보다 앞서면 A예요.`;
+  if (r.grade === 'C') return `수익 ${p(r.returnPct)} — −0.5% 안쪽으로 막으면 B예요.`;
+  return `수익 ${p(r.returnPct)} — 크게 밀렸어요. 방어 상품 비중을 늘려 보세요.`;
+}
 
 /** Level curve: exp needed to go from L to L+1. */
 export const expNext = L => 40 + L * 20;

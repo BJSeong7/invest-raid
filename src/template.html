@@ -38,6 +38,8 @@ h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;l
 .ic{width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:.25em;flex-shrink:0}
 .cp-step .ic,.newsline .ic{width:16px;height:16px}
 [hidden]{display:none!important}
+.enter{animation:screenIn .28s ease-out}
+@keyframes screenIn{from{opacity:0}}
 
 /* ---- panels & buttons ---- */
 .card{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:0 4px 0 var(--edge),0 12px 28px rgba(60,80,40,.10)}
@@ -228,6 +230,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .phud .num{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);gap:6px}
 .phud .num b{font-family:var(--display);font-weight:400;color:var(--ink)}
 .controls{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.controls .next{flex:1 1 100%;font-size:20px;min-height:56px;animation:nextPulse 1.2s ease-in-out infinite}
+.controls .next b{font-weight:400}
+@keyframes nextPulse{50%{box-shadow:0 4px 0 #9A6B0E,0 0 0 8px rgba(224,167,46,.25),inset 0 2px 0 rgba(255,255,255,.55)}}
 .seg{display:inline-flex;background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 0 var(--edge)}
 .seg button{background:transparent;border:0;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer;min-height:34px;font-family:var(--display);color:var(--muted);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
@@ -278,6 +283,20 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .rebal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .rebal .weight{background:#fff;border:2px solid var(--line);border-left:5px solid var(--rc);border-radius:var(--r2);padding:6px 8px}
 @media (max-width:520px){.rebal{grid-template-columns:1fr}}
+
+/* ---- VS intro ---- */
+.vs{position:fixed;inset:0;z-index:50;pointer-events:none;display:grid;grid-template-columns:1.25fr auto 1fr;align-items:center;gap:8px;padding:24px 12px;background:linear-gradient(100deg,#2F6BD0 0 50%,#B9343C 50% 100%);overflow:hidden}
+.vs::before{content:"";position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.12) 0 1.2deg,transparent 1.2deg 6deg)}
+.vs>*{position:relative}
+.vs-l,.vs-r{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.vs-party{display:flex;align-items:flex-end;justify-content:center;gap:0}
+.vs-party img{height:min(30vh,220px);width:auto;margin:0 -26px;filter:drop-shadow(0 12px 16px rgba(0,0,0,.4))}
+.vs-party img:nth-child(1){height:min(26vh,190px)}.vs-party img:nth-child(4){height:min(26vh,190px)}
+.vs-r img{height:min(40vh,300px);max-width:100%;object-fit:contain;width:auto;filter:drop-shadow(0 12px 16px rgba(0,0,0,.4))}
+.vs b{font-family:var(--display);font-weight:400;font-size:clamp(20px,3.5vw,34px);color:#fff;-webkit-text-stroke:1px var(--navy);paint-order:stroke fill;text-shadow:0 3px 0 rgba(0,0,0,.3);text-align:center}
+.vs-mark{font-family:var(--shout);font-size:clamp(64px,12vw,140px);color:#FFD54A;-webkit-text-stroke:5px var(--navy);paint-order:stroke fill;text-shadow:0 10px 0 rgba(0,0,0,.3);transform:rotate(-8deg)}
+.vs-sub{position:absolute;left:0;right:0;bottom:8%;text-align:center;font-family:var(--display);font-size:clamp(14px,2.4vw,22px);color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.4)}
+@media (max-width:600px){.vs{grid-template-columns:1fr;grid-template-rows:1fr auto 1fr;padding:16px}.vs-party img{height:22vh}.vs-r img{height:26vh}}
 
 /* ---- cut-in overlay (anime panel) ---- */
 .cutin{position:fixed;inset:0;z-index:50;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -545,19 +564,19 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 
     </div>
     <div class="battlegrid">
-      <div class="chartbox big panes" id="battleChartBox">
-        <div class="pane-h"><b><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16" stroke="#24405F" stroke-width="2" stroke-linecap="round"/><path d="M5 15l4-5 4 3 6-8" fill="none" stroke="#E0A72E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>실제 시세</b><span id="chartLegend"></span><span id="chartNote" class="muted" hidden></span></div>
-        <div class="chart pane-price" id="chart"></div>
-        <div class="pane-h"><b><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</b><span id="chartLegendEq"></span></div>
-        <div class="chart pane-eq" id="chartEq"></div>
+      <div class="chartbox big" id="battleChartBox">
+        <div class="pane-h"><b>수익률</b><span id="chartLegendEq"></span><span id="chartLegend" hidden></span><span id="chartNote" class="muted" hidden></span></div>
+        <div class="chart" id="chartEq"></div>
+        <div class="chart" id="chart" hidden></div>
         <div class="newsline" id="newsline" hidden></div>
       </div>
       <div class="arena" id="arena"><div class="loading" id="arenaLoading"><span id="arenaLoadingTxt">전장 불러오는 중…</span><div class="bar"><i id="arenaLoadingBar"></i></div></div><button type="button" class="guard" id="guardBtn" hidden aria-label="가드">가드!<i></i></button></div>
     </div>
     <div class="partyhud" id="partyhud"></div>
     <div class="controls">
-      <div class="row"><div class="seg" role="group" aria-label="재생 속도"><button type="button" data-speed="1" aria-pressed="false">1×</button><button type="button" data-speed="2" aria-pressed="true">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div><button class="btn secondary" id="skipBtn" type="button" title="다음 체크포인트까지 빠르게">▶▶ 체크포인트까지</button></div>
-      <div class="row"><button class="btn secondary" id="pauseBtn" type="button">일시정지</button><button class="btn secondary" id="abortBtn" type="button">포기</button></div>
+      <button class="btn next" id="nextBtn" type="button" hidden><b>다음 턴 ▶</b></button>
+      <div class="row"><button class="iconbtn" id="autoBtn" type="button" aria-pressed="false">자동 재생</button><div class="seg" role="group" aria-label="연출 속도"><button type="button" data-speed="1" aria-pressed="false">1×</button><button type="button" data-speed="2" aria-pressed="true">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div><button class="iconbtn" id="skipBtn" type="button" title="다음 체크포인트까지 빠르게">▶▶ 체크포인트까지</button></div>
+      <div class="row"><button class="iconbtn" id="pauseBtn" type="button">일시정지</button><button class="iconbtn" id="abortBtn" type="button">포기</button></div>
     </div>
   </section>
 
@@ -566,6 +585,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="result">
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
+        <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
         <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
         <div class="stats">
           <div class="stat"><small>기본 파티였다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
@@ -581,10 +601,13 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
           <div class="section-h" style="margin:0 0 8px"><h3 style="font-size:17px">같은 시장, 다른 선택이었다면</h3></div>
           <div class="whatif" id="rWhatIf"></div>
         </div>
-        <div class="row" style="margin-top:auto">
-          <button class="btn" id="retryBtn" type="button">다시 도전</button>
-          <button class="btn secondary" id="otherBtn" type="button">다른 레이드</button>
-          <button class="btn secondary" id="etfBtn" type="button">닮은 ETF 보기</button>
+        <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+          <button class="btn" id="nextRaidBtn" type="button">다음 레이드 ▶</button>
+          <div class="row">
+            <button class="btn secondary" id="retryBtn" type="button">다시 도전</button>
+            <button class="btn secondary" id="otherBtn" type="button">레이드 목록</button>
+            <button class="btn secondary" id="etfBtn" type="button">닮은 ETF 보기</button>
+          </div>
         </div>
       </div>
     </div>
@@ -670,6 +693,12 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   </div>
 </div>
 
+<div class="vs" id="vs" hidden>
+  <div class="vs-l"><div class="vs-party" id="vsParty"></div><b id="vsPartyName"></b></div>
+  <div class="vs-mark" id="vsMark">VS</div>
+  <div class="vs-r"><img id="vsBoss" alt=""><b id="vsBossName"></b></div>
+  <div class="vs-sub" id="vsSub"></div>
+</div>
 <div class="cutin" id="cutin" hidden><div class="band"></div><div class="lines"></div><img class="art left" id="cutArtL" alt=""><img class="art right" id="cutArtR" alt=""><div class="text" id="cutText"></div><div class="sub" id="cutSub"></div></div>
 <div class="toast" id="toast"></div>
 <div class="tip" id="tip" hidden role="status"><img src="assets/anime/portrait_hero_healer.png" alt=""><p></p><button type="button" id="tipClose" aria-label="닫기">✕</button></div>
