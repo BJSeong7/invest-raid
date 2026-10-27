@@ -591,6 +591,310 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .tut-art{height:220px;width:auto;filter:drop-shadow(0 10px 10px rgba(20,30,10,.3))}
 .dots{display:flex;gap:6px;justify-content:center}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--gold)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ============ B: Toss-style single column (all widths) ============ */
+body{padding-bottom:110px}
+.wrap{max-width:440px}
+.top{flex-wrap:nowrap}
+.brand h1{font-size:22px;-webkit-text-stroke:1px var(--navy);text-shadow:0 2px 0 var(--navy)}
+.menu{position:relative}
+.menu>summary{list-style:none;cursor:pointer}
+.menu>summary::-webkit-details-marker{display:none}
+.menu-box{position:absolute;right:0;top:calc(100% + 8px);z-index:30;display:flex;flex-direction:column;gap:8px;align-items:stretch;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 10px 28px rgba(30,45,70,.22);min-width:180px}
+.menu.up .menu-box{top:auto;bottom:calc(100% + 10px);left:0;right:auto}
+.menu-box .seg{align-self:stretch;display:flex}.menu-box .seg button{flex:1}
+.hd{display:flex;flex-direction:column;gap:4px;padding:6px 2px 2px}
+.hd small{font-family:var(--display);font-size:14px;color:var(--muted)}
+.hd h2{font-family:var(--display);font-weight:400;font-size:25px;line-height:1.3;color:var(--navy);text-wrap:balance}
+.hint-line{margin:-4px 0 0;text-align:center;font-size:12.5px;color:var(--muted)}
+.cta-bar{position:fixed;left:0;right:0;bottom:0;z-index:25;display:flex;flex-direction:column;align-items:stretch;gap:6px;
+  padding:10px max(16px,calc(50% - 204px)) calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(234,244,236,0),#EAF4EC 30%)}
+.cta-bar.two{flex-direction:row}
+.cta-bar.two .secondary{flex:0 0 auto}
+.cta-bar .cta{flex:1;width:100%;min-height:56px;font-size:20px}
+.cta-bar .helper{margin:0;text-align:center;font-size:13px;color:var(--muted)}
+.cta-bar.controls{flex-direction:row;align-items:center}
+.cta-bar.controls .menu>summary{min-height:56px;padding:0 18px;font-size:22px;display:flex;align-items:center}
+.cta-bar.controls .next{animation:nextPulse 1.2s ease-in-out infinite}
+.cta-bar.controls .autonote{flex:1;display:none;align-items:center;justify-content:center;min-height:56px;border-radius:14px;background:#fff;border:2px dashed var(--line);font-family:var(--display);color:var(--muted)}
+.cta-bar.controls #nextBtn[hidden]+.autonote{display:flex}
+.foot{margin-bottom:6px}
+/* home */
+.home-stage{grid-template-columns:1fr}
+.home-cast-wrap{min-height:300px}
+.sheet{position:fixed;inset:0;z-index:45;display:flex;align-items:flex-end;justify-content:center}
+.sheet-bg{position:absolute;inset:0;background:rgba(30,45,70,.45)}
+.sheet-box{position:relative;width:min(440px,100%);max-height:88vh;overflow:auto;background:var(--panel);border-radius:24px 24px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;animation:sheetUp .28s cubic-bezier(.2,1,.3,1)}
+.sheet-box .grab{align-self:center;width:44px;height:5px;border-radius:3px;background:var(--line)}
+.sheet .hero-sheet{margin:0;box-shadow:none;background:none;padding:0}
+@keyframes sheetUp{from{transform:translateY(40%);opacity:.4}}
+.rhythm{grid-template-columns:1fr}
+#todayCard{display:none}
+.week-card{padding:12px 14px}
+.week-card .pf{width:46px;height:46px}
+.week-card b{font-size:18px}
+.raids{grid-template-columns:1fr;gap:8px}
+.raid{padding:10px 12px;gap:12px;box-shadow:0 3px 0 var(--edge)}
+.raid img{width:52px;height:52px}
+.raid h3{font-size:17px}
+.section-h{margin:8px 0 8px}
+.section-h h3{font-size:16px;background:none;border:0;box-shadow:none;padding:0}
+/* brief */
+.brief{grid-template-columns:1fr}
+.boss-stage{min-height:240px}
+/* party */
+.party-top{grid-template-columns:1fr}
+.presets{display:flex;overflow-x:auto;gap:8px;scrollbar-width:none;margin:0 -2px;padding:2px 2px 6px}
+.presets::-webkit-scrollbar{display:none}
+.preset{flex:0 0 auto;min-width:96px;padding:8px 12px}
+.preset b{font-size:16px}
+.account{padding:10px 12px}
+.radar-card{min-width:0;padding:6px 12px 6px 4px}
+.radar-card #partyRadar svg{width:120px;height:120px}
+#partyDetail{padding:0;border:0;background:none;box-shadow:none}
+#partyDetail>summary{display:none}
+.roles{grid-template-columns:1fr;gap:10px}
+.role{display:grid;grid-template-columns:76px 1fr;grid-template-areas:"img head" "img wctl" "sk sk";column-gap:12px;row-gap:8px;padding:10px 12px;border-top:2px solid var(--line);border-left:6px solid var(--rc)}
+.role img{grid-area:img;height:96px;align-self:start;justify-self:center}
+.role h3{grid-area:head;font-size:18px}
+.role .wctl{grid-area:wctl}
+.role .skills{grid-area:sk;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+/* battle */
+.battlegrid{grid-template-columns:1fr}
+.chartbox.big .chart{min-height:170px}
+.bossbar{padding:8px 10px}
+.money-top b{font-size:30px}
+.partyhud{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.pchip{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:8px 4px 6px;min-width:0;overflow:hidden}
+.pchip.dead{opacity:.45;filter:grayscale(1)}
+.pchip .ring{--p:100;width:46px;height:46px;border-radius:50%;padding:3px;background:conic-gradient(var(--hc,#3FB56A) calc(var(--p)*1%),#EEE6D2 0)}
+.pchip .ring img{width:100%;height:100%;border-radius:50%;object-fit:cover;background:#E4EFFF;border:2px solid #fff}
+.pchip b{font-family:var(--display);font-weight:400;font-size:13px;color:var(--navy);line-height:1}
+.pchip .delta{font-family:var(--display);font-size:12px}.pchip .delta.up{color:var(--green)}.pchip .delta.down{color:var(--red)}
+.pchip .statpop{top:4px;right:2px}
+.toast{bottom:auto;top:calc(12px + env(safe-area-inset-top,0px))}
+/* checkpoint as a bottom sheet */
+.modal#cp{align-items:flex-end;padding:0}
+.modal#cp .box{width:min(440px,100%);border-radius:24px 24px 0 0;max-height:90vh;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));animation:sheetUp .28s cubic-bezier(.2,1,.3,1)}
+.modal#cp h2{font-size:23px}
+.cp-roles .skill .n{font-family:var(--display);font-size:15px}
+/* result */
+.result{grid-template-columns:1fr}
+.r-head{display:flex;flex-direction:column;gap:4px}
+.r-head small{font-family:var(--display);color:var(--muted);font-size:14px}
+.r-head h2{font-family:var(--display);font-weight:400;font-size:25px;line-height:1.3;color:var(--navy)}
+.r-head p{margin:0;font-size:15px;color:var(--muted)}
+.stamp-wrap{min-height:150px}
+.stamp{font-size:96px}
+.growth-text p:first-child{display:none}
+.r-links{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.linkbtn{background:none;border:0;font-family:var(--display);font-size:15px;color:var(--navy);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:6px}
+.growth{grid-template-columns:1fr 1fr}
+/* jelly-style peek of the next class */
+.peek{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 12px}
+.peek .pk{position:relative;width:64px;height:80px;flex-shrink:0}
+.peek .pk img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.peek .pk .sil{filter:brightness(0);opacity:.18}
+.peek .pk .col{clip-path:inset(calc(100% - var(--p)*1%) 0 0 0);filter:drop-shadow(0 0 6px var(--bc))}
+.peek .pt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.peek .pt small{font-size:12.5px;color:var(--muted)}
+.peek .pt b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--navy)}
+
+/* B fixes */
+.cta-bar{background:linear-gradient(180deg,rgba(234,244,236,0),#EAF4EC 24px)}
+.sheet .hero-sheet{border:0}
+#partyRadar{display:none}
+.radar-card{padding:10px 14px}
+.radar-card .ptype{font-size:18px}
+.radar-card p{max-width:none}
+.modal#cp .cp-head{align-items:flex-start}
+.modal#cp .cp-step{background:none;color:var(--muted);padding:0;font-size:13px}
+.modal#cp h2 .pause{display:none}
+.modal#cp .timer{font-size:15px}.modal#cp .timer i{width:64px;height:8px}
+.modal#cp .cp-hint{background:none;border:0;padding:0;font-size:15.5px;line-height:1.6;color:var(--ink)}
+.modal#cp .cp-money{background:none;border:0;padding:0;gap:8px}
+.modal#cp .cp-money b{font-size:20px}
+.cutin .art{height:auto;width:min(72vw,380px)}
+.cutin .art.left{left:0;right:0;margin:0 auto;bottom:10%}
+.cutin .text{font-size:clamp(56px,16vw,110px)}
+
+/* ============ B2: Toss look. White space, one sentence, one picture, one button ============ */
+:root{--tb:#3182F6;--tink:#191F28;--tsub:#6B7684;--tgray:#F2F4F6;--tline:#E5E8EB;
+  --display:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+body{background:#fff;color:var(--tink)}
+body::after{display:none}
+.wrap{gap:20px}
+.brand h1{font-family:var(--body);font-weight:700;font-size:18px;color:var(--tink);-webkit-text-stroke:0;text-shadow:none;letter-spacing:0}
+.iconbtn{background:var(--tgray);border:0;box-shadow:none;font-family:var(--body);font-weight:600;color:var(--tink)}
+.card,.raid,.role,.chartbox,.week-card,.account,.preset,.radar-card,.pchip,.bossbar,.peek,.stwin,.event-card,.sheet-box,.modal .box{border:0!important;box-shadow:none!important}
+.btn{font-family:var(--body);font-weight:700;letter-spacing:0;text-shadow:none;background:var(--tb);border:0;border-radius:16px;box-shadow:none;color:#fff}
+.btn:active{transform:scale(.98);box-shadow:none}
+.btn.secondary{background:var(--tgray);color:var(--tink);box-shadow:none}
+.btn.secondary:active{box-shadow:none}
+.cta-bar{background:linear-gradient(180deg,rgba(255,255,255,0),#fff 22px)}
+.cta-bar .cta{font-size:17px;min-height:56px}
+.cta-bar .helper{color:var(--tsub)}
+.hd small,.r-head small{font-family:var(--body);font-weight:600;color:var(--tsub);font-size:14px}
+.hd h2,.r-head h2{font-family:var(--body);font-weight:700;font-size:24px;line-height:1.38;letter-spacing:-.3px;color:var(--tink)}
+.r-head p{color:var(--tsub);font-size:16px}
+.linkbtn{font-family:var(--body);font-weight:600;color:var(--tsub);text-decoration:none;font-size:14px}
+/* home: title, characters, button */
+#homeChip,.hint-line,.foot{display:none}
+.home-stage{border:0;box-shadow:none;border-radius:28px;background:linear-gradient(180deg,#EAF6FF 0,#F3FBF2 100%)}
+.home-cast-wrap{min-height:330px;background:none;border:0}
+.cast .ring{background:radial-gradient(closest-side,rgba(30,50,15,.16),transparent)}
+.cast .tag{background:transparent;box-shadow:none;padding:0}
+.cast .tag b{font-family:var(--body);font-weight:700;font-size:14px;color:var(--tink)}
+.cast .tag small{color:var(--tsub)}
+.cast.sel .tag{background:transparent;transform:none}.cast.sel .tag b{color:var(--tb)}.cast.sel .tag small{color:var(--tsub)}
+.cast.sel .ring{box-shadow:none;background:radial-gradient(closest-side,rgba(49,130,246,.35),transparent)}
+.cast:not(.sel) img{filter:none}
+.rhythm{margin-top:12px}
+.week-card{background:var(--tgray);border-radius:18px}
+.week-card small{color:var(--tsub);font-family:var(--body);font-weight:600}
+.week-card b{font-family:var(--body);font-weight:700;font-size:17px;color:var(--tink)}
+.week-card .dday b{font-family:var(--body);color:var(--tb);font-size:20px}
+.section-h h3{font-family:var(--body);font-weight:700;font-size:17px;color:var(--tink)}
+.section-h .small{display:none}
+.raids{gap:0}
+.raid{background:none;border-radius:0;padding:12px 2px;border-bottom:1px solid var(--tline)!important}
+.raid img{width:44px;height:44px;box-shadow:none;border:0}
+.raid h3{font-family:var(--body);font-weight:600;font-size:16px;color:var(--tink)}
+.raid .chip{background:none;border:0;padding:0;color:var(--tsub);font-family:var(--body);font-weight:400}
+.raid.upcoming{opacity:.6}
+/* sheet */
+.sheet-box{border-radius:28px 28px 0 0}
+.hs-head{border:0;padding:0}
+.hs-head b{font-family:var(--body);font-weight:700;font-size:22px;color:var(--tink)}
+.hs-head span{font-family:var(--body);font-weight:600;background:var(--tgray);color:var(--tsub)}
+.hs-path,.hs-stat span{display:none}
+.hs-stat{grid-template-columns:18px 1fr 24px}
+.hs-stat b{font-family:var(--body);font-weight:700}
+.peek{background:var(--tgray);border-radius:18px}
+.peek .pt b{font-family:var(--body);font-weight:700;color:var(--tink)}
+.hs-evo small{font-family:var(--body);font-weight:700}
+/* brief */
+.boss-stage{border:0;box-shadow:none;border-radius:28px;min-height:260px}
+#bTag,#bEvent{display:none}
+.boss-plate{background:none;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.45)}
+.boss-plate b{font-family:var(--body);font-weight:700}
+.brief-copy{font-size:18px;line-height:1.6;font-weight:500;color:var(--tink)}
+.cp-more>summary{font-family:var(--body);font-weight:600;color:var(--tsub)}
+/* party: list rows; product choices open on tap */
+.radar-card,.sumrow .sum{display:none}
+.account{background:var(--tgray);border-radius:18px}
+.account b{font-family:var(--body);font-weight:700;font-size:16px;color:var(--tink)}
+.preset{background:var(--tgray);border-radius:14px;min-width:84px}
+.preset b{font-family:var(--body);font-weight:600;font-size:15px;color:var(--tink)}
+.preset .mini-alloc{display:none}
+.preset[aria-pressed="true"]{background:#E8F3FF;box-shadow:none}.preset[aria-pressed="true"] b{color:var(--tb)}
+.alloc{border:0;height:10px;max-width:none}
+.roles{gap:0}
+.role{background:none;border-radius:0;border-left:0!important;border-bottom:1px solid var(--tline)!important;grid-template-columns:52px 1fr auto;grid-template-areas:"img head wctl" "sk sk sk";padding:12px 2px;cursor:pointer}
+.role img{height:60px}
+.role h3{font-family:var(--body);font-weight:700;font-size:16px;color:var(--tink);flex-direction:column;align-items:flex-start;gap:2px;justify-content:center}
+.role h3 small{font-size:13px}
+.role .wctl{align-self:center}
+.role .wctl output{font-family:var(--body);font-weight:700;font-size:18px;color:var(--tink);min-width:52px}
+.role .wbtn{width:34px;height:34px;background:var(--tgray);border:0;box-shadow:none;font-size:18px}
+.role:not(.open) .skill[aria-pressed="false"]{display:none}
+.role:not(.open) .skills{grid-template-columns:1fr}
+.skill{background:var(--tgray);border:0!important;box-shadow:none!important;border-radius:12px}
+.skill[aria-pressed="true"]{background:#E8F3FF}
+.skill .n{font-family:var(--body);font-weight:600}
+/* battle */
+.money-top small{font-family:var(--body);font-weight:600;color:var(--tsub)}
+.money-top b{font-family:var(--body);font-weight:700;font-size:30px;color:var(--tink)}
+.money-top .ret{font-family:var(--body);font-weight:600;font-size:15px}
+.turnline,.bossbar .phase,.bossbar .goal{display:none!important}
+.bossbar{background:var(--tgray);border-radius:14px;padding:8px 12px}
+.bossbar .name{font-family:var(--body);font-weight:700;font-size:15px;color:var(--tink)}
+.bossbar .name img{width:26px;height:26px;border:0}
+.bossbar .bar{height:10px;border:0;background:#fff}
+.bossbar .bar b{display:none}
+.chartbox{background:#fff;padding:4px 0 0}
+.pane-h b{font-family:var(--body);font-weight:700;color:var(--tink)}
+.arena{border:0;border-radius:24px}
+.pchip{background:none;padding:4px 0}
+.pchip b{font-family:var(--body);font-weight:600;font-size:12px;color:var(--tink)}
+.pchip .delta{font-family:var(--body);font-weight:600}
+/* checkpoint sheet: a question and short sentence choices */
+.modal#cp .box{gap:14px;border-radius:28px 28px 0 0}
+.modal#cp h2{font-family:var(--body);font-weight:700;font-size:22px;color:var(--tink)}
+.modal#cp .cp-money,.modal#cp #cpMore{display:none}
+.primary-choice{background:var(--tb)!important;border:0!important;box-shadow:none!important;border-radius:16px}
+.primary-choice b{font-family:var(--body);font-weight:700}
+.choices button{background:var(--tgray)!important;border:0!important;box-shadow:none!important;border-radius:14px}
+.choices button b{font-family:var(--body);font-weight:700;font-size:15px;color:var(--tink)}
+.choices button span{display:none}
+.choices button[aria-selected="true"]{background:#E8F3FF!important}.choices button[aria-selected="true"] b{color:var(--tb)}
+.cp-roles{gap:8px;background:none;padding:0}
+.cp-role{display:contents}
+.cp-role>.pf,.cp-role .hdr{display:none}
+.cp-role .opts{display:flex;flex-direction:column;gap:8px}
+.cp-role .skill{width:100%;text-align:left;padding:12px 14px}
+.cp-role .skill .n{font-size:15px;color:var(--tink)}
+.cp-role .skill .i{font-size:12.5px;color:var(--tsub)}
+/* result: one sentence, one picture, one button */
+.result .card{background:none;padding:0}
+.stamp-wrap{min-height:0;background:none;border:0;padding:0;align-items:flex-start}
+.stamp-wrap .verdict,#rWhy,.money-result,.stats,.growth,.coach,.whatif,.result .section-h{display:none}
+.stamp{font-size:44px;-webkit-text-stroke-width:3px;transform:rotate(-8deg);text-shadow:none}
+.growth-text p{font-family:var(--body);font-weight:500;font-size:16px;color:var(--tsub)}
+#rMore{background:var(--tgray);border-radius:18px;padding:14px}
+#rMore summary{font-family:var(--body);font-weight:600;color:var(--tsub)}
+
+/* B2 fixes */
+.home-stage,.home-cast-wrap{border:0!important}
+.home-cast-wrap{min-height:280px;padding-top:28px}
+.cast{max-width:170px}
+.cta-bar{background:#fff;box-shadow:0 -14px 14px #fff}
+.stamp-wrap{display:none}
+.cp-panel{border:0!important;background:none!important;padding:0!important}
+.cp-role .opts>span{display:none}
+.cp-role .opts .skill .n::before{display:none}
+
+/* B3: strip to one sentence, one picture, one button */
+.sheet-h{font-family:var(--body);font-weight:700;font-size:20px;margin:4px 0 0}
+#raidSheet .foot{display:block}
+#raidSheet .rhythm{margin:0}
+.cta-bar .linkbtn{align-self:center;padding:2px 8px}
+.home-cast-wrap{min-height:360px}
+.cast .tag small{display:none}
+#bMore{display:none}
+.brief-text{gap:10px}
+.account .hold,.account .mini-alloc,.sumrow,.alloc{display:none}
+.presets .account{flex:0 0 auto;width:auto;min-width:84px;padding:8px 12px;border-radius:14px;justify-content:center}
+.presets .account b{font-size:15px;font-weight:600}
+.presets .account[aria-pressed="true"]{background:#E8F3FF}.presets .account[aria-pressed="true"] b{color:var(--tb)}
+.party-meta{gap:14px}
+.role:not(.open) .wbtn,.role:not(.open) .skills{display:none}
+.role.open{background:var(--tgray);border-radius:18px;padding:12px}
+.role h3 small{color:var(--tsub)}
+#chartLegendEq,.pane-h{display:none!important}
+.bossbar .name span{display:none}
+.modal#cp .cp-hint{font-size:16px}
+.modal#cp .cp-hint br{display:none}
+.modal#cp .cp-hint .muted,.modal#cp .cp-hint small,.modal#cp #cpTimerTxt{display:none}
+.cp-role .skill .pay,.cp-role .skill .payoff{display:none}
+.growth-text p:nth-child(n+3){display:none}
+#rMore{background:none;padding:0}
+#rMore:not([open]) summary{justify-content:center}
+.cp-box:not(.manual) .choices,.cp-box:not(.manual) #cpEquip,.cp-box:not(.manual) #cpRebal{display:none!important}
+#cpHoldPay,.modal#cp .timer{display:none}
+.cp-quick{display:flex;flex-direction:column;gap:8px}
+.qc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--tgray);border:0;border-radius:16px;padding:14px 16px;cursor:pointer;font-family:var(--body)}
+.qc small{font-size:13px;font-weight:600;color:var(--tb)}
+.qc b{font-size:16px;font-weight:700;color:var(--tink)}
+.qc span{font-size:13px;color:var(--tsub)}
+.qc:active{transform:scale(.98)}
+#cpManual{align-self:center}
+.growth-text{display:none}
+
+.home-stage{box-shadow:none!important}
+.home-cast-wrap{min-height:320px}
+.modal .box,.sheet-box{background:#fff}
+.cast img{max-width:none}
 </style>
 
 <div class="wrap">
@@ -602,35 +906,42 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     </div>
     <div class="row">
       <button class="iconbtn" id="dexBtn" type="button">도감</button>
-      <button class="iconbtn" id="helpBtn" type="button" title="게임 방법">?</button>
-      <button class="iconbtn" id="unlockBtn" type="button" aria-pressed="false" title="전직 전에도 모든 상품을 써 보는 체험 모드">체험 모드</button>
-      <button class="iconbtn" id="muteBtn" type="button" aria-pressed="false">소리</button>
+      <details class="menu"><summary class="iconbtn" aria-label="메뉴">⋯</summary><div class="menu-box">
+        <button class="iconbtn" id="helpBtn" type="button">게임 방법</button>
+        <button class="iconbtn" id="unlockBtn" type="button" aria-pressed="false">체험 모드</button>
+        <button class="iconbtn" id="muteBtn" type="button" aria-pressed="false">소리</button>
+      </div></details>
     </div>
   </header>
 
   <!-- 1. raid select -->
   <section id="screen-select" class="screen">
+    <div class="hd"><small>모험단</small><h2 id="homeTitle"></h2></div>
     <div class="home-stage">
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
-      <div class="hero-sheet" id="heroSheet"></div>
     </div>
+    <p class="hint-line">캐릭터를 누르면 얼마나 자랐는지 볼 수 있어요</p>
+    <div class="sheet" id="heroSheetWrap" hidden><div class="sheet-bg" data-close></div><div class="sheet-box"><i class="grab"></i><div class="hero-sheet" id="heroSheet"></div><button class="btn secondary" type="button" data-close>닫기</button></div></div>
+    <div class="sheet" id="raidSheet" hidden><div class="sheet-bg" data-close></div><div class="sheet-box"><i class="grab"></i><h3 class="sheet-h">다른 레이드</h3>
     <div class="rhythm">
       <button type="button" class="today-card" id="todayCard" hidden></button>
       <div class="week-card" id="weekCard"></div>
     </div>
     <div>
-      <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
+      <div class="section-h"><h3>실전 레이드</h3><span class="small muted">실제 종가</span></div>
       <div class="raids" id="raids"></div>
     </div>
     <div>
-      <div class="section-h"><h3>훈련 레이드</h3><span class="chip example">예시 시세</span></div>
+      <div class="section-h"><h3>훈련 레이드</h3><span class="small muted">예시 시세</span></div>
       <div class="raids" id="raidsExample"></div>
     </div>
     <div>
-      <div class="section-h"><h3>다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
+      <div class="section-h"><h3>다가오는 보스</h3></div>
       <div class="raids" id="raidsUpcoming"></div>
     </div>
     <p class="foot">학습용 게임이며 특정 상품의 투자권유가 아닙니다. · <button class="iconbtn" id="resetBtn" type="button" style="padding:3px 10px;font-size:11px">진행 초기화</button></p>
+    </div></div>
+    <div class="cta-bar" id="homeCta"><button class="linkbtn" id="moreRaidsBtn" type="button">다른 레이드 고르기</button><p class="helper" id="homeHelper" hidden></p><button class="btn cta" id="homeStart" type="button">오늘의 한 판 시작</button></div>
   </section>
 
   <!-- 2. briefing -->
@@ -640,9 +951,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="brief-text">
         <p class="brief-copy" id="bBrief"></p>
         <div class="event-card" id="bEvent"></div>
-        <div class="row">
-          <button class="btn" id="toParty" type="button">파티 짜기</button>
+        <div class="cta-bar two">
           <button class="btn secondary" id="backToSelect" type="button">돌아가기</button>
+          <button class="btn cta" id="toParty" type="button">파티 짜기</button>
         </div>
         <details class="cp-more" id="bMore">
           <summary>차트랑 개념 더 보기</summary>
@@ -660,8 +971,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <section id="screen-party" class="screen" hidden style="display:flex;flex-direction:column;gap:14px">
     <div class="party-top">
       <div class="party-meta">
-        <h2 style="font-size:28px;color:var(--navy)">파티 짜기</h2>
-        <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><span class="hold"></span></span><i class="mini-alloc"></i></button>
+        <div class="hd"><small>파티 짜기</small><h2>누구에게 얼마나 맡길까요?</h2></div>
+        <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌</b><span class="hold"></span></span><i class="mini-alloc"></i></button>
         <div class="presets" role="group" aria-label="추천 편성">
           <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>균형형</b><i class="mini-alloc"></i></button>
           <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>안정형</b><i class="mini-alloc"></i></button>
@@ -673,9 +984,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="radar-card"><div id="partyRadar"></div><div><b id="partyType" class="ptype">균형형</b><p id="partyTypeDesc" class="small muted"></p></div></div>
     </div>
     <details class="card more" id="partyDetail" open><summary>직접 조정</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
-    <div class="row" style="justify-content:space-between">
-      <button class="btn secondary" id="backToBrief" type="button">브리핑으로</button>
-      <button class="btn" id="startBattle" type="button">출발!</button>
+    <div class="cta-bar two">
+      <button class="btn secondary" id="backToBrief" type="button">뒤로</button>
+      <button class="btn cta" id="startBattle" type="button">이 파티로 출발</button>
     </div>
   </section>
 
@@ -697,10 +1008,16 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="arena" id="arena"><div class="loading" id="arenaLoading"><span id="arenaLoadingTxt">전장 불러오는 중…</span><div class="bar"><i id="arenaLoadingBar"></i></div></div><button type="button" class="guard" id="guardBtn" hidden aria-label="가드">가드!<i></i></button></div>
     </div>
     <div class="partyhud" id="partyhud"></div>
-    <div class="controls">
-      <button class="btn next" id="nextBtn" type="button" hidden><b>다음 턴 ▶</b></button>
-      <div class="row"><button class="iconbtn" id="autoBtn" type="button" aria-pressed="false">자동 재생</button><div class="seg" role="group" aria-label="연출 속도"><button type="button" data-speed="1" aria-pressed="false">1×</button><button type="button" data-speed="2" aria-pressed="true">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div><button class="iconbtn" id="skipBtn" type="button" title="다음 체크포인트까지 빠르게">▶▶ 체크포인트까지</button></div>
-      <div class="row"><button class="iconbtn" id="pauseBtn" type="button">일시정지</button><button class="iconbtn" id="abortBtn" type="button">포기</button></div>
+    <div class="cta-bar controls">
+      <details class="menu up"><summary class="btn secondary" aria-label="전투 메뉴">⋯</summary><div class="menu-box">
+        <button class="iconbtn" id="autoBtn" type="button" aria-pressed="false">자동 재생</button>
+        <div class="seg" role="group" aria-label="연출 속도"><button type="button" data-speed="1" aria-pressed="false">1×</button><button type="button" data-speed="2" aria-pressed="true">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div>
+        <button class="iconbtn" id="skipBtn" type="button">체크포인트까지 넘기기</button>
+        <button class="iconbtn" id="pauseBtn" type="button">일시정지</button>
+        <button class="iconbtn" id="abortBtn" type="button">포기하기</button>
+      </div></details>
+      <button class="btn cta next" id="nextBtn" type="button" hidden><b>다음 턴</b></button>
+      <span class="autonote">자동으로 진행하고 있어요</span>
     </div>
   </section>
 
@@ -708,6 +1025,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <section id="screen-result" hidden style="display:flex;flex-direction:column;gap:14px">
     <div class="result">
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
+        <div class="r-head"><small id="rLabel">레이드 결과</small><h2 id="rTitle"></h2><p id="rSub"></p></div>
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
         <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
         <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
@@ -725,17 +1043,15 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
           <div class="section-h" style="margin:0 0 8px"><h3 style="font-size:17px">같은 시장, 다른 선택이었다면</h3></div>
           <div class="whatif" id="rWhatIf"></div>
         </div>
-        <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
-          <button class="btn" id="nextRaidBtn" type="button">다음 레이드 ▶</button>
-          <div class="row">
-            <button class="btn secondary" id="retryBtn" type="button">다시 도전</button>
-            <button class="btn secondary" id="otherBtn" type="button">레이드 목록</button>
-            <button class="btn secondary" id="etfBtn" type="button">이번에 고른 상품</button>
-          </div>
+        <div class="r-links">
+          <button class="linkbtn" id="retryBtn" type="button">다시 도전</button>
+          <button class="linkbtn" id="otherBtn" type="button">홈으로</button>
+          <button class="linkbtn" id="etfBtn" type="button">이번에 고른 상품</button>
         </div>
+        <div class="cta-bar"><button class="btn cta" id="nextRaidBtn" type="button">다음 레이드</button></div>
       </div>
     </div>
-    <details class="card more" id="rMore" open>
+    <details class="card more" id="rMore">
       <summary>자세히 보기</summary>
       <div class="result" style="margin-top:12px">
         <div style="display:flex;flex-direction:column;gap:14px">
@@ -762,7 +1078,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     </div>
     <p class="cp-hint" id="cpHint"></p>
     <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
-    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
+    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 가기</b><small>지금 파티 그대로 다음 날로</small></span><span id="cpHoldPay"></span></button>
+    <div class="cp-quick" id="cpQuick"></div>
+    <button class="linkbtn" id="cpManual" type="button">직접 고르기</button>
     <div class="choices two" role="tablist">
       <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
       <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
@@ -1577,6 +1895,7 @@ function renderNewsline() { $('#newsline').hidden = true; }
 /* ---------- 2. briefing ---------- */
 let bChart = null;
 async function openBrief(id) {
+  $('#raidSheet').hidden = true;
   currentTape = await adapter.load(id);
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
@@ -1701,8 +2020,33 @@ function renderHome() {
     return `<button type="button" class="cast ${sel ? 'sel' : ''} ${h.branch ? 'evo' : ''}" data-role="${r}" style="--rc:${ROLE_COLOR[r]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : ROLE_COLOR[r]};--d:${-i * .45}s" aria-pressed="${sel}">
       <span class="tag"><b>${charOf(r).name}</b>${sel || h.branch ? `<small>${heroTitle(r)}</small>` : ''}</span>
       <img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span class="ring"></span></button>`; }).join('');
-  $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); });
+  $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); openHeroSheet(); });
   $('#heroSheet').innerHTML = heroSheetHTML(homeSel);
+  $('#homeTitle').textContent = homeSentence(plays);
+  const t = TAPES.find(x => x.dailyRaid), done = t && profile.plays[t.id]?.count;
+  $('#homeHelper').textContent = !t ? '' : done ? '오늘 판은 끝났어요. 내일 아침에 새 판이 열려요.' : `어제 뉴욕 종가로 3턴 · 보스 ${t.boss}`;
+  $('#homeStart').textContent = done ? '오늘의 한 판 다시 하기' : '오늘의 한 판 시작';
+  $('#moreRaidsBtn').onclick = () => { sfx.select(); window.__openRaids(); };
+  $('#homeStart').onclick = async () => { if (!t) return; unlock(); sfx.select(); await openBrief(t.id); openParty(); };
+}
+function homeSentence(plays) {
+  if (!plays) return '첫 레이드를 떠나 볼까요?';
+  const left = ROLES.filter(r => !hero(r).branch);
+  if (!left.length) return '네 명 모두 전직했어요';
+  const r = left.sort((a, b) => raidsLeft(a) - raidsLeft(b))[0], h = hero(r), n = charOf(r).name, k = raidsLeft(r), cls = CLASSES[r][branchOf(h.st)];
+  return k ? `${n}${josa(n, '이', '가')} ${cls}${josa(cls, '이', '가')} 되기까지 ${KNUM(k)} 판 남았어요` : `다음 판에 ${n}${josa(n, '이', '가')} 전직해요`;
+}
+window.__openRaids = () => { const w = $('#raidSheet'); w.hidden = false; w.querySelectorAll('[data-close]').forEach(el => el.onclick = () => { w.hidden = true; }); };
+function openHeroSheet() {
+  const w = $('#heroSheetWrap'); w.hidden = false;
+  w.querySelectorAll('[data-close]').forEach(el => el.onclick = () => { w.hidden = true; });
+}
+/** jelly-style peek: the next class shows through a little more each raid */
+function peekHTML(role) {
+  const h = hero(role); if (h.branch) return '';
+  const lead = branchOf(h.st), p = Math.max(8, Math.min(100, Math.round(heroPts(h) / EVO_PTS * 100))), k = raidsLeft(role), n = charOf(role).name;
+  return `<div class="peek" style="--bc:${BRANCH_COLOR[lead]}"><div class="pk" style="--p:${p}"><img class="sil" src="${cutArt(heroUnit(role))}" alt=""><img class="col" src="${cutArt(heroUnit(role))}" alt=""></div>
+    <div class="pt"><small>${n}의 다음 모습이 조금 보여요</small><b>${h.raids ? CLASSES[role][lead] : '???'}</b><small>${!h.raids ? '레이드를 하면 드러나요' : k ? `${KNUM(k)} 판 더 하면 전직해요` : '다음 판에 전직해요'}</small></div></div>`;
 }
 function heroSheetHTML(role) {
   const h = hero(role), name = charOf(role).name, lead = h.branch || branchOf(h.st), started = h.raids > 0;
@@ -1711,7 +2055,7 @@ function heroSheetHTML(role) {
     : !started ? '레이드에서 어떤 상품을 들었는지에 따라 성격이 달라져요.'
     : `${LEAN[lead]} 자라고 있어요. 이대로면 <b style="color:${BRANCH_COLOR[lead]}">${CLASSES[role][lead]}</b>${josa(CLASSES[role][lead], '이', '가')} 돼요.`;
   const left = raidsLeft(role), on = h.branch ? STEPS : Math.min(STEPS, Math.floor(heroPts(h) / EVO_PTS * STEPS));
-  return `<div class="hs-head" style="--rc:${ROLE_COLOR[role]}"><b>${name}</b><span>${heroTitle(role)}</span></div>
+  return `<div class="hs-head" style="--rc:${ROLE_COLOR[role]}"><b>${name}</b><span>${heroTitle(role)}</span></div>${peekHTML(role)}
     <p class="hs-line">${line}</p>
     <div class="hs-stats">${STAT_KEYS.map(k => `<div class="hs-stat">${statIcon(k, 18)}<span>${STAT_LABEL[k]}</span><i><em style="width:${(h.st[k] / max * 100).toFixed(1)}%;background:${STAT_COLOR[k]}"></em></i><b class="tabular">${h.st[k]}</b></div>`).join('')}</div>
     <div class="hs-path">${Object.keys(CLASSES[role]).map(br => { const known = h.branch === br || (started && lead === br);
@@ -1826,6 +2170,8 @@ function renderPartyScreen() {
       <div class="wctl"><button type="button" class="wbtn" data-w="${role}" data-d="-5" aria-label="${c.name} 비중 줄이기">−</button><output id="o-${role}">${party.weights[role]}%</output><button type="button" class="wbtn" data-w="${role}" data-d="5" aria-label="${c.name} 비중 늘리기">+</button></div>
       <div class="skills" id="sk-${role}"></div>`;
     $('#roles').appendChild(card);
+    { const sk = currentTape.skills.find(x => x.id === party.skills[role]); card.querySelector('h3 small').textContent = sk ? sk.name : m.asset; }
+    card.addEventListener('click', e => { if (e.target.closest('.wbtn,.skill')) return; card.classList.toggle('open'); });
     card.querySelectorAll('.wbtn').forEach(b => b.addEventListener('click', () => { sfx.select(); stepWeight(party.weights, role, +b.dataset.d); ROLES.forEach(r => { $('#o-' + r).value = party.weights[r] + '%'; }); renderSum(); }));
     renderSkillList(card.querySelector('#sk-' + role), role, lvl);
   });
@@ -1842,7 +2188,7 @@ function renderSkillList(box, role, lvl) {
     b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span><span class="chips">${locked ? `<span class="lock">${lockLabel(s)}</span>` : skillStatChips(s)}</span>`;
     b.addEventListener('click', () => {
       if (locked) { sfx.back(); toast(`${charOf(role).name}${josa(charOf(role).name, '이', '가')} 전직하면 열려요. 위쪽 '체험 모드'로 미리 써 볼 수 있어요.`, 2800); return; }
-      sfx.select(); party.skills[role] = s.id;
+      sfx.select(); party.skills[role] = s.id; { const sm = box.closest('.role')?.querySelector('h3 small'); if (sm) sm.textContent = s.name; }
       box.querySelectorAll('.skill').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true');
       renderPartyMeta();
     });
@@ -2239,6 +2585,8 @@ function renderPartyHud(turn) {
   $('#partyhud').innerHTML = ROLES.map(role => {
     const sk = s.party._bySkill[s.party.skills[role]], hp = s.partyHp[role], sh = s.shield[role];
     const r = turn?.roles[role]?.ret;
+    const hc = hp > 60 ? '#3FB56A' : hp > 30 ? '#E0A72E' : '#D6453F';
+    return `<div class="pchip ${hp <= 0 ? 'dead' : ''}" id="phud-${role}" style="--hc:${hc}"><span class="ring" style="--p:${Math.max(0, hp).toFixed(0)}"><img src="${portrait(heroUnit(role))}" alt=""></span><b>${charOf(role).name}</b><span class="delta ${r === undefined ? '' : r >= 0 ? 'up' : 'down'}">${r === undefined ? `${s.party.weights[role]}%` : fmtPct(r)}</span></div>`;
     const h = hero(role);
     return `<div class="phud ${hp <= 0 ? 'dead' : ''} ${h.branch ? 'evo' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}">
       <div class="t"><img src="${portrait(heroUnit(role))}" alt=""><b>${charOf(role).name}</b><small>${heroTitle(role)}</small>${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</div>
@@ -2425,7 +2773,7 @@ async function raidLoop() {
   while (!battle.done && !aborted) {
     await waitResume(); if (aborted) return;
     const nb = currentTape.bars[battle.bar + 1];
-    if (nb && !battle.paused) await waitNext(`다음 턴 ▶ ${fmtBar(nb.t)} ${nb.label}`);
+    if (nb && !battle.paused) await waitNext(`${fmtBar(nb.t)} 보기`);
     if (aborted) return;
     const turn = step(battle);
     if (!turn) { if (battle.paused) { skipping = false; $('#skipBtn').disabled = false; await showCheckpoint(battle.paused); continue; } break; }
@@ -2536,8 +2884,8 @@ async function showCheckpoint(cp) {
     const tabs = $$('#cp .choices [data-tab]');
     let openTab = null;
     const setTab = name => { openTab = name; tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
-    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(openTab === t.dataset.tab ? null : t.dataset.tab); }; });
-    setTab(null);
+    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
+    setTab('equip');
     const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; $('#tip').hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); justDecided = true; resolve(); };
     $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip
@@ -2552,13 +2900,29 @@ async function showCheckpoint(cp) {
         const locked = !skillOpen(s);
         const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked; if (s.lesson) b.title = s.lesson;
         const skills2 = { ...battle.party.skills, [role]: s.id };
-        b.innerHTML = `<span class="n">${s.name} ${locked ? '' : skillStatChips(s)}</span><span class="i">${s.instrument}${locked ? ` · ${lockLabel(s)}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
+        const nm = charOf(role).name, wv = battle.party.weights[role];
+        b.innerHTML = `<span class="n">${nm}${josa(nm, '을', '를')} ${s.name}${josa(s.name, '으로', '로')} 바꾸기 ${locked ? '' : skillStatChips(s)}</span><span class="i">${locked ? lockLabel(s) : `${cur.name} ${wv}% → ${s.name} ${wv}%`}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
         b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: 99 }, `${charOf(role).name} → ${s.name}`); };
         opts.appendChild(b);
       });
       if (!opts.children.length) opts.innerHTML = '<span class="small muted">바꿀 상품이 없어요</span>';
       $('#cpEquip').appendChild(box);
     });
+    // curated choices: one safer swap and one bolder swap, picked from what this party can actually do
+    { const base = partyBeta(battle.party.weights, battle.party.skills), v = totalValue(), opts = [];
+      ROLES.forEach(role => { const cur = battle.party._bySkill[battle.party.skills[role]];
+        currentTape.skills.filter(x => x.role === role && x.id !== cur.id && skillOpen(x)).forEach(x => opts.push({ role, s: x, b: partyBeta(battle.party.weights, { ...battle.party.skills, [role]: x.id }) })); });
+      const safe = opts.filter(o => o.b.down < base.down - 1e-6).sort((a, b) => a.b.down - b.b.down)[0];
+      const bold = opts.filter(o => o.b.up > base.up + 1e-6).sort((a, b) => b.b.up - a.b.up)[0];
+      const say = o => { const nm = charOf(o.role).name; return `${nm}${josa(nm, '을', '를')} ${o.s.name}${josa(o.s.name, '으로', '로')} 바꾸기`; };
+      const rows = [];
+      if (safe) rows.push(`<button type="button" class="qc" data-q="safe"><small>덜 잃게</small><b>${say(safe)}</b><span>떨어지면 ${fmtMan(-v * safe.b.down * mv / 100)}, 지금은 ${fmtMan(-v * base.down * mv / 100)}</span></button>`);
+      if (bold) rows.push(`<button type="button" class="qc" data-q="bold"><small>더 벌게</small><b>${say(bold)}</b><span>오르면 ${fmtMan(v * bold.b.up * mv / 100)}, 지금은 ${fmtMan(v * base.up * mv / 100)}</span></button>`);
+      $('#cpQuick').innerHTML = rows.join('');
+      $$('#cpQuick .qc').forEach(btn => btn.onclick = () => { const o = btn.dataset.q === 'safe' ? safe : bold; sfx.select(); done({ type: 'equip', role: o.role, skill: o.s.id, level: 99 }, `${charOf(o.role).name} → ${o.s.name}`); });
+      $('.cp-box').classList.remove('manual');
+      $('#cpManual').onclick = () => { sfx.select(); $('.cp-box').classList.toggle('manual'); };
+    }
     // rebalance
     const w = { ...battle.party.weights };
     const renderSl = () => {
@@ -2598,13 +2962,13 @@ async function showResult() {
   // next raid: the first one not yet played (real first), else the next in the list
   const order2 = [...TAPES.filter(t => !t.example).slice().reverse(), ...TAPES.filter(t => t.example)];
   const next = order2.find(t => !profile.plays[t.id] && t.id !== currentTape.id) || order2[(order2.findIndex(t => t.id === currentTape.id) + 1) % order2.length];
-  $('#nextRaidBtn').innerHTML = `다음 레이드 ▶ ${next.title}${next.example ? '' : ' <span class="chip real" style="margin-left:4px">실제</span>'}`;
+  $('#nextRaidBtn').textContent = `다음 레이드: ${next.title}`;
   $('#nextRaidBtn').onclick = () => { sfx.select(); party = null; openBrief(next.id); };
   $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
   $('#rMoney').textContent = fmtKRW(totalValue());
   $('#rAlphaLabel').textContent = `시장(${benchmarkOf(currentTape)})에 넣었다면`;
   $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)}`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
-  $('#rMore').open = true;
+  $('#rMore').open = false;
   $('#rBoss').textContent = r.bossDown ? '격파' : `체력 ${Math.round(s.bossHp)} 남았어요`;
   $('#rAlive').textContent = `${r.alive} / 4`;
   const cs = ROLES.map(role => ({ role, c: contribution(s, role) })); const mx = Math.max(.2, ...cs.map(x => Math.abs(x.c)));
@@ -2646,6 +3010,11 @@ async function showResult() {
     soon && soonN ? `${KNUM(soonN)} 판만 더 하면 ${soonName}${josa(soonName, '이', '가')} 전직해요. ${nextBossSentence()}` : nextBossSentence(),
   ].filter(Boolean);
   $('#rGrowthText').innerHTML = lines2.map(l => `<p>${l}</p>`).join('');
+  $('#rTitle').textContent = lines2[0];
+  $('#rSub').textContent = Math.abs(r.alpha) < 0.005 ? '시장과 거의 같았어요.' : r.alpha > 0 ? `시장(${s._benchId})보다 ${r.alpha.toFixed(2)}%p 앞섰어요.` : `시장(${s._benchId})보다 ${(-r.alpha).toFixed(2)}%p 뒤졌어요.`;
+  const pk = ROLES.filter(x => !hero(x).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
+  $('#rGrowth').insertAdjacentHTML('beforebegin', ''); $('#rPeek')?.remove();
+  if (pk) $('#rGrowth').insertAdjacentHTML('afterend', `<div id="rPeek">${peekHTML(pk)}</div>`);
   $('#rGrowth').innerHTML = ROLES.map(role => statusWindowHTML(role, { gains: growth.gains[role] })).join('');
   if (growth.evolved.length) setTimeout(() => evolveCut(growth.evolved[0]), 900);
   // animations
@@ -2725,6 +3094,12 @@ renderProfile(); renderSelect(); showScreen('select');
 
 // test/automation hooks (not used by the UI)
 window.__rpg = { TAPES, vsIntro, get dbg() { return { userPaused, skipping, autoMode, justDecided, hasWaiter: !!nextWaiter, aborted, sceneReady: scene?.ready, paused: battle?.paused }; }, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작 · 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언 · 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; if (v >= 4) setAuto(true); }, setAuto, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
+
+// menus: an item click or a click outside closes the open menu
+document.addEventListener('click', e => {
+  $$('details.menu[open]').forEach(d => { if (!d.contains(e.target) || e.target.closest('.menu-box button')) d.open = false; });
+});
+$('.presets')?.prepend($('#accountBtn'));
 
 </script>
 </body></html>

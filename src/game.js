@@ -254,6 +254,7 @@ function renderNewsline() { $('#newsline').hidden = true; }
 /* ---------- 2. briefing ---------- */
 let bChart = null;
 async function openBrief(id) {
+  $('#raidSheet').hidden = true;
   currentTape = await adapter.load(id);
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
@@ -378,8 +379,33 @@ function renderHome() {
     return `<button type="button" class="cast ${sel ? 'sel' : ''} ${h.branch ? 'evo' : ''}" data-role="${r}" style="--rc:${ROLE_COLOR[r]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : ROLE_COLOR[r]};--d:${-i * .45}s" aria-pressed="${sel}">
       <span class="tag"><b>${charOf(r).name}</b>${sel || h.branch ? `<small>${heroTitle(r)}</small>` : ''}</span>
       <img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span class="ring"></span></button>`; }).join('');
-  $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); });
+  $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); openHeroSheet(); });
   $('#heroSheet').innerHTML = heroSheetHTML(homeSel);
+  $('#homeTitle').textContent = homeSentence(plays);
+  const t = TAPES.find(x => x.dailyRaid), done = t && profile.plays[t.id]?.count;
+  $('#homeHelper').textContent = !t ? '' : done ? '오늘 판은 끝났어요. 내일 아침에 새 판이 열려요.' : `어제 뉴욕 종가로 3턴 · 보스 ${t.boss}`;
+  $('#homeStart').textContent = done ? '오늘의 한 판 다시 하기' : '오늘의 한 판 시작';
+  $('#moreRaidsBtn').onclick = () => { sfx.select(); window.__openRaids(); };
+  $('#homeStart').onclick = async () => { if (!t) return; unlock(); sfx.select(); await openBrief(t.id); openParty(); };
+}
+function homeSentence(plays) {
+  if (!plays) return '첫 레이드를 떠나 볼까요?';
+  const left = ROLES.filter(r => !hero(r).branch);
+  if (!left.length) return '네 명 모두 전직했어요';
+  const r = left.sort((a, b) => raidsLeft(a) - raidsLeft(b))[0], h = hero(r), n = charOf(r).name, k = raidsLeft(r), cls = CLASSES[r][branchOf(h.st)];
+  return k ? `${n}${josa(n, '이', '가')} ${cls}${josa(cls, '이', '가')} 되기까지 ${KNUM(k)} 판 남았어요` : `다음 판에 ${n}${josa(n, '이', '가')} 전직해요`;
+}
+window.__openRaids = () => { const w = $('#raidSheet'); w.hidden = false; w.querySelectorAll('[data-close]').forEach(el => el.onclick = () => { w.hidden = true; }); };
+function openHeroSheet() {
+  const w = $('#heroSheetWrap'); w.hidden = false;
+  w.querySelectorAll('[data-close]').forEach(el => el.onclick = () => { w.hidden = true; });
+}
+/** jelly-style peek: the next class shows through a little more each raid */
+function peekHTML(role) {
+  const h = hero(role); if (h.branch) return '';
+  const lead = branchOf(h.st), p = Math.max(8, Math.min(100, Math.round(heroPts(h) / EVO_PTS * 100))), k = raidsLeft(role), n = charOf(role).name;
+  return `<div class="peek" style="--bc:${BRANCH_COLOR[lead]}"><div class="pk" style="--p:${p}"><img class="sil" src="${cutArt(heroUnit(role))}" alt=""><img class="col" src="${cutArt(heroUnit(role))}" alt=""></div>
+    <div class="pt"><small>${n}의 다음 모습이 조금 보여요</small><b>${h.raids ? CLASSES[role][lead] : '???'}</b><small>${!h.raids ? '레이드를 하면 드러나요' : k ? `${KNUM(k)} 판 더 하면 전직해요` : '다음 판에 전직해요'}</small></div></div>`;
 }
 function heroSheetHTML(role) {
   const h = hero(role), name = charOf(role).name, lead = h.branch || branchOf(h.st), started = h.raids > 0;
@@ -388,7 +414,7 @@ function heroSheetHTML(role) {
     : !started ? '레이드에서 어떤 상품을 들었는지에 따라 성격이 달라져요.'
     : `${LEAN[lead]} 자라고 있어요. 이대로면 <b style="color:${BRANCH_COLOR[lead]}">${CLASSES[role][lead]}</b>${josa(CLASSES[role][lead], '이', '가')} 돼요.`;
   const left = raidsLeft(role), on = h.branch ? STEPS : Math.min(STEPS, Math.floor(heroPts(h) / EVO_PTS * STEPS));
-  return `<div class="hs-head" style="--rc:${ROLE_COLOR[role]}"><b>${name}</b><span>${heroTitle(role)}</span></div>
+  return `<div class="hs-head" style="--rc:${ROLE_COLOR[role]}"><b>${name}</b><span>${heroTitle(role)}</span></div>${peekHTML(role)}
     <p class="hs-line">${line}</p>
     <div class="hs-stats">${STAT_KEYS.map(k => `<div class="hs-stat">${statIcon(k, 18)}<span>${STAT_LABEL[k]}</span><i><em style="width:${(h.st[k] / max * 100).toFixed(1)}%;background:${STAT_COLOR[k]}"></em></i><b class="tabular">${h.st[k]}</b></div>`).join('')}</div>
     <div class="hs-path">${Object.keys(CLASSES[role]).map(br => { const known = h.branch === br || (started && lead === br);
@@ -503,6 +529,8 @@ function renderPartyScreen() {
       <div class="wctl"><button type="button" class="wbtn" data-w="${role}" data-d="-5" aria-label="${c.name} 비중 줄이기">−</button><output id="o-${role}">${party.weights[role]}%</output><button type="button" class="wbtn" data-w="${role}" data-d="5" aria-label="${c.name} 비중 늘리기">+</button></div>
       <div class="skills" id="sk-${role}"></div>`;
     $('#roles').appendChild(card);
+    { const sk = currentTape.skills.find(x => x.id === party.skills[role]); card.querySelector('h3 small').textContent = sk ? sk.name : m.asset; }
+    card.addEventListener('click', e => { if (e.target.closest('.wbtn,.skill')) return; card.classList.toggle('open'); });
     card.querySelectorAll('.wbtn').forEach(b => b.addEventListener('click', () => { sfx.select(); stepWeight(party.weights, role, +b.dataset.d); ROLES.forEach(r => { $('#o-' + r).value = party.weights[r] + '%'; }); renderSum(); }));
     renderSkillList(card.querySelector('#sk-' + role), role, lvl);
   });
@@ -519,7 +547,7 @@ function renderSkillList(box, role, lvl) {
     b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span><span class="chips">${locked ? `<span class="lock">${lockLabel(s)}</span>` : skillStatChips(s)}</span>`;
     b.addEventListener('click', () => {
       if (locked) { sfx.back(); toast(`${charOf(role).name}${josa(charOf(role).name, '이', '가')} 전직하면 열려요. 위쪽 '체험 모드'로 미리 써 볼 수 있어요.`, 2800); return; }
-      sfx.select(); party.skills[role] = s.id;
+      sfx.select(); party.skills[role] = s.id; { const sm = box.closest('.role')?.querySelector('h3 small'); if (sm) sm.textContent = s.name; }
       box.querySelectorAll('.skill').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true');
       renderPartyMeta();
     });
@@ -916,6 +944,8 @@ function renderPartyHud(turn) {
   $('#partyhud').innerHTML = ROLES.map(role => {
     const sk = s.party._bySkill[s.party.skills[role]], hp = s.partyHp[role], sh = s.shield[role];
     const r = turn?.roles[role]?.ret;
+    const hc = hp > 60 ? '#3FB56A' : hp > 30 ? '#E0A72E' : '#D6453F';
+    return `<div class="pchip ${hp <= 0 ? 'dead' : ''}" id="phud-${role}" style="--hc:${hc}"><span class="ring" style="--p:${Math.max(0, hp).toFixed(0)}"><img src="${portrait(heroUnit(role))}" alt=""></span><b>${charOf(role).name}</b><span class="delta ${r === undefined ? '' : r >= 0 ? 'up' : 'down'}">${r === undefined ? `${s.party.weights[role]}%` : fmtPct(r)}</span></div>`;
     const h = hero(role);
     return `<div class="phud ${hp <= 0 ? 'dead' : ''} ${h.branch ? 'evo' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}">
       <div class="t"><img src="${portrait(heroUnit(role))}" alt=""><b>${charOf(role).name}</b><small>${heroTitle(role)}</small>${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</div>
@@ -1102,7 +1132,7 @@ async function raidLoop() {
   while (!battle.done && !aborted) {
     await waitResume(); if (aborted) return;
     const nb = currentTape.bars[battle.bar + 1];
-    if (nb && !battle.paused) await waitNext(`다음 턴 ▶ ${fmtBar(nb.t)} ${nb.label}`);
+    if (nb && !battle.paused) await waitNext(`${fmtBar(nb.t)} 보기`);
     if (aborted) return;
     const turn = step(battle);
     if (!turn) { if (battle.paused) { skipping = false; $('#skipBtn').disabled = false; await showCheckpoint(battle.paused); continue; } break; }
@@ -1213,8 +1243,8 @@ async function showCheckpoint(cp) {
     const tabs = $$('#cp .choices [data-tab]');
     let openTab = null;
     const setTab = name => { openTab = name; tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === name))); $('#cpEquip').hidden = name !== 'equip'; $('#cpRebal').hidden = name !== 'rebalance'; };
-    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(openTab === t.dataset.tab ? null : t.dataset.tab); }; });
-    setTab(null);
+    tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(t.dataset.tab); }; });
+    setTab('equip');
     const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; $('#tip').hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); justDecided = true; resolve(); };
     $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip
@@ -1229,13 +1259,29 @@ async function showCheckpoint(cp) {
         const locked = !skillOpen(s);
         const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked; if (s.lesson) b.title = s.lesson;
         const skills2 = { ...battle.party.skills, [role]: s.id };
-        b.innerHTML = `<span class="n">${s.name} ${locked ? '' : skillStatChips(s)}</span><span class="i">${s.instrument}${locked ? ` · ${lockLabel(s)}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
+        const nm = charOf(role).name, wv = battle.party.weights[role];
+        b.innerHTML = `<span class="n">${nm}${josa(nm, '을', '를')} ${s.name}${josa(s.name, '으로', '로')} 바꾸기 ${locked ? '' : skillStatChips(s)}</span><span class="i">${locked ? lockLabel(s) : `${cur.name} ${wv}% → ${s.name} ${wv}%`}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
         b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: 99 }, `${charOf(role).name} → ${s.name}`); };
         opts.appendChild(b);
       });
       if (!opts.children.length) opts.innerHTML = '<span class="small muted">바꿀 상품이 없어요</span>';
       $('#cpEquip').appendChild(box);
     });
+    // curated choices: one safer swap and one bolder swap, picked from what this party can actually do
+    { const base = partyBeta(battle.party.weights, battle.party.skills), v = totalValue(), opts = [];
+      ROLES.forEach(role => { const cur = battle.party._bySkill[battle.party.skills[role]];
+        currentTape.skills.filter(x => x.role === role && x.id !== cur.id && skillOpen(x)).forEach(x => opts.push({ role, s: x, b: partyBeta(battle.party.weights, { ...battle.party.skills, [role]: x.id }) })); });
+      const safe = opts.filter(o => o.b.down < base.down - 1e-6).sort((a, b) => a.b.down - b.b.down)[0];
+      const bold = opts.filter(o => o.b.up > base.up + 1e-6).sort((a, b) => b.b.up - a.b.up)[0];
+      const say = o => { const nm = charOf(o.role).name; return `${nm}${josa(nm, '을', '를')} ${o.s.name}${josa(o.s.name, '으로', '로')} 바꾸기`; };
+      const rows = [];
+      if (safe) rows.push(`<button type="button" class="qc" data-q="safe"><small>덜 잃게</small><b>${say(safe)}</b><span>떨어지면 ${fmtMan(-v * safe.b.down * mv / 100)}, 지금은 ${fmtMan(-v * base.down * mv / 100)}</span></button>`);
+      if (bold) rows.push(`<button type="button" class="qc" data-q="bold"><small>더 벌게</small><b>${say(bold)}</b><span>오르면 ${fmtMan(v * bold.b.up * mv / 100)}, 지금은 ${fmtMan(v * base.up * mv / 100)}</span></button>`);
+      $('#cpQuick').innerHTML = rows.join('');
+      $$('#cpQuick .qc').forEach(btn => btn.onclick = () => { const o = btn.dataset.q === 'safe' ? safe : bold; sfx.select(); done({ type: 'equip', role: o.role, skill: o.s.id, level: 99 }, `${charOf(o.role).name} → ${o.s.name}`); });
+      $('.cp-box').classList.remove('manual');
+      $('#cpManual').onclick = () => { sfx.select(); $('.cp-box').classList.toggle('manual'); };
+    }
     // rebalance
     const w = { ...battle.party.weights };
     const renderSl = () => {
@@ -1275,13 +1321,13 @@ async function showResult() {
   // next raid: the first one not yet played (real first), else the next in the list
   const order2 = [...TAPES.filter(t => !t.example).slice().reverse(), ...TAPES.filter(t => t.example)];
   const next = order2.find(t => !profile.plays[t.id] && t.id !== currentTape.id) || order2[(order2.findIndex(t => t.id === currentTape.id) + 1) % order2.length];
-  $('#nextRaidBtn').innerHTML = `다음 레이드 ▶ ${next.title}${next.example ? '' : ' <span class="chip real" style="margin-left:4px">실제</span>'}`;
+  $('#nextRaidBtn').textContent = `다음 레이드: ${next.title}`;
   $('#nextRaidBtn').onclick = () => { sfx.select(); party = null; openBrief(next.id); };
   $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
   $('#rMoney').textContent = fmtKRW(totalValue());
   $('#rAlphaLabel').textContent = `시장(${benchmarkOf(currentTape)})에 넣었다면`;
   $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)}`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
-  $('#rMore').open = true;
+  $('#rMore').open = false;
   $('#rBoss').textContent = r.bossDown ? '격파' : `체력 ${Math.round(s.bossHp)} 남았어요`;
   $('#rAlive').textContent = `${r.alive} / 4`;
   const cs = ROLES.map(role => ({ role, c: contribution(s, role) })); const mx = Math.max(.2, ...cs.map(x => Math.abs(x.c)));
@@ -1323,6 +1369,11 @@ async function showResult() {
     soon && soonN ? `${KNUM(soonN)} 판만 더 하면 ${soonName}${josa(soonName, '이', '가')} 전직해요. ${nextBossSentence()}` : nextBossSentence(),
   ].filter(Boolean);
   $('#rGrowthText').innerHTML = lines2.map(l => `<p>${l}</p>`).join('');
+  $('#rTitle').textContent = lines2[0];
+  $('#rSub').textContent = Math.abs(r.alpha) < 0.005 ? '시장과 거의 같았어요.' : r.alpha > 0 ? `시장(${s._benchId})보다 ${r.alpha.toFixed(2)}%p 앞섰어요.` : `시장(${s._benchId})보다 ${(-r.alpha).toFixed(2)}%p 뒤졌어요.`;
+  const pk = ROLES.filter(x => !hero(x).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
+  $('#rGrowth').insertAdjacentHTML('beforebegin', ''); $('#rPeek')?.remove();
+  if (pk) $('#rGrowth').insertAdjacentHTML('afterend', `<div id="rPeek">${peekHTML(pk)}</div>`);
   $('#rGrowth').innerHTML = ROLES.map(role => statusWindowHTML(role, { gains: growth.gains[role] })).join('');
   if (growth.evolved.length) setTimeout(() => evolveCut(growth.evolved[0]), 900);
   // animations
@@ -1402,3 +1453,9 @@ renderProfile(); renderSelect(); showScreen('select');
 
 // test/automation hooks (not used by the UI)
 window.__rpg = { TAPES, vsIntro, get dbg() { return { userPaused, skipping, autoMode, justDecided, hasWaiter: !!nextWaiter, aborted, sceneReady: scene?.ready, paused: battle?.paused }; }, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작 · 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언 · 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; if (v >= 4) setAuto(true); }, setAuto, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
+
+// menus: an item click or a click outside closes the open menu
+document.addEventListener('click', e => {
+  $$('details.menu[open]').forEach(d => { if (!d.contains(e.target) || e.target.closest('.menu-box button')) d.open = false; });
+});
+$('.presets')?.prepend($('#accountBtn'));

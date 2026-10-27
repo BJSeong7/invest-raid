@@ -30,13 +30,13 @@ try {
   await page.waitForFunction(() => window.__rpg && document.querySelectorAll('.raid').length > 0);
   await page.waitForSelector('#tip:not([hidden])', { timeout: 5000 });
   check(true, 'first-visit coach tip appears');
-  await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
+  await page.evaluate(() => { const d = document.querySelector('#helpBtn').closest('details'); if (d) d.open = true; }); await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
   check((await page.$$('#raids .raid')).length === 2 && (await page.$$('#raidsExample .raid')).length === 3 && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'raid select shows 2 real + 3 training + 3 upcoming');
   check((await page.textContent('#screen-select .section-h')).includes('실제 종가'), 'real raid section carries the real-data chip');
   await shot(page, '1-select');
 
   // brief
-  await page.click('#raidsExample .raid:has-text("10월 FOMC")');
+  await page.evaluate(() => window.__openRaids()); await page.click('#raidsExample .raid:has-text("10월 FOMC")');
   await page.waitForSelector('#screen-brief:not([hidden])');
   check(await page.textContent('#bTitle') !== '', 'briefing title filled');
   await shot(page, '2-brief');
@@ -44,7 +44,7 @@ try {
   // party: push dealer to 60, tank 10 (sum stays 100 via explicit set)
   await page.click('#toParty');
   await page.waitForSelector('#screen-party:not([hidden])');
-  await page.evaluate(() => { document.querySelector('#partyDetail').open = true; });
+  await page.evaluate(() => { document.querySelector('#partyDetail').open = true; document.querySelectorAll('.role').forEach(r => r.classList.add('open')); });
   for (let i = 0; i < 4; i++) await page.click('.wbtn[data-w="dealer"][data-d="5"]');   // 40 -> 60, taken from the largest other role
   check((await page.evaluate(() => Object.values(window.__rpg.profile ? 1 : 1))) !== null && (await page.textContent('#o-dealer')) === '60%', 'dealer stepped to 60% and total stays 100');
   await page.click('.wbtn[data-w="tank"][data-d="-5"]');
@@ -70,7 +70,7 @@ try {
   await page.waitForSelector('#cp', { state: 'hidden' });
   // second checkpoint -> equip tab -> healer cash
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
-  await page.click('#cp [data-tab="equip"]');
+  await page.evaluate(() => document.querySelector('.cp-box').classList.add('manual')); await page.click('#cp [data-tab="equip"]');
   const cashBtn = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill');
   check(cashBtn.length >= 1, 'healer has alternative skills at checkpoint');
   await cashBtn[0].click();
@@ -109,10 +109,10 @@ try {
 
   // second raid quickly at 4x with default party (KR tape)
   await page.click('#backToBrief'); await page.click('#backToSelect');
-  await page.click('#raidsExample .raid:has-text("반도체 실적")');
+  await page.evaluate(() => window.__openRaids()); await page.click('#raidsExample .raid:has-text("반도체 실적")');
   await page.click('#toParty'); await page.click('[data-preset="balanced"]'); await page.click('#startBattle');
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
-  await page.click('#cp [data-tab="rebalance"]');
+  await page.evaluate(() => document.querySelector('.cp-box').classList.add('manual')); await page.click('#cp [data-tab="rebalance"]');
   await page.click('#cpSliders .wbtn[data-cw="tank"][data-d="-5"]');
   check(await page.isDisabled('#cpRebalBtn') === true, 'rebalance confirm disabled while weight is unassigned');
   await page.click('#cpSliders .wbtn[data-cw="dealer"][data-d="5"]');
@@ -127,14 +127,14 @@ try {
   // third raid: real daily-close tape (lich boss) — date labels, chart without clock times, hedge equip at checkpoint 1
   await page.click('#otherBtn');
   await page.waitForSelector('#screen-select:not([hidden])');
-  await page.click('#raids .raid:has-text("9월 FOMC")');
+  await page.evaluate(() => window.__openRaids()); await page.click('#raids .raid:has-text("9월 FOMC")');
   await page.waitForSelector('#screen-brief:not([hidden])');
   check((await page.textContent('#bDate')).includes('뉴욕 종가'), 'daily tape briefing says 뉴욕 종가: ' + (await page.textContent('#bDate')).trim());
   check(/\d\d\/\d\d\(.\)/.test(await page.textContent('#bTimeline')), 'daily timeline shows dates, not clock times');
   await page.click('#toParty'); await page.click('[data-preset="balanced"]'); await page.click('#startBattle');
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
   check(/\d\d\/\d\d.*마감 후/.test(await page.textContent('#cpStep')), 'daily checkpoint step carries the date: ' + (await page.textContent('#cpStep')).trim());
-  await page.click('#cp [data-tab="equip"]');
+  await page.evaluate(() => document.querySelector('.cp-box').classList.add('manual')); await page.click('#cp [data-tab="equip"]');
   const healerOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:not(:disabled)');
   const lockedOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:disabled');
   check(healerOpts.length >= 1 && lockedOpts.length >= 1, `daily tape healer has ${healerOpts.length} open + ${lockedOpts.length} locked alternatives`);
@@ -155,7 +155,7 @@ try {
 
   const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(overflow <= 0, 'no horizontal overflow at 390px (' + overflow + ')');
-  await phone.click('#raids .raid'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; });
+  await phone.evaluate(() => window.__openRaids()); await phone.click('#raids .raid'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; document.querySelectorAll('.role').forEach(r => r.classList.add('open')); });
   const ov2 = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(ov2 <= 0, 'no horizontal overflow on party screen at 390px (' + ov2 + ')');
   await shot(phone, '7-phone-party');
