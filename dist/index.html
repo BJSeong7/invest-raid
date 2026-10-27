@@ -889,6 +889,12 @@ body.mode-chart .mg-sec{display:none}
 .ec-bar.mine{height:16px;font-size:11px;margin-top:2px}.ec-bar.mine i{background:#6FA2FF}.ec-bar.mine em{background:#B9C4D4}
 .ec-face p{margin:4px 0 0;font-size:13px;color:var(--ink);line-height:1.55}
 @media (max-width:560px){.roles{grid-template-columns:1fr}.roles .role{display:grid;grid-template-columns:72px 1fr;column-gap:12px;row-gap:8px;align-items:center;text-align:left}.roles .role>img{grid-row:1/3;height:84px!important;max-width:72px;object-fit:contain}.roles .role>h3{grid-column:2}.roles .role>.wctl{grid-column:2}.roles .role>.skills{grid-column:1/-1;width:100%}.roles .role>h3,.roles .role>.wctl{justify-content:flex-start}}
+.rmain{width:100%;max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.rsum{margin:-4px 0 0;text-align:center;font-size:15px;color:var(--ink)}
+.rsum b{font-family:var(--display);font-weight:400}
+#rMore{width:100%;max-width:640px;margin:0 auto}
+#rMore .result{grid-template-columns:1fr}
+.rmain .row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 </style>
 
 <div class="wrap">
@@ -1013,22 +1019,12 @@ body.mode-chart .mg-sec{display:none}
 
   <!-- 5. result -->
   <section id="screen-result" hidden style="display:flex;flex-direction:column;gap:14px">
-    <div class="result">
-      <div class="card" style="display:flex;flex-direction:column;gap:12px">
+    <div class="card rmain">
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
         <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
         <div class="rstars" id="rStars" hidden></div>
         <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
-        <div class="stats">
-          <div class="stat"><small id="rAlphaLabel">시장에 넣었다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
-          <div class="stat"><small>보스</small><b id="rBoss"></b></div>
-          <div class="stat"><small>살아남은 동료</small><b id="rAlive">4 / 4</b></div>
-        </div>
-      </div>
-      <div class="card" style="display:flex;flex-direction:column;gap:14px">
-        <div class="board" id="rBoard"></div>
-        <div class="growth-text" id="rGrowthText"></div>
-        <div class="growth" id="rGrowth"></div>
+        <p class="rsum" id="rSum"></p>
         <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
         <div class="etf-card" id="rEtfCard" hidden></div>
         <div>
@@ -1042,11 +1038,24 @@ body.mode-chart .mg-sec{display:none}
             <button class="btn secondary" id="etfBtn" type="button">내가 담은 상품</button>
           </div>
         </div>
-      </div>
     </div>
-    <details class="card more" id="rMore" open>
+    <details class="card more" id="rMore">
       <summary>자세히 보기</summary>
       <div class="result" style="margin-top:12px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="board" id="rBoard"></div>
+          <div class="stats">
+            <div class="stat"><small id="rAlphaLabel">시장에 넣었다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
+            <div class="stat"><small>보스</small><b id="rBoss"></b></div>
+            <div class="stat"><small>살아남은 동료</small><b id="rAlive">4 / 4</b></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="growth-text" id="rGrowthText"></div>
+          <div class="growth" id="rGrowth"></div>
+        </div>
+      </div>
+      <div class="result" style="margin-top:14px">
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend" id="rChartLegend" style="justify-content:flex-start;gap:12px"></div><div class="chart" id="rChart" style="height:170px"></div></div>
           <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">내가 든 상품들의 실제 흐름 (시작 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
@@ -1526,7 +1535,7 @@ export function coachText(state) {
   const maxW = Math.max(...ROLES.map(x => state.party.weights[x]));
   if (eq) { const s = state.party._bySkill[eq.to]; lines.push(`체크포인트에서 ${s.name}${jo(s.name, '으로', '로')} 바꾼 선택은 ${afterCheckpointRet(state, eq.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}.`); }
   else if (maxW >= 60) lines.push(`한 역할에 ${maxW}%를 몰아준 편성이라 ${maxW === worst.w ? '한 방에 크게 맞았어요' : '이번엔 크게 벌었지만 반대였다면 크게 잃었을 거예요'}.`);
-  else lines.push(worst.c < -0.3 ? `${ROLE_META[worst.role].char}${jo(ROLE_META[worst.role].char, '이', '가')} 맞을 때 바꿔줄 상품이 있었는지 '같은 시장, 다른 선택'을 보세요.` : '고르게 나눈 편성이 크게 다치지 않은 비결이에요.');
+  else lines.push(worst.c < -0.3 ? `${ROLE_META[worst.role].char} 자리에서 가장 많이 잃었어요(${worst.c.toFixed(2)}%p). 체크포인트에서 다른 상품으로 바꿀 수 있었어요.` : '고르게 나눠서 한쪽이 빠져도 전체 손실이 크지 않았어요.');
   if (state.tape.lesson) lines.push(state.tape.lesson);
   return lines.slice(0, 3);
 }
@@ -2000,11 +2009,10 @@ function fieldFor(tape) {
 function renderBoard(s) {
   const host = $('#rBoard'); if (!host) return;
   const field = fieldFor(currentTape), me = fieldScore(s, starLoss(currentTape.id));
-  const { rank, total, pct } = fieldRank(field, me.score);
   const meName = chartMode() ? '내 포트폴리오' : '나';
   const rows = [...field.map(e => ({ ...e, me: false })), { ...me, name: meName, me: true }]
-    .sort((a, b) => b.score - a.score || b.returnPct - a.returnPct || (a.me ? -1 : b.me ? 1 : 0));
-  const myI = rows.findIndex(x => x.me);
+    .sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : b.me ? 1 : 0));   // ranked by return only
+  const myI = rows.findIndex(x => x.me), rank = myI + 1, total = rows.length, pct = Math.max(1, Math.round(rank / total * 100));
   const shown = rows.slice(0, 5); if (myI >= 5) shown.push(null, rows[myI]);
   const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.returnPct)}</span><span class="st">${'★'.repeat(e.stars)}<i>${'★'.repeat(3 - e.stars)}</i></span></div>` : `<div class="gap"><span class="rk">⋯</span></div>`;
   host.innerHTML = `<div class="hd"><h3>이번 판 리더보드</h3><b>이번 판 ${total}${chartMode() ? '개 포트폴리오' : '명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
@@ -3137,7 +3145,7 @@ async function showResult() {
   $('#rMoney').textContent = fmtKRW(totalValue());
   $('#rAlphaLabel').textContent = `시장(${benchmarkOf(currentTape)})에 넣었다면`;
   $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)}`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
-  $('#rMore').open = true;
+  $('#rMore').open = false;
   $('#rBoss').textContent = r.bossDown ? '격파' : `체력 ${Math.round(s.bossHp)} 남았어요`;
   $('#rAlive').textContent = `${r.alive} / 4`;
   const cs = ROLES.map(role => ({ role, c: contribution(s, role) })); const mx = Math.max(.2, ...cs.map(x => Math.abs(x.c)));
@@ -3170,14 +3178,14 @@ async function showResult() {
   rPriceChart?.remove(); rPriceChart = new BattleChart($('#rPriceChart'), currentTape, 'compare', { state: s, upto: currentTape.bars.length - 1, ids: battleInstruments().slice(0, 5) });
   $('#rPriceLegend').innerHTML = rPriceChart.legend();
   $('#coachAv').src = portrait('hero_healer');
-  renderBoard(s);
+  const brd = renderBoard(s);
+  $('#rSum').innerHTML = `시장(${benchmarkOf(currentTape)})보다 <b style="color:${r.alpha >= 0 ? 'var(--green)' : 'var(--red)'}">${Math.abs(r.alpha).toFixed(2)}%p ${r.alpha >= 0 ? '앞섰어요' : '뒤졌어요'}</b>${brd ? ` · ${brd.total}${chartMode() ? '개' : '명'} 중 <b>${brd.rank}등</b>` : ''}`;
   // growth: plain sentences + status windows with this raid's gains
   const pnl = totalValue() - SEED, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
   const nameList = rs => rs.map(r => jobOf(r)).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
   const evoNames = nameList(growth.evolved), evoLast = jobOf(growth.evolved[growth.evolved.length - 1] || 'tank');
   const soonN = soon ? raidsLeft(soon) : 0, soonName = soon ? charOf(soon).name : '';
   const lines2 = [
-    pnl >= 0 ? `${wonWords(pnl)}을 벌었어요.` : r.alpha > 0 ? `이번엔 ${wonWords(pnl)}을 잃었지만, 시장보다는 덜 잃었어요.` : `이번엔 ${wonWords(pnl)}을 잃었어요.`,
     growth.evolved.length === 1 ? `${evoNames}${josa(evoLast, '이', '가')} ${charOf(growth.evolved[0]).name}${josa(charOf(growth.evolved[0]).name, '으로', '로')} 전직했어요!`
       : growth.evolved.length ? `${evoNames}${josa(evoLast, '이', '가')} 전직했어요!` : '',
     (() => { const opened = currentTape.skills.filter(k => k.unlockLevel && growth.evolved.includes(k.role)).map(k => k.name); return opened.length ? `이제 ${opened.join(', ')}${josa(opened.at(-1), '을', '를')} 쓸 수 있어요.` : ''; })(),
@@ -3192,7 +3200,7 @@ async function showResult() {
   if (!reduceMotion) gsap.fromTo('.stamp-wrap', { x: -8 }, { x: 8, duration: .05, repeat: 5, yoyo: true, clearProps: 'x', delay: .35 });
   // coach typing
   const bubble = $('#coachBubble'); bubble.innerHTML = '';
-  const lines = coachText(s);
+  const lines = coachText(s).slice(1, 3);   // the first line repeats the money and market numbers shown above
   // one-line introduction: there are real ETFs that split stocks and bonds the way this party does (iShares Core Allocation, 2026-10-27 확인)
   { const eq = (s.party.weights.dealer || 0) + (s.party.weights.support || 0);
     const pick = eq >= 70 ? ['AOA', '주식 80%'] : eq >= 55 ? ['AOR', '주식 60%'] : eq >= 40 ? ['AOM', '주식 40%'] : ['AOK', '주식 30%'];
@@ -3201,7 +3209,7 @@ async function showResult() {
     if (card) { card.hidden = chartMode(); card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
         <div class="ec-bar"><i style="width:${AO[1]}%">주식 ${AO[1]}</i><em style="width:${100 - AO[1]}%">채권 ${100 - AO[1]}</em></div>
         <div class="ec-bar mine"><i style="width:${eq}%">내 파티 주식 ${eq}</i><em style="width:${100 - eq}%">${100 - eq}</em></div>
-        <p>네 캐릭터가 하는 일을 상품 하나가 대신해 주는 셈이에요. 참고용이고 추천은 아니에요.</p></div></div>`; } }
+        <p>주식과 채권을 이 비율로 나눠 담는 ETF예요. 참고용이고 추천은 아니에요.</p></div></div>`; } }
   (async () => { for (const line of lines) { const p = document.createElement('p'); p.className = 'typing'; bubble.appendChild(p); for (const ch of line) { p.textContent += ch; if (!reduceMotion) await sleep(14); } p.classList.remove('typing'); await sleep(200); } })();
   renderProfile();
 }

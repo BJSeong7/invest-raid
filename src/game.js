@@ -283,11 +283,10 @@ function fieldFor(tape) {
 function renderBoard(s) {
   const host = $('#rBoard'); if (!host) return;
   const field = fieldFor(currentTape), me = fieldScore(s, starLoss(currentTape.id));
-  const { rank, total, pct } = fieldRank(field, me.score);
   const meName = chartMode() ? '내 포트폴리오' : '나';
   const rows = [...field.map(e => ({ ...e, me: false })), { ...me, name: meName, me: true }]
-    .sort((a, b) => b.score - a.score || b.returnPct - a.returnPct || (a.me ? -1 : b.me ? 1 : 0));
-  const myI = rows.findIndex(x => x.me);
+    .sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : b.me ? 1 : 0));   // ranked by return only
+  const myI = rows.findIndex(x => x.me), rank = myI + 1, total = rows.length, pct = Math.max(1, Math.round(rank / total * 100));
   const shown = rows.slice(0, 5); if (myI >= 5) shown.push(null, rows[myI]);
   const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.returnPct)}</span><span class="st">${'★'.repeat(e.stars)}<i>${'★'.repeat(3 - e.stars)}</i></span></div>` : `<div class="gap"><span class="rk">⋯</span></div>`;
   host.innerHTML = `<div class="hd"><h3>이번 판 리더보드</h3><b>이번 판 ${total}${chartMode() ? '개 포트폴리오' : '명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
@@ -1420,7 +1419,7 @@ async function showResult() {
   $('#rMoney').textContent = fmtKRW(totalValue());
   $('#rAlphaLabel').textContent = `시장(${benchmarkOf(currentTape)})에 넣었다면`;
   $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)}`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
-  $('#rMore').open = true;
+  $('#rMore').open = false;
   $('#rBoss').textContent = r.bossDown ? '격파' : `체력 ${Math.round(s.bossHp)} 남았어요`;
   $('#rAlive').textContent = `${r.alive} / 4`;
   const cs = ROLES.map(role => ({ role, c: contribution(s, role) })); const mx = Math.max(.2, ...cs.map(x => Math.abs(x.c)));
@@ -1453,14 +1452,14 @@ async function showResult() {
   rPriceChart?.remove(); rPriceChart = new BattleChart($('#rPriceChart'), currentTape, 'compare', { state: s, upto: currentTape.bars.length - 1, ids: battleInstruments().slice(0, 5) });
   $('#rPriceLegend').innerHTML = rPriceChart.legend();
   $('#coachAv').src = portrait('hero_healer');
-  renderBoard(s);
+  const brd = renderBoard(s);
+  $('#rSum').innerHTML = `시장(${benchmarkOf(currentTape)})보다 <b style="color:${r.alpha >= 0 ? 'var(--green)' : 'var(--red)'}">${Math.abs(r.alpha).toFixed(2)}%p ${r.alpha >= 0 ? '앞섰어요' : '뒤졌어요'}</b>${brd ? ` · ${brd.total}${chartMode() ? '개' : '명'} 중 <b>${brd.rank}등</b>` : ''}`;
   // growth: plain sentences + status windows with this raid's gains
   const pnl = totalValue() - SEED, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
   const nameList = rs => rs.map(r => jobOf(r)).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
   const evoNames = nameList(growth.evolved), evoLast = jobOf(growth.evolved[growth.evolved.length - 1] || 'tank');
   const soonN = soon ? raidsLeft(soon) : 0, soonName = soon ? charOf(soon).name : '';
   const lines2 = [
-    pnl >= 0 ? `${wonWords(pnl)}을 벌었어요.` : r.alpha > 0 ? `이번엔 ${wonWords(pnl)}을 잃었지만, 시장보다는 덜 잃었어요.` : `이번엔 ${wonWords(pnl)}을 잃었어요.`,
     growth.evolved.length === 1 ? `${evoNames}${josa(evoLast, '이', '가')} ${charOf(growth.evolved[0]).name}${josa(charOf(growth.evolved[0]).name, '으로', '로')} 전직했어요!`
       : growth.evolved.length ? `${evoNames}${josa(evoLast, '이', '가')} 전직했어요!` : '',
     (() => { const opened = currentTape.skills.filter(k => k.unlockLevel && growth.evolved.includes(k.role)).map(k => k.name); return opened.length ? `이제 ${opened.join(', ')}${josa(opened.at(-1), '을', '를')} 쓸 수 있어요.` : ''; })(),
@@ -1475,7 +1474,7 @@ async function showResult() {
   if (!reduceMotion) gsap.fromTo('.stamp-wrap', { x: -8 }, { x: 8, duration: .05, repeat: 5, yoyo: true, clearProps: 'x', delay: .35 });
   // coach typing
   const bubble = $('#coachBubble'); bubble.innerHTML = '';
-  const lines = coachText(s);
+  const lines = coachText(s).slice(1, 3);   // the first line repeats the money and market numbers shown above
   // one-line introduction: there are real ETFs that split stocks and bonds the way this party does (iShares Core Allocation, 2026-10-27 확인)
   { const eq = (s.party.weights.dealer || 0) + (s.party.weights.support || 0);
     const pick = eq >= 70 ? ['AOA', '주식 80%'] : eq >= 55 ? ['AOR', '주식 60%'] : eq >= 40 ? ['AOM', '주식 40%'] : ['AOK', '주식 30%'];
@@ -1484,7 +1483,7 @@ async function showResult() {
     if (card) { card.hidden = chartMode(); card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
         <div class="ec-bar"><i style="width:${AO[1]}%">주식 ${AO[1]}</i><em style="width:${100 - AO[1]}%">채권 ${100 - AO[1]}</em></div>
         <div class="ec-bar mine"><i style="width:${eq}%">내 파티 주식 ${eq}</i><em style="width:${100 - eq}%">${100 - eq}</em></div>
-        <p>네 캐릭터가 하는 일을 상품 하나가 대신해 주는 셈이에요. 참고용이고 추천은 아니에요.</p></div></div>`; } }
+        <p>주식과 채권을 이 비율로 나눠 담는 ETF예요. 참고용이고 추천은 아니에요.</p></div></div>`; } }
   (async () => { for (const line of lines) { const p = document.createElement('p'); p.className = 'typing'; bubble.appendChild(p); for (const ch of line) { p.textContent += ch; if (!reduceMotion) await sleep(14); } p.classList.remove('typing'); await sleep(200); } })();
   renderProfile();
 }

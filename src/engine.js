@@ -376,7 +376,7 @@ export function coachText(state) {
   const maxW = Math.max(...ROLES.map(x => state.party.weights[x]));
   if (eq) { const s = state.party._bySkill[eq.to]; lines.push(`체크포인트에서 ${s.name}${jo(s.name, '으로', '로')} 바꾼 선택은 ${afterCheckpointRet(state, eq.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}.`); }
   else if (maxW >= 60) lines.push(`한 역할에 ${maxW}%를 몰아준 편성이라 ${maxW === worst.w ? '한 방에 크게 맞았어요' : '이번엔 크게 벌었지만 반대였다면 크게 잃었을 거예요'}.`);
-  else lines.push(worst.c < -0.3 ? `${ROLE_META[worst.role].char}${jo(ROLE_META[worst.role].char, '이', '가')} 맞을 때 바꿔줄 상품이 있었는지 '같은 시장, 다른 선택'을 보세요.` : '고르게 나눈 편성이 크게 다치지 않은 비결이에요.');
+  else lines.push(worst.c < -0.3 ? `${ROLE_META[worst.role].char} 자리에서 가장 많이 잃었어요(${worst.c.toFixed(2)}%p). 체크포인트에서 다른 상품으로 바꿀 수 있었어요.` : '고르게 나눠서 한쪽이 빠져도 전체 손실이 크지 않았어요.');
   if (state.tape.lesson) lines.push(state.tape.lesson);
   return lines.slice(0, 3);
 }
