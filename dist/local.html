@@ -1030,6 +1030,7 @@ body.mode-chart .mg-sec{display:none}
         <div>
           <div class="whatif" id="rWhatIf"></div>
         </div>
+        <div class="board" id="rBoard"></div>
         <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
           <button class="btn" id="nextRaidBtn" type="button">다음 레이드 ▶</button>
           <div class="row">
@@ -1043,7 +1044,6 @@ body.mode-chart .mg-sec{display:none}
       <summary>자세히 보기</summary>
       <div class="result" style="margin-top:12px">
         <div style="display:flex;flex-direction:column;gap:14px">
-          <div class="board" id="rBoard"></div>
           <div class="stats">
             <div class="stat"><small id="rAlphaLabel">시장에 넣었다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
             <div class="stat"><small>보스</small><b id="rBoss"></b></div>
@@ -2013,9 +2013,9 @@ function renderBoard(s) {
   const rows = [...field.map(e => ({ ...e, me: false })), { ...me, name: meName, me: true }]
     .sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : b.me ? 1 : 0));   // ranked by return only
   const myI = rows.findIndex(x => x.me), rank = myI + 1, total = rows.length, pct = Math.max(1, Math.round(rank / total * 100));
-  const shown = rows.slice(0, 5); if (myI >= 5) shown.push(null, rows[myI]);
+  const shown = rows.slice(0, 3); if (myI >= 3) shown.push(null, rows[myI]);
   const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.returnPct)}</span><span class="st">${'★'.repeat(e.stars)}<i>${'★'.repeat(3 - e.stars)}</i></span></div>` : `<div class="gap"><span class="rk">⋯</span></div>`;
-  host.innerHTML = `<div class="hd"><h3>이번 판 리더보드</h3><b>이번 판 ${total}${chartMode() ? '개 포트폴리오' : '명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
+  host.innerHTML = `<div class="hd"><b>이번 판 ${total}${chartMode() ? '개 포트폴리오' : '명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
     <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${chartMode() ? '포트폴리오' : '모험단'}</span><span class="v">수익률</span><span class="st">별</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
     <p class="small muted">같은 판을 플레이한 ${chartMode() ? '포트폴리오' : '모험단'} 기준 · 실제 서비스에서는 같은 주에 플레이한 고객이 올라요</p>`;
   return { rank, total, pct };
@@ -3178,8 +3178,8 @@ async function showResult() {
   rPriceChart?.remove(); rPriceChart = new BattleChart($('#rPriceChart'), currentTape, 'compare', { state: s, upto: currentTape.bars.length - 1, ids: battleInstruments().slice(0, 5) });
   $('#rPriceLegend').innerHTML = rPriceChart.legend();
   $('#coachAv').src = portrait('hero_healer');
-  const brd = renderBoard(s);
-  $('#rSum').innerHTML = `시장(${benchmarkOf(currentTape)})보다 <b style="color:${r.alpha >= 0 ? 'var(--green)' : 'var(--red)'}">${Math.abs(r.alpha).toFixed(2)}%p ${r.alpha >= 0 ? '앞섰어요' : '뒤졌어요'}</b>${brd ? ` · ${brd.total}${chartMode() ? '개' : '명'} 중 <b>${brd.rank}등</b>` : ''}`;
+  renderBoard(s);
+  $('#rSum').innerHTML = `시장(${benchmarkOf(currentTape)})보다 <b style="color:${r.alpha >= 0 ? 'var(--green)' : 'var(--red)'}">${Math.abs(r.alpha).toFixed(2)}%p ${r.alpha >= 0 ? '앞섰어요' : '뒤졌어요'}</b>`;
   // growth: plain sentences + status windows with this raid's gains
   const pnl = totalValue() - SEED, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
   const nameList = rs => rs.map(r => jobOf(r)).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
