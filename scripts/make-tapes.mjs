@@ -29,8 +29,8 @@ const fomc = build({
   event: { kind: 'fomc', company: '미국 연준 FOMC', ticker: 'FOMC', logo: null, example: true, source: '일정은 실제, 시세 흐름은 예시 시나리오',
     facts: [{ at: 0, label: '회의 일정', value: '10/28~29 · 결정 10/30 03:00 한국시간' }, { at: 0, label: '현재 기준금리', value: '3.75~4.00%' }, { at: 0, label: '시나리오(예시)', value: '동결 + 매파 기자회견' }] },
   bossSpecies: 'minotaur', market: 'US', example: true,
-  briefing: 'FOMC 결정은 동결이 90% 예상. 진짜 공격은 2페이즈 기자회견에서 온다. "앞으로 더 올릴 수 있다"는 한마디가 필살기다.',
-  lesson: '시장은 결과가 아니라 예상과의 차이에 반응해요 — 동결은 이미 가격에 있었고 기자회견 톤이 새 정보였어요.',
+  briefing: 'FOMC는 동결이 유력해요. 진짜 승부는 결정 뒤 기자회견이에요. "더 올릴 수도 있다"는 한마디가 보스의 필살기예요.',
+  lesson: '시장은 결과보다 예상과 얼마나 다른지에 반응해요. 동결은 다들 예상했고, 기자회견 말투가 새 소식이었어요.',
   concepts: [
     { name: '이미 가격에 반영된 뉴스', text: '90%가 예상한 동결은 발표 순간 거의 움직임이 없었어요. 시장은 "예상과 다른 것"에만 반응해요.' },
     { name: '금리와 성장주', text: '성장주는 먼 미래의 이익을 기대받는 자산이라, 금리 전망이 올라가면 가장 먼저 흔들려요.' },
@@ -61,8 +61,8 @@ const fomc = build({
     { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '배당의 축복',    default: true,  lesson: '배당주도 주식이라 하락장에선 같이 밀려요. 대신 덜 밀려요.' },
   ],
   checkpoints: [
-    { bar: 3, title: '금리 결정 발표 1분 전', hint: '시장은 동결을 90% 예상하고 있다. 지금 바꿀까, 버틸까?', bull: '동결 + 비둘기 문구면 안도 랠리. 레버리지가 가장 크게 먹는다.', bear: '점도표가 매파로 나오면 성장주부터 밀린다. 장기채·현금이 방패.', allow: ['hold', 'equip', 'rebalance'] },
-    { bar: 5, title: '기자회견 시작', hint: '의장의 첫 마디가 곧 나온다. 매파일까, 비둘기일까?', bull: '"인하 논의 시작" 한마디면 지수가 튄다. 성장주·레버리지 유리.', bear: '"서두르지 않겠다"면 발표 전 상승분을 토해낸다. 배당·현금이 덜 맞는다.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 3, title: '금리 결정 발표 1분 전', hint: '시장은 동결을 90% 예상하고 있어요. 지금 바꿀까요, 그대로 갈까요?', bull: '동결에 부드러운 말까지 나오면 안도하며 올라요. 레버리지가 가장 크게 벌어요.', bear: '앞으로도 금리를 높게 두겠다는 신호가 나오면 성장주부터 빠져요. 장기채와 현금이 막아 줘요.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 5, title: '기자회견 시작', hint: '곧 의장이 첫마디를 해요. 강하게 나올까요, 부드럽게 나올까요?', bull: '"금리 인하를 논의하기 시작했다"는 말 한마디면 지수가 튀어요. 성장주와 레버리지가 유리해요.', bear: '"서두르지 않겠다"고 하면 발표 전에 오른 만큼 다시 빠져요. 배당주와 현금이 덜 다쳐요.', allow: ['hold', 'equip', 'rebalance'] },
   ],
 });
 
@@ -75,7 +75,7 @@ const semi = build({
   event: { kind: 'earnings', company: '반도체 대형주 실적 (예시 시나리오)', ticker: 'KSEMI', logo: 'assets/logos/samsung.png', example: true, logos: [{ src: 'assets/logos/samsung.png', name: '삼성전자' }, { src: 'assets/logos/skhynix.png', name: 'SK하이닉스' }], source: 'ETF 주요 구성 종목은 실제, 실적 숫자와 시세 흐름은 예시',
     facts: [{ at: 0, label: 'ETF 주요 구성', value: '삼성전자 · SK하이닉스' }, { at: 0, label: '시나리오(예시)', value: '영업이익 컨센서스 상회, 가이던스는 유지' }, { at: 1, label: '시초가 반응(예시)', value: '반도체 ETF +2.6%', good: true }] },
   bossSpecies: 'wyvern', market: 'KR', example: true,
-  briefing: 'SK하이닉스 3분기 실적이 장 시작 전에 나온다. 컨센서스는 이미 높다. 좋은 실적이 아니라 "기대보다 좋은" 실적이어야 오른다.',
+  briefing: 'SK하이닉스 3분기 실적이 장 시작 전에 나와요. 시장 기대가 이미 높아서, 좋은 정도로는 부족하고 기대보다 좋아야 올라요.',
   lesson: '기대가 이미 높으면 좋은 뉴스도 차익실현의 빌미가 돼요.',
   concepts: [
     { name: '기대치 대비 실적', text: '좋은 실적이 아니라 "기대보다 좋은" 실적이어야 올라요. 기대가 이미 높으면 좋은 뉴스도 매물의 빌미가 돼요.' },
@@ -106,8 +106,8 @@ const semi = build({
     { id: 'support_kdiv',role: 'support', instrument: 'KDIV',  name: '배당의 축복',    default: true,  lesson: '고배당주는 성장주보다 덜 흔들려요.' },
   ],
   checkpoints: [
-    { bar: 1, title: '장 시작 직전', hint: '실적은 기대치를 넘었다. 그런데 기대치가 원래 높았다. 반도체로 몰아줄까?', bull: '어닝 서프라이즈 + 가이던스 상향이면 반도체·레버리지가 갭 상승을 끌고 간다.', bear: '"이미 반영된 호재"면 시초가 급등 뒤 차익실현. 배당·채권이 완충.', allow: ['hold', 'equip', 'rebalance'] },
-    { bar: 4, title: '차익실현 조짐', hint: '첫 급등 뒤 매물이 나오기 시작했다. 이익을 지킬까, 더 갈까?', bull: '외국인 순매수가 이어지면 눌림 뒤 재상승. 반도체 유지.', bear: '단기 과열 해소 구간이면 오후까지 밀린다. 현금·배당으로 이익 잠그기.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 1, title: '장 시작 직전', hint: '실적은 기대보다 좋았어요. 그런데 기대가 원래 높았어요. 반도체에 더 실을까요?', bull: '예상보다 좋은 실적에 다음 분기 전망까지 올리면 반도체와 레버리지가 크게 올라요.', bear: '이미 다 아는 호재라면 아침에 오르고 바로 팔자가 나와요. 배당주와 채권이 받쳐 줘요.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 4, title: '차익실현 조짐', hint: '아침에 크게 오른 뒤 파는 사람이 늘고 있어요. 번 걸 지킬까요, 더 갈까요?', bull: '외국인이 계속 사면 잠깐 쉬었다가 다시 올라요. 반도체를 그대로 둬요.', bear: '너무 빨리 올랐다면 오후까지 밀려요. 현금이나 배당주로 번 돈을 지켜요.', allow: ['hold', 'equip', 'rebalance'] },
   ],
 });
 
@@ -120,8 +120,8 @@ const pce = build({
   event: { kind: 'macro', company: '미국 9월 PCE 물가', ticker: 'PCE', logo: null, example: true, source: '일정은 실제, 숫자와 시세 흐름은 예시 시나리오',
     facts: [{ at: 0, label: '발표 일정', value: '10/29(목) 21:30 한국시간' }, { at: 0, label: '예상치(예시)', value: '전년 대비 3.7%' }, { at: 1, label: '발표(예시)', value: '3.9% · 예상 상회', good: false }] },
   bossSpecies: 'fireant', market: 'US', example: true,
-  briefing: '9월 PCE 물가가 미국 장 시작 1시간 전에 나온다. 예상은 전년 대비 3.7%. 숫자가 예상보다 높으면 불개미 떼가 불어난다. 현금의 회복력이 떨어지고, 금만 버틴다.',
-  lesson: '현금은 가격이 안 변해도 물가가 오르면 살 수 있는 게 줄어요 — 그래서 금 같은 실물자산이 보험이 돼요.',
+  briefing: '9월 PCE 물가가 미국 장 시작 한 시간 전에 나와요. 예상은 3.7%예요. 예상보다 높으면 불개미가 불어나요. 이때는 현금보다 금이 잘 버텨요.',
+  lesson: '현금은 그대로여도 물가가 오르면 살 수 있는 게 줄어요. 그래서 금 같은 실물자산이 보험 역할을 해요.',
   concepts: [
     { name: '인플레이션과 구매력', text: '물가가 오르면 현금의 실질 가치는 줄어요. 금융이해력 조사에서 가장 크게 떨어진 바로 그 문항이에요.' },
     { name: '물가와 금리 기대', text: '물가가 예상보다 높으면 "금리를 더 올리겠구나"로 이어져서 채권과 성장주가 같이 흔들려요.' },
@@ -151,8 +151,8 @@ const pce = build({
     { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '배당의 축복',    default: true,  lesson: '배당주는 성장주보다 덜 밀리고 덜 올라요. 꾸준함이 무기예요.' },
   ],
   checkpoints: [
-    { bar: 1, title: 'PCE 발표 직전', hint: '예상은 3.7%. 지난달보다 높은 숫자가 예고돼 있다. 보험을 들까, 금을 믿을까?', bull: '예상치 이하로 나오면 "인플레 둔화" 안도감에 성장주 반등.', bear: '예상치 상회면 금리 인하 기대가 밀리며 나스닥·장기채 동반 약세. 풋옵션·현금이 보험.', allow: ['hold', 'equip', 'rebalance'] },
-    { bar: 3, title: '장 시작 직전', hint: '프리마켓에서 이미 많이 밀렸다. 여기서 더 방어할까, 반등을 노릴까?', bull: '"악재 소화" 심리면 개장 후 저가 매수 유입. 레버리지가 반등을 크게 탄다.', bear: '프리마켓 낙폭이 본장에서 확대되는 날도 많다. 금·현금 비중이 생존선.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 1, title: 'PCE 발표 직전', hint: '예상치는 3.7%로, 지난달보다 높아요. 보험을 들까요, 금을 믿을까요?', bull: '예상보다 낮게 나오면 물가가 잡힌다는 안도감에 성장주가 올라요.', bear: '예상보다 높으면 금리 인하가 늦어진다고 보고 나스닥과 장기채가 함께 빠져요. 풋옵션과 현금이 보험이 돼요.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 3, title: '장 시작 직전', hint: '장 전에 이미 많이 빠졌어요. 더 막을까요, 반등을 노릴까요?', bull: '나쁜 소식이 다 반영됐다고 보면 장이 열리고 싸게 사려는 사람이 들어와요. 레버리지가 반등을 크게 타요.', bear: '장 전보다 장중에 더 빠지는 날도 많아요. 금과 현금을 넉넉히 두면 버틸 수 있어요.', allow: ['hold', 'equip', 'rebalance'] },
   ],
 });
 

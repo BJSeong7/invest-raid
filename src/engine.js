@@ -334,9 +334,9 @@ export function gradeReason(r) {
   if (r.grade === 'F') return '파티가 전멸했어요.';
   if (r.grade === 'S') return `수익 ${p(r.returnPct)}, 시장보다 ${p(r.alpha)}p 앞섰어요 (S는 +0.5%p 이상).`;
   if (r.grade === 'A') return `수익 ${p(r.returnPct)}, 시장보다 앞섰어요 (+0.5%p 이상이면 S).`;
-  if (r.grade === 'B') return `수익 ${p(r.returnPct)} — 플러스로 마치고 시장보다 앞서면 A예요.`;
-  if (r.grade === 'C') return `수익 ${p(r.returnPct)} — −0.5% 안쪽으로 막으면 B예요.`;
-  return `수익 ${p(r.returnPct)} — 크게 밀렸어요. 방어 상품 비중을 늘려 보세요.`;
+  if (r.grade === 'B') return `${p(r.returnPct)}로 마쳤어요. 시장보다 앞서면 A예요.`;
+  if (r.grade === 'C') return `${p(r.returnPct)}로 마쳤어요. 손실을 0.5% 안으로 막으면 B예요.`;
+  return `${p(r.returnPct)}로 크게 밀렸어요. 방어하는 상품을 더 담아 보세요.`;
 }
 
 /** Level curve: exp needed to go from L to L+1. */
@@ -370,12 +370,13 @@ export function coachText(state) {
   const sign = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
   const lines = [];
   const mover = Math.abs(worst.c) > Math.abs(best.c) ? worst : best;
-  lines.push(`${sign(r.returnPct)}로 마쳤고, 시장(${state._benchId})보다 ${sign(r.alpha)}p예요. ${mover.c < 0 ? '가장 크게 깎은 건' : '가장 크게 벌어준 건'} ${ROLE_META[mover.role].char}의 ${mover.skill.name}(비중 ${mover.w}%)였어요.`);
+  const vsMkt = Math.abs(r.alpha) < 0.005 ? '시장과 비슷했어요' : r.alpha > 0 ? `시장(${state._benchId})보다 ${r.alpha.toFixed(2)}%p 앞섰어요` : `시장(${state._benchId})보다 ${(-r.alpha).toFixed(2)}%p 뒤졌어요`;
+  lines.push(`${sign(r.returnPct)}로 마쳤고, ${vsMkt}. ${mover.c < 0 ? '가장 크게 깎은 건' : '가장 크게 벌어 준 건'} ${ROLE_META[mover.role].char}${jo(ROLE_META[mover.role].char, '이', '가')} 든 ${mover.skill.name}(비중 ${mover.w}%)였어요.`);
   const eq = state.actions?.find(a => a.type === 'equip');
   const maxW = Math.max(...ROLES.map(x => state.party.weights[x]));
-  if (eq) { const s = state.party._bySkill[eq.to]; lines.push(`체크포인트에서 ${s.name}(으)로 바꾼 선택은 ${afterCheckpointRet(state, eq.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}.`); }
+  if (eq) { const s = state.party._bySkill[eq.to]; lines.push(`체크포인트에서 ${s.name}${jo(s.name, '으로', '로')} 바꾼 선택은 ${afterCheckpointRet(state, eq.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}.`); }
   else if (maxW >= 60) lines.push(`한 역할에 ${maxW}%를 몰아준 편성이라 ${maxW === worst.w ? '한 방에 크게 맞았어요' : '이번엔 크게 벌었지만 반대였다면 크게 잃었을 거예요'}.`);
-  else lines.push(worst.c < -0.3 ? `${ROLE_META[worst.role].char}가 맞을 때 바꿔줄 상품이 있었는지 '같은 시장, 다른 선택'을 보세요.` : '고르게 나눈 편성이 크게 다치지 않은 비결이에요.');
+  else lines.push(worst.c < -0.3 ? `${ROLE_META[worst.role].char}${jo(ROLE_META[worst.role].char, '이', '가')} 맞을 때 바꿔줄 상품이 있었는지 '같은 시장, 다른 선택'을 보세요.` : '고르게 나눈 편성이 크게 다치지 않은 비결이에요.');
   if (state.tape.lesson) lines.push(state.tape.lesson);
   return lines.slice(0, 3);
 }
@@ -386,6 +387,8 @@ function afterCheckpointRet(state, bar) {
 /* ------------------------------------------------------------------ */
 /* utils                                                               */
 /* ------------------------------------------------------------------ */
+/** Korean particle by final consonant (ㄹ counts as vowel for 으로/로) */
+function jo(word, a, b) { const c = word.charCodeAt(word.length - 1) - 0xAC00; if (!(c >= 0 && c <= 11171)) return /[013678LMNR]$/i.test(word) ? a : b; const f = c % 28; if (a === '으로') return f && f !== 8 ? a : b; return f ? a : b; }
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 function clone(p) { return { weights: { ...p.weights }, skills: { ...p.skills }, _bySkill: p._bySkill }; }
 

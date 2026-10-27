@@ -380,7 +380,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .money-top b{font-family:var(--display);font-weight:400;font-size:34px;color:var(--navy);display:inline-block;transform-origin:left center}
 .money-top .ret{font-family:var(--display);font-size:17px}
 .phud .t{align-items:center}
-.phud{min-width:0;overflow:hidden}
+.phud{min-width:0;overflow:hidden;position:relative}
+.statpop{position:absolute;right:8px;top:30px;display:flex;align-items:center;gap:2px;font-family:var(--display);font-size:15px;pointer-events:none;animation:statPop 1.2s cubic-bezier(.2,1.4,.4,1) both;filter:drop-shadow(0 2px 0 #fff)}
+@keyframes statPop{0%{transform:translateY(14px) scale(.4);opacity:0}25%{transform:translateY(0) scale(1.15);opacity:1}70%{transform:translateY(-6px) scale(1);opacity:1}100%{transform:translateY(-16px);opacity:0}}
 @media (max-width:480px){.phud .t small{display:none}.phud .t b{font-size:15px}.money-top b{font-size:28px}}
 .phud .t img{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#E4EFFF;flex-shrink:0}
 .phud .t small{font-size:11px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -590,7 +592,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
           <button class="btn secondary" id="backToSelect" type="button">돌아가기</button>
         </div>
         <details class="cp-more" id="bMore">
-          <summary>참고 — 지금까지 차트 · 레이드 구간 · 배우는 개념</summary>
+          <summary>차트랑 개념 더 보기</summary>
           <div class="cp-more-body">
             <div class="chartbox" style="padding:8px 10px 4px"><div class="legend"><span class="small" id="bChartTitle"></span></div><div class="chart" id="bChart" style="height:150px"></div></div>
             <div class="timeline" id="bTimeline"></div>
@@ -629,7 +631,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="hud">
       <div class="money-top"><small>내 자금</small><b class="tabular" id="hMoney">10,000,000원</b><span class="ret tabular" id="hMoneyD"></span></div>
       <div class="bossbar"><span class="name"><img id="hBossPf" alt=""><span id="hBossName">보스</span></span><div class="bar"><i id="hBossHp"></i><b id="hBossHpTxt">100</b></div><span class="phase" id="hPhase"></span><span class="goal tabular" id="hBreak"></span></div>
-      <div class="turnline"><span><span class="label" id="hLabel">대기</span> <span class="tabular" id="hTime"></span></span><span class="balance"><span class="muted">이번 구간 </span><span class="ret tabular" id="hRet">—</span><span hidden><b id="hBal"></b><span id="hBalD"></span></span></span></div>
+      <div class="turnline"><span><span class="label" id="hLabel">대기</span> <span class="tabular" id="hTime"></span></span><span class="balance"><span class="muted">이번 구간 </span><span class="ret tabular" id="hRet">0.00%</span><span hidden><b id="hBal"></b><span id="hBalD"></span></span></span></div>
 
     </div>
     <div class="battlegrid">
@@ -658,8 +660,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
         <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
         <div class="stats">
           <div class="stat"><small id="rAlphaLabel">시장에 넣었다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
-          <div class="stat"><small>보스</small><b id="rBoss">—</b></div>
-          <div class="stat"><small>생존</small><b id="rAlive">4 / 4</b></div>
+          <div class="stat"><small>보스</small><b id="rBoss"></b></div>
+          <div class="stat"><small>살아남은 동료</small><b id="rAlive">4 / 4</b></div>
         </div>
         <div class="expgain"><div class="big">경험치 <span id="rExp" class="tabular">+0</span> <span class="small muted" id="rBonus"></span></div><div class="expbar lg"><i id="rExpBar"></i></div><div class="small muted" id="rExpTxt"></div></div>
         <div id="rBadgesWrap" hidden><div class="small muted" style="margin-bottom:6px">새 배지</div><div class="badges" id="rBadges"></div></div>
@@ -677,13 +679,13 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
           <div class="row">
             <button class="btn secondary" id="retryBtn" type="button">다시 도전</button>
             <button class="btn secondary" id="otherBtn" type="button">레이드 목록</button>
-            <button class="btn secondary" id="etfBtn" type="button">쓴 상품 보기</button>
+            <button class="btn secondary" id="etfBtn" type="button">이번에 고른 상품</button>
           </div>
         </div>
       </div>
     </div>
     <details class="card more" id="rMore" open>
-      <summary>자세히 보기 — 자금 흐름 · 내 상품들 · 역할별 기여 · 선택 기록 · 배운 개념</summary>
+      <summary>자세히 보기</summary>
       <div class="result" style="margin-top:12px">
         <div style="display:flex;flex-direction:column;gap:14px">
           <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend" id="rChartLegend" style="justify-content:flex-start;gap:12px"></div><div class="chart" id="rChart" style="height:170px"></div></div>
@@ -718,7 +720,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="cp-panel cp-roles" id="cpEquip" hidden></div>
     <div class="cp-panel" id="cpRebal" hidden><div class="rebal" id="cpSliders"></div><div class="total" style="margin-top:8px"><div class="sum" id="cpSum"></div><button class="btn" id="cpRebalBtn" type="button">이 비중으로 간다</button></div></div>
     <details class="cp-more" id="cpMore">
-      <summary>참고 — 차트 · 오르면/내리면 · 이벤트 자료 · 내 캐릭터</summary>
+      <summary>차트랑 자료 더 보기</summary>
       <div class="cp-more-body">
         <div class="chartbox" style="padding:8px 10px 4px"><div class="legend"><span class="small" id="cpChartTitle"></span></div><div class="chart" id="cpChart" style="height:170px"></div><div class="ticker" id="cpTicker"></div></div>
         <div class="cp-scen"><div class="up"><b>▲ 오르면</b><span id="cpBull"></span></div><div class="dn"><b>▼ 내리면</b><span id="cpBear"></span></div></div>
@@ -761,7 +763,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 <!-- ETF link placeholder modal -->
 <div class="modal" id="etfModal" hidden role="dialog" aria-modal="true" aria-labelledby="pdTitle">
   <div class="box wide">
-    <div class="cp-head"><h2 id="pdTitle" style="font-size:24px">이번 레이드에서 쓴 상품</h2><span class="small muted" id="pdSub"></span></div>
+    <div class="cp-head"><h2 id="pdTitle" style="font-size:24px">이번 레이드에서 고른 상품</h2><span class="small muted" id="pdSub"></span></div>
     <div class="pgrid" id="pdCards"></div>
     <p class="small muted" style="margin:0;font-size:11.5px">총보수·운용사·기초지수: stockanalysis.com, 2026-10-27 확인. 학습용 정보이며 투자권유가 아닙니다. 투자 전 투자설명서를 확인하세요.</p>
     <button class="btn secondary" id="etfClose" type="button">닫기</button>

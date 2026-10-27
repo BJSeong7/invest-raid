@@ -77,21 +77,21 @@ function effectiveLevel() { return profile.unlockAll ? 99 : profile.level; }
 /* ---------- product catalog (상품 도감) ----------
    Facts verified on stockanalysis.com, 2026-10-27. The game role line explains how the product behaved in raids. */
 const PRODUCTS = {
-  QQQ:  { name: 'Invesco QQQ Trust', issuer: 'Invesco', index: '나스닥100', fee: '0.18%', role: '미국 대형 기술·성장주 100개. 금리 신호와 실적 시즌에 가장 크게 반응하는 공격수.', cls: 'dealer' },
-  TQQQ: { name: 'ProShares UltraPro QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 3배', fee: '0.78%', role: '하루 수익률의 3배를 추종. 같은 방향이면 3배로 벌고, 반대면 3배로 맞는다.', warn: '일간 배수라 여러 날 보유하면 지수×3과 결과가 달라질 수 있어요.', cls: 'dealer' },
-  SOXX: { name: 'iShares Semiconductor ETF', issuer: 'BlackRock (iShares)', index: 'NYSE 반도체 지수 · 34종목', fee: '0.33%', role: '반도체 한 업종에 집중. 지수보다 두 배쯤 크게 움직인다 — 양쪽 다.', cls: 'dealer' },
-  TLT:  { name: 'iShares 20+ Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 20년 이상', fee: '0.15%', role: '주식이 흔들릴 때 버티는 방패. 단, 금리 전망이 오르면 같이 밀린다.', cls: 'tank' },
-  SHY:  { name: 'iShares 1-3 Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 1~3년', fee: '0.15%', role: '거의 안 흔들리는 벽. 대신 공격력도 거의 없다.', cls: 'tank' },
-  GLD:  { name: 'SPDR Gold Shares', issuer: 'State Street', index: 'LBMA 금 가격 (실물 금 보관)', fee: '0.40%', role: '물가와 불안에 강한 전통적 피난처. 금리가 오르면 이자가 없어 약해지기도.', cls: 'healer' },
-  BIL:  { name: 'SPDR Bloomberg 1-3 Month T-Bill', issuer: 'State Street', index: '미국 단기국채 1~3개월', fee: '0.14%', role: '사실상 현금. 다치지 않지만 보스도 못 때린다.', cls: 'healer' },
-  PSQ:  { name: 'ProShares Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −1배', fee: '0.95%', role: '나스닥이 내리면 오르는 인버스. 하락 보험이지만 오르는 날마다 깎인다.', warn: '방향이 틀리면 매일 손실이 쌓여요. 짧게 쓰는 도구예요.', cls: 'healer' },
-  SQQQ: { name: 'ProShares UltraPro Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −3배', fee: '0.94%', role: '나스닥 하루 수익률의 −3배. 급락 하루에 크게 벌고, 반등 하루에 크게 잃는다.', warn: '고위험 상품. 일간 배수라 장기 보유에 맞지 않아요.', cls: 'healer' },
-  SCHD: { name: 'Schwab U.S. Dividend Equity', issuer: 'Charles Schwab', index: 'Dow Jones U.S. Dividend 100', fee: '0.06%', role: '꾸준히 배당하는 기업 100곳. 랠리 땐 뒤처지고 급락 땐 덜 빠지는 서포터.', cls: 'support' },
+  QQQ:  { name: 'Invesco QQQ Trust', issuer: 'Invesco', index: '나스닥100', fee: '0.18%', role: '미국 대형 기술주와 성장주 100곳에 나눠 담아요. 금리 소식과 실적 발표에 가장 크게 움직여요.', cls: 'dealer' },
+  TQQQ: { name: 'ProShares UltraPro QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 3배', fee: '0.78%', role: '나스닥100 하루 수익률의 3배로 움직여요. 맞히면 3배로 벌고, 틀리면 3배로 잃어요.', warn: '일간 배수라 여러 날 보유하면 지수×3과 결과가 달라질 수 있어요.', cls: 'dealer' },
+  SOXX: { name: 'iShares Semiconductor ETF', issuer: 'BlackRock (iShares)', index: 'NYSE 반도체 지수 · 34종목', fee: '0.33%', role: '반도체 회사에만 모아 담아요. 지수보다 두 배쯤 크게 움직여요. 오를 때도, 내릴 때도요.', cls: 'dealer' },
+  TLT:  { name: 'iShares 20+ Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 20년 이상', fee: '0.15%', role: '주식이 흔들릴 때 버텨 주는 방패예요. 다만 금리가 더 오를 것 같으면 같이 떨어져요.', cls: 'tank' },
+  SHY:  { name: 'iShares 1-3 Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 1~3년', fee: '0.15%', role: '거의 흔들리지 않아요. 대신 크게 벌지도 않아요.', cls: 'tank' },
+  GLD:  { name: 'SPDR Gold Shares', issuer: 'State Street', index: 'LBMA 금 가격 (실물 금 보관)', fee: '0.40%', role: '물가가 오르거나 시장이 불안할 때 강해요. 이자가 없어서 금리가 오르면 약해지기도 해요.', cls: 'healer' },
+  BIL:  { name: 'SPDR Bloomberg 1-3 Month T-Bill', issuer: 'State Street', index: '미국 단기국채 1~3개월', fee: '0.14%', role: '현금과 거의 같아요. 잃지는 않지만 보스를 때리지도 못해요.', cls: 'healer' },
+  PSQ:  { name: 'ProShares Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −1배', fee: '0.95%', role: '나스닥이 내리면 올라요. 떨어질 때를 대비하는 상품이라, 오르는 날엔 조금씩 깎여요.', warn: '방향이 틀리면 매일 손실이 쌓여요. 짧게 쓰는 도구예요.', cls: 'healer' },
+  SQQQ: { name: 'ProShares UltraPro Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −3배', fee: '0.94%', role: '나스닥 하루 수익률과 반대로 3배 움직여요. 급락한 날 크게 벌고, 반등한 날 크게 잃어요.', warn: '고위험 상품. 일간 배수라 장기 보유에 맞지 않아요.', cls: 'healer' },
+  SCHD: { name: 'Schwab U.S. Dividend Equity', issuer: 'Charles Schwab', index: 'Dow Jones U.S. Dividend 100', fee: '0.06%', role: '배당을 꾸준히 주는 회사 100곳에 담아요. 크게 오를 땐 덜 오르고, 급락할 땐 덜 빠져요.', cls: 'support' },
 };
 function productInfo(id, tape) {
   const ins = tape?.instruments[id] || {};
   if (PRODUCTS[id]) return { id, ...PRODUCTS[id], real: true };
-  return { id, name: ins.name || id, issuer: '—', index: ins.kind === 'option' ? '옵션 계약' : '예시 상품', fee: '—', role: ins.kind === 'option' ? '하락할 때 가치가 커지는 보험. 평소엔 시간이 지날수록 보험료가 녹는다.' : '훈련 레이드용 예시 상품이에요. 실제 상품 정보는 연결 후 표시돼요.', warn: ins.kind === 'option' ? '옵션은 만기와 행사가가 있고 원금 전액 손실이 가능해요.' : '', cls: null, real: false };
+  return { id, name: ins.name || id, issuer: '', index: ins.kind === 'option' ? '옵션 계약' : '예시 상품', fee: '', role: ins.kind === 'option' ? '시장이 떨어질수록 값이 올라요. 대신 아무 일 없으면 시간이 갈수록 값이 줄어요.' : '훈련 레이드용 예시 상품이에요. 실제 상품 정보는 연결 후 표시돼요.', warn: ins.kind === 'option' ? '옵션은 만기와 행사가가 있고 원금 전액 손실이 가능해요.' : '', cls: null, real: false };
 }
 function usedInstruments(state) {
   const ids = new Set();
@@ -309,7 +309,7 @@ function skillStatChips(sk) { const st = skillStats(sk); return STAT_KEYS.filter
 /* ---------- hero growth & 전직 ----------
    Each raid adds to every hero's four stats from the product it ended with (scaled by weight) plus a bonus for a
    checkpoint swap. At EVO_PTS total a hero changes class by its strongest stat group. */
-const EVO_PTS = 30, STEPS = 5;   // 전직 when a hero's four stats add up to EVO_PTS — heavier-weighted heroes get there first
+const EVO_PTS = 30, STEPS = 5;   // 전직 when a hero's four stats add up to EVO_PTS; heavier-weighted heroes get there first
 const CLASSES = {
   tank: { def: '철벽 기사', atk: '돌격 기사', ins: '수호 기사' },
   dealer: { def: '냉정한 검사', atk: '광전사', ins: '그림자 검사' },
@@ -317,7 +317,7 @@ const CLASSES = {
   support: { def: '정원사', atk: '사냥꾼', ins: '순찰자' },
 };
 const BRANCH_COLOR = { def: '#2F6BD0', atk: '#D6453F', ins: '#7458C9' };
-const STAT_GROW = { atk: '날카로워졌어요', def: '단단해졌어요', stab: '침착해졌어요', ins: '신중해졌어요' };
+const STAT_GROW = { atk: '날카로워졌어요.', def: '단단해졌어요.', stab: '침착해졌어요.', ins: '신중해졌어요.' };
 const josa = (word, a, b) => { const c = word.charCodeAt(word.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 ? a : b; };
 function hero(role) { profile.heroes = profile.heroes || {}; return profile.heroes[role] ||= { raids: 0, st: { atk: 0, def: 0, stab: 0, ins: 0 }, branch: null, last: 0 }; }
 const KNUM = n => ['', '한', '두', '세', '네', '다섯'][n] || String(n);
@@ -848,6 +848,23 @@ $('#abortBtn').addEventListener('click', () => {
 const waitResume = () => userPaused ? new Promise(r => resumeWaiters.push(r)) : Promise.resolve();
 
 function hpClass(v) { return v > 50 ? '' : v > 20 ? 'mid' : 'low'; }
+/** after each hit: the stat a hero just showed pops up over its card (same icons as the choices) */
+function popStats(turn) {
+  if (reduceMotion) return;
+  const mkt = turn.boss.portfolioRet;
+  ROLES.forEach((role, i) => {
+    const r = turn.roles[role]?.ret; if (r === undefined) return;
+    const st = skillStats(battle.party._bySkill[battle.party.skills[role]]);
+    let k = null;
+    if (r > 0.05) k = STAT_KEYS.slice().sort((a, b) => st[b] - st[a])[0];
+    else if (mkt < 0 && r >= -0.05) k = ['def', 'ins', 'stab'].sort((a, b) => st[b] - st[a])[0];
+    if (!k) return;
+    const card = $('#phud-' + role); if (!card) return;
+    const el = document.createElement('span'); el.className = 'statpop'; el.innerHTML = statIcon(k, 22) + '<b>+1</b>';
+    el.style.color = STAT_COLOR[k]; el.style.animationDelay = (i * 90) + 'ms'; card.appendChild(el);
+    setTimeout(() => el.remove(), 1400);
+  });
+}
 function renderPartyHud(turn) {
   const s = battle;
   $('#partyhud').innerHTML = ROLES.map(role => {
@@ -876,7 +893,7 @@ function renderTurnLine(turn) {
     if (v !== from && !reduceMotion) gsap.fromTo(el, { scale: 1.08 }, { scale: 1, duration: .35, ease: 'back.out(3)' });
     $('#hMoneyD').textContent = `${fmtKRWd(v - SEED)} (${fmtPct(c)})`; $('#hMoneyD').className = 'ret tabular ' + (c >= 0 ? 'up' : 'down');
   };
-  if (!turn) { $('#hLabel').textContent = `${fmtBar(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '—'; $('#hRet').className = 'ret tabular'; renderBalance(); return; }
+  if (!turn) { $('#hLabel').textContent = `${fmtBar(currentTape.bars[0].t)} ${currentTape.bars[0].label}`; $('#hTime').textContent = ''; $('#hRet').textContent = '0.00%'; $('#hRet').className = 'ret tabular'; renderBalance(); return; }
   $('#hLabel').textContent = turn.label; $('#hTime').textContent = `${fmtBar(turn.t)} ${unitNote()}`;
   const r = turn.boss.portfolioRet; $('#hRet').textContent = fmtPct(r); $('#hRet').className = 'ret tabular ' + (r >= 0 ? 'up' : 'down');
   renderBalance();
@@ -1051,7 +1068,7 @@ async function raidLoop() {
       combo: drama.combo, rage: drama.rage && !rageNow, rageNow,
       news: freshFact(turn.bar + 1),
       onMarket: async () => { flashChart(ret); await battleChartEq.reveal(turn.bar, 520 / sp); renderChartLegends(); renderTurnLine(turn); },
-      onImpact: () => { renderPartyHud(turn); renderBossHud(); },
+      onImpact: () => { renderPartyHud(turn); renderBossHud(); popStats(turn); },
       onGuard: () => { drama.guards++; },
     });
     battleChartEq.markers();
@@ -1069,7 +1086,7 @@ async function raidLoop() {
 
 /* ---------- what is at stake: rough payoff preview per choice ----------
    Each instrument gets a rough sensitivity to the raid's main instrument (βup when the main rises, βdown when it falls).
-   Preview = Σ weight × β × assumed move, in won. Deliberately simple and labelled "대략" — it shows the shape of the
+   Preview = Σ weight × β × assumed move, in won. Deliberately simple and labelled "대략"; it shows the shape of the
    trade-off (symmetric / levered / insured), not a forecast. */
 function betaOf(id) {
   const ins = currentTape.instruments[id], n = ins.name || '', k = ins.kind;
@@ -1145,7 +1162,7 @@ async function showCheckpoint(cp) {
     $('#cpSay').innerHTML = heroLines(cp).slice(0, 2).map(([r, line]) => `<span><img src="${portrait(heroUnit(r))}" alt=""><b>${charOf(r).name}</b> ${line}</span>`).join('');
     // countdown: time out = hold (a decision not taken is still a decision)
     clearInterval(cpTimer); let left = CP_SECONDS; const tEl = $('#cpTimer');
-    const tick = () => { $('#cpTimerTxt').textContent = left; $('#cpTimerBar').style.width = (100 * left / CP_SECONDS) + '%'; tEl.classList.toggle('hot', left <= 10); if (left <= 10 && left > 0) sfx.select(); if (left <= 0) { clearInterval(cpTimer); done({ type: 'hold' }, '시간 초과 — 그대로 진행'); } left--; };
+    const tick = () => { $('#cpTimerTxt').textContent = left; $('#cpTimerBar').style.width = (100 * left / CP_SECONDS) + '%'; tEl.classList.toggle('hot', left <= 10); if (left <= 10 && left > 0) sfx.select(); if (left <= 0) { clearInterval(cpTimer); done({ type: 'hold' }, '시간이 다 돼서 그대로 가요'); } left--; };
     tick(); cpTimer = setInterval(tick, 1000);
     const tabs = $$('#cp .choices [data-tab]');
     let openTab = null;
@@ -1211,7 +1228,7 @@ async function showResult() {
   $('#rBonus').textContent = bonus ? `연출 보너스 +${bonus} (연속 ${drama.maxCombo} · 가드 ${drama.guards})` : '';
 
   const stamp = $('#rStamp'); stamp.textContent = r.grade; stamp.className = 'stamp ' + r.grade;
-  $('#rVerdict').textContent = r.bossDown ? `${currentTape.boss} 격파!` : r.alive === 0 ? '파티 전멸…' : r.returnPct >= 0 ? '레이드 생존 · 보스는 버텼다' : '보스에게 밀렸다';
+  $('#rVerdict').textContent = r.bossDown ? `${currentTape.boss}${josa(currentTape.boss, '을', '를')} 쓰러뜨렸어요!` : r.alive === 0 ? '모두 쓰러졌어요' : r.returnPct >= 0 ? '보스는 남았지만 돈은 지켰어요' : '이번엔 보스가 더 셌어요';
   $('#rWhy').textContent = gradeReason(r);
   // next raid: the first one not yet played (real first), else the next in the list
   const order2 = [...TAPES.filter(t => !t.example).slice().reverse(), ...TAPES.filter(t => t.example)];
@@ -1221,9 +1238,9 @@ async function showResult() {
   $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
   $('#rMoney').textContent = fmtKRW(totalValue());
   $('#rAlphaLabel').textContent = `시장(${benchmarkOf(currentTape)})에 넣었다면`;
-  $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)} · 내가 ${fmtPct(r.alpha)}p`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
+  $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)}`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
   $('#rMore').open = true;
-  $('#rBoss').textContent = r.bossDown ? '격파' : `HP ${Math.round(s.bossHp)} 남음`;
+  $('#rBoss').textContent = r.bossDown ? '격파' : `체력 ${Math.round(s.bossHp)} 남았어요`;
   $('#rAlive').textContent = `${r.alive} / 4`;
   const cs = ROLES.map(role => ({ role, c: contribution(s, role) })); const mx = Math.max(.2, ...cs.map(x => Math.abs(x.c)));
   $('#rContribs').innerHTML = cs.map(({ role, c }) => `<div class="contrib" style="--rc:${ROLE_COLOR[role]}"><span>${charOf(role).name}</span><div class="bar"><i style="${c >= 0 ? 'left:50%' : 'right:50%'};width:${50 * Math.abs(c) / mx}%"></i></div><span class="v tabular" style="color:${c >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(c)}</span></div>`).join('');
