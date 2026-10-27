@@ -762,7 +762,7 @@ body.mode-chart .mg-sec{display:none}
 .mg-head h2{font-size:24px}
 .mg-head .mg-best{margin-left:auto;font-family:var(--display);color:var(--gold-dark)}
 .mg-how{margin:0;font-size:14px;color:var(--ink);line-height:1.55}
-.mg-stage{position:relative;background:#CFE9F8;border:2px solid var(--line);border-radius:var(--r);overflow:hidden;min-height:200px}
+.mg-stage{position:relative;background:#CFE9F8;border:2px solid var(--line);border-radius:var(--r);overflow:hidden;min-height:240px}
 .mg-stage canvas{display:block;width:100%;height:auto;aspect-ratio:2/1;touch-action:manipulation;cursor:pointer}
 .mg-hud{position:absolute;right:10px;bottom:8px;font-family:var(--display);font-size:13px;color:var(--navy);background:rgba(255,255,255,.85);border-radius:999px;padding:2px 10px}
 .mg-start{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;padding:14px 34px;z-index:2}
@@ -797,6 +797,10 @@ body.mode-chart .mg-sec{display:none}
 .cap-card.ask .cap{font-size:34px}
 .cap-card.win{border-color:var(--green);border-style:solid;background:#EAF7EE}
 .cap-card.lose{border-color:var(--red);border-style:solid;background:#FBECEB}
+.mg-cats{position:absolute;left:50%;top:calc(50% + 48px);transform:translateX(-50%);z-index:2;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:min(100%,520px);padding:0 10px}
+.chipbtn{font-family:var(--display);font-size:14px;background:#fff;border:2px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;color:var(--navy)}
+.chipbtn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.mg-stage:has(.mg-cats) .mg-start{top:calc(50% - 20px)}
 .mg-end{text-align:center;display:flex;flex-direction:column;gap:6px}
 .mg-end b{font-family:var(--shout);font-size:40px;color:var(--gold-dark)}
 .mg-end p{margin:0;font-size:15px;line-height:1.5}
