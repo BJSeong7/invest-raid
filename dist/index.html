@@ -845,6 +845,41 @@ body.mode-chart .mg-sec{display:none}
 .cpf-mkt .others b{font-family:var(--display);font-weight:400}
 .cpf-mkt .others .up b{color:var(--green)}.cpf-mkt .others .down b{color:var(--red)}
 @media (max-width:480px){.cpf-mkt{grid-template-columns:1fr}.cpf-mkt .big b{font-size:28px}}
+
+/* ---- 가방 열기 (what's inside an ETF) ---- */
+.skill .peek-ic{display:none;font-size:13px;margin-left:4px;opacity:.8}
+.skill[aria-pressed="true"] .peek-ic{display:inline}
+.pk-box{width:min(560px,100%);gap:12px}
+.pk-head{display:flex;align-items:center;gap:10px}
+.pk-head img{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#E4EFFF;border:3px solid #fff;box-shadow:0 0 0 2px var(--gold)}
+.pk-head small{display:block;font-size:12px;color:var(--muted)}
+.pk-head b{display:block;font-family:var(--display);font-weight:400;font-size:22px;color:var(--navy);line-height:1.1}
+.pk-head span{font-size:12.5px;color:var(--muted)}
+.pk-head .iconbtn{margin-left:auto}
+.pk-bag{position:relative;display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;min-height:190px;border-radius:var(--r);padding:12px;background:linear-gradient(180deg,#EAF6FF,#F3FBF2);overflow:hidden}
+.pk-bag.bonds{background:linear-gradient(180deg,#EEF4FF,#F6F8FF)}.pk-bag.gold{background:linear-gradient(180deg,#FFF4D6,#FFF9EA)}.pk-bag.deriv{background:linear-gradient(180deg,#F3EEFF,#FAF7FF)}
+.pk-art{width:120px;filter:drop-shadow(0 8px 8px rgba(20,30,10,.3));animation:bagShake .6s ease-out}
+@keyframes bagShake{0%{transform:rotate(0)}25%{transform:rotate(-6deg)}50%{transform:rotate(5deg)}75%{transform:rotate(-3deg)}100%{transform:rotate(0)}}
+.pk-tiles{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.tile{font-family:var(--display);font-size:14px;color:var(--navy);background:#fff;border:2px solid var(--line);border-radius:10px;padding:5px 10px;box-shadow:0 2px 0 var(--edge);opacity:0;animation:tilePour .5s cubic-bezier(.2,1.5,.4,1) forwards;animation-delay:calc(.25s + var(--i) * 70ms)}
+@keyframes tilePour{from{opacity:0;transform:translate(-60px,-20px) rotate(-12deg) scale(.5)}to{opacity:1;transform:none}}
+.tile.bonds{background:#EEF4FF;border-color:#C9D9F5}.tile.gold{background:#FFF1C9;border-color:#E8C978}.tile.deriv{background:#F3EEFF;border-color:#D9CCFA}
+.tile.more{background:var(--panel2);color:var(--muted)}
+.pk-line{margin:0;font-size:15px;line-height:1.6;color:var(--ink);font-family:var(--display)}
+@media (max-width:480px){.pk-bag{grid-template-columns:84px 1fr}.pk-art{width:84px}.tile{font-size:13px;padding:4px 8px}}
+/* ---- result: allocation ETF card ---- */
+.etf-card{perspective:800px}
+.ec-flip{animation:ecFlip .7s cubic-bezier(.2,.9,.3,1) both;transform-origin:center}
+@keyframes ecFlip{from{transform:rotateY(90deg);opacity:0}to{transform:none;opacity:1}}
+.ec-face{display:flex;flex-direction:column;gap:6px;background:linear-gradient(135deg,#FFFDF6,#F4ECD8);border:2px solid var(--line);border-radius:var(--r2);padding:12px 14px;box-shadow:0 3px 0 var(--edge)}
+.ec-face small{font-size:12px;color:var(--muted)}
+.ec-face b{font-family:var(--shout);font-size:30px;color:var(--navy);line-height:1}
+.ec-face>span{font-size:12.5px;color:var(--muted)}
+.ec-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;font-family:var(--display);font-size:12px;color:#fff;margin-top:4px}
+.ec-bar i,.ec-bar em{display:flex;align-items:center;justify-content:center;font-style:normal;white-space:nowrap;overflow:hidden}
+.ec-bar i{background:var(--blue)}.ec-bar em{background:#8EA0B8}
+.ec-bar.mine{height:16px;font-size:11px;margin-top:2px}.ec-bar.mine i{background:#6FA2FF}.ec-bar.mine em{background:#B9C4D4}
+.ec-face p{margin:4px 0 0;font-size:13px;color:var(--ink);line-height:1.55}
 </style>
 
 <div class="wrap">
@@ -987,6 +1022,7 @@ body.mode-chart .mg-sec{display:none}
         <div class="growth-text" id="rGrowthText"></div>
         <div class="growth" id="rGrowth"></div>
         <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
+        <div class="etf-card" id="rEtfCard" hidden></div>
         <div>
           <div class="section-h" style="margin:0 0 8px"><h3 style="font-size:17px">같은 시장, 다른 선택이었다면</h3></div>
           <div class="whatif" id="rWhatIf"></div>
@@ -1053,6 +1089,9 @@ body.mode-chart .mg-sec{display:none}
 
 <!-- minigame -->
 <div class="modal" id="mg" hidden role="dialog" aria-modal="true"><div class="box wide mg-box"></div></div>
+
+<!-- 가방 열기 -->
+<div class="modal" id="peek" hidden role="dialog" aria-modal="true"><div class="box pk-box"></div></div>
 
 <!-- collection (도감) -->
 <div class="modal" id="dex" hidden role="dialog" aria-modal="true" aria-labelledby="dexTitle">
@@ -1752,6 +1791,26 @@ function skillOpen(s) { return !s.unlockLevel || profile.unlockAll || chartMode(
 const lockLabel = s => `${charOf(s.role).name} 전직 후`;
 /* ---------- product catalog (상품 도감) ----------
    Facts verified on stockanalysis.com, 2026-10-27. The game role line explains how the product behaved in raids. */
+/* what is inside each product: top holdings (stockanalysis.com, 2026-10-27) in plain Korean; counts are the fund's holding counts */
+const INSIDE = {
+  QQQ: { kind: 'stocks', count: 104, unit: '곳', names: ['엔비디아', '애플', '마이크로소프트', '마이크론', '아마존', 'AMD', '테슬라', '메타', '알파벳'], line: '회사 한 곳을 고르는 대신 이 100곳을 한 번에 사는 거예요. 이게 ETF예요.' },
+  TQQQ: { kind: 'deriv', count: 0, unit: '', names: ['나스닥100 스왑 계약', '나스닥100 선물', '담보 현금'], line: '회사를 직접 들지 않아요. 나스닥100이 하루 움직인 만큼의 3배를 주는 계약을 들고 있어요.' },
+  SOXX: { kind: 'stocks', count: 34, unit: '곳', names: ['AMD', '인텔', '엔비디아', '마이크론', '브로드컴', '텍사스인스트루먼트', '아날로그디바이스', '마벨', '퀄컴', 'KLA'], line: '반도체 회사 34곳만 모았어요. 한 업종이라 함께 오르고 함께 내려요.' },
+  TLT: { kind: 'bonds', count: 49, unit: '장', names: ['2055년 만기 국채', '2054년 만기 국채', '2053년 만기 국채', '2056년 만기 국채'], line: '미국 정부에 20년 넘게 돈을 빌려주는 증서 49장이에요. 주식이 흔들릴 때 받쳐 주는 쪽이에요.' },
+  SHY: { kind: 'bonds', count: 0, unit: '', names: ['1년 만기 국채', '2년 만기 국채', '3년 만기 국채'], line: '만기가 1~3년으로 짧은 미국 국채예요. 거의 안 흔들리는 대신 크게 벌지도 않아요.' },
+  GLD: { kind: 'gold', count: 0, unit: '', names: ['런던 금고의 금괴', '금괴', '금괴'], line: '회사가 아니라 금 그 자체를 담아요. 금괴가 런던 금고에 실제로 쌓여 있어요.' },
+  BIL: { kind: 'bonds', count: 0, unit: '', names: ['1개월 만기 국채', '2개월 만기 국채', '3개월 만기 국채'], line: '만기 석 달 안쪽의 미국 국채예요. 현금과 거의 같아요.' },
+  PSQ: { kind: 'deriv', count: 0, unit: '', names: ['나스닥100 스왑 계약 (역방향)', '담보 현금'], line: '나스닥100이 내린 만큼 버는 계약이에요. 회사를 들고 있는 게 아니에요.' },
+  SQQQ: { kind: 'deriv', count: 0, unit: '', names: ['나스닥100 스왑 계약 (역방향 3배)', '담보 현금'], line: '나스닥100이 내린 만큼의 3배를 버는 계약이에요. 오르는 날엔 3배로 잃어요.' },
+  SCHD: { kind: 'stocks', count: 102, unit: '곳', names: ['P&G', '텍사스인스트루먼트', '코카콜라', '셰브론', '유나이티드헬스', '코노코필립스', '홈디포', '퀄컴', '암젠', '펩시'], line: '배당을 꾸준히 주는 회사 100곳이에요. 크게 오르진 않지만 급락 때 덜 빠져요.' },
+  K200: { kind: 'stocks', count: 200, unit: '곳', names: ['삼성전자', 'SK하이닉스', '현대차', '기아', '셀트리온', 'KB금융', '네이버', '삼성바이오로직스'], line: '코스피 대표 200곳을 한 번에 담아요. 이게 ETF예요.', example: true },
+  K200L: { kind: 'deriv', count: 0, unit: '', names: ['코스피200 선물', '담보 현금'], line: '코스피200이 움직인 만큼의 2배를 주는 계약이에요.', example: true },
+  KSEMI: { kind: 'stocks', count: 0, unit: '', names: ['삼성전자', 'SK하이닉스', '한미반도체', 'DB하이텍'], line: '국내 반도체 회사만 모았어요. 함께 오르고 함께 내려요.', example: true },
+  KBOND: { kind: 'bonds', count: 0, unit: '', names: ['국고채 10년물', '국고채 10년물', '국고채 10년물'], line: '우리나라 정부에 10년 동안 돈을 빌려주는 증서예요.', example: true },
+  KGOLD: { kind: 'gold', count: 0, unit: '', names: ['금괴', '금괴', '금괴'], line: '회사가 아니라 금 그 자체를 담아요.', example: true },
+  KCASH: { kind: 'bonds', count: 0, unit: '', names: ['초단기 국채', 'CD', '예금'], line: '현금과 거의 같아요.', example: true },
+  KDIV: { kind: 'stocks', count: 0, unit: '', names: ['KB금융', '신한지주', '하나금융', '삼성화재', '기아', 'SK텔레콤'], line: '배당을 많이 주는 회사들을 모았어요.', example: true },
+};
 const PRODUCTS = {
   QQQ:  { name: 'Invesco QQQ Trust', issuer: 'Invesco', index: '나스닥100', fee: '0.18%', role: '미국 대형 기술주와 성장주 100곳에 나눠 담아요. 금리 소식과 실적 발표에 가장 크게 움직여요.', cls: 'dealer' },
   TQQQ: { name: 'ProShares UltraPro QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 3배', fee: '0.78%', role: '나스닥100 하루 수익률의 3배로 움직여요. 맞히면 3배로 벌고, 틀리면 3배로 잃어요.', warn: '일간 배수라 여러 날 보유하면 지수×3과 결과가 달라질 수 있어요.', cls: 'dealer' },
@@ -1961,6 +2020,21 @@ function grantStars(id, flags) {
 const SCENE = { 'fomc-2026-09-16': 'fed', 'capex-2026-10-22': 'datacenter', 'daily-2026-10-27': 'nyse', 'semi-earnings-2026-10-28': 'wafer', 'fomc-2026-10-29': 'chifed', 'pce-2026-10-29': 'grocery', 'svb-2023': 'chifed', 'carry-2024': 'nyse', 'tariff-2025': 'nyse', 'covid-2020': 'office', 'cpi-2022-06': 'grocery', 'jackson-2022': 'fed', 'cpi-2022-09': 'grocery', 'cpi-2022-11': 'grocery' };
 const sceneOf = x => `assets/scenes/${SCENE[x.id] || (/고용/.test(x.title || '') ? 'office' : /FOMC/.test(x.title || '') ? (/12월/.test(x.title) ? 'chifed' : 'fed') : 'nyse')}.jpg`;
 const thumbHTML = x => `<span class="thumb" style="background-image:url(${sceneOf(x)})"></span>`;
+/* ---------- 가방 열기: what a character actually holds, staged as tiles pouring out ---------- */
+function openPeek(role, skillId) {
+  const sk = currentTape.skills.find(x => x.id === skillId); if (!sk) return;
+  const parts = sk.blend ? Object.keys(sk.blend) : [sk.instrument], main = parts.find(id => INSIDE[id]) || parts[0], info = INSIDE[main];
+  const ins = currentTape.instruments[main] || {}, m = $('#peek'); if (!info) return;
+  const name = charOf(role).name, total = info.count ? `${info.count}${info.unit}` : '';
+  const tiles = info.names.map((n, i) => `<span class="tile ${info.kind}" style="--i:${i}">${n}</span>`).join('') + (info.count > info.names.length ? `<span class="tile more" style="--i:${info.names.length}">외 ${info.count - info.names.length}${info.unit}</span>` : '');
+  m.querySelector('.box').innerHTML = `<div class="pk-head"><img src="${portrait(heroUnit(role))}" alt=""><div><small>${name}의 가방</small><b>${sk.name}</b><span>${ins.name || main}${total ? ` · ${total}` : ''}${info.example ? ' · 예시' : ''}</span></div><button type="button" class="iconbtn" id="peekClose">닫기</button></div>
+    <div class="pk-bag ${info.kind}"><img class="pk-art" src="${cutArt(heroUnit(role))}" alt=""><div class="pk-tiles">${tiles}</div></div>
+    <p class="pk-line">${info.line}</p>`;
+  m.hidden = false; $('#tip').hidden = true; sfx.select();
+  m.querySelector('#peekClose').onclick = () => { m.hidden = true; };
+  m.onclick = e => { if (e.target === m) m.hidden = true; };
+}
+
 /* ---------- 1. raid select ---------- */
 let currentTape = null, party = null;
 function renderSelect() {
@@ -2296,9 +2370,10 @@ function renderSkillList(box, role, lvl) {
     b.setAttribute('aria-pressed', String(party.skills[role] === s.id));
     const ins = currentTape.instruments[s.instrument];
     const tick = s.blend ? Object.entries(s.blend).map(([id, w]) => `${id === 'BIL' || id === 'KCASH' ? '현금' : id.endsWith('_P') ? id.slice(0, -2) + ' 풋' : id} ${Math.round(w * 100)}%`).join(' + ') : s.instrument;
-    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span><span class="chips">${locked ? `<span class="lock">${lockLabel(s)}</span>` : skillStatChips(s)}</span>`;
+    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span><span class="chips">${locked ? `<span class="lock">${lockLabel(s)}</span>` : skillStatChips(s)}<span class="peek-ic" title="안에 뭐가 들었는지 보기">🔍</span></span>`;
     b.addEventListener('click', () => {
       if (locked) { sfx.back(); toast(`${charOf(role).name}${josa(charOf(role).name, '이', '가')} 전직하면 열려요. 위쪽 '체험 모드'로 미리 써 볼 수 있어요.`, 2800); return; }
+      if (party.skills[role] === s.id) { openPeek(role, s.id); return; }   // already chosen: open the bag
       sfx.select(); party.skills[role] = s.id;
       box.querySelectorAll('.skill').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true');
       renderPartyMeta();
@@ -2460,7 +2535,7 @@ class BattleScene extends Phaser.Scene {
     this.time.delayedCall(ms, () => this.tweens.add({ targets: objs, alpha: 0, y: '-=12', duration: 200, onComplete: () => objs.forEach(o => o.destroy()) }));
   }
   /** big centre-stage callout: 콤보, 격노, 가드 */
-  callout(text, color = '#FFD54A', sub = '') {
+  callout(text, color = '#FFD54A', sub = '') { window.__lastCallout = text;
     const t = this.add.text(W / 2, H * .36, text, { fontFamily: '"Black Han Sans", "Jua", sans-serif', fontSize: '72px', color, stroke: '#24405F', strokeThickness: 10 }).setOrigin(.5).setDepth(80).setAngle(-5);
     const s2 = sub ? this.add.text(W / 2, H * .36 + 54, sub, { fontFamily: '"Jua", sans-serif', fontSize: '26px', color: '#fff', stroke: '#24405F', strokeThickness: 6 }).setOrigin(.5).setDepth(80) : null;
     const objs = s2 ? [t, s2] : [t];
@@ -2522,6 +2597,17 @@ class BattleScene extends Phaser.Scene {
         else if (r.ret > 0) this.time.delayedCall(d(140), () => { this.fx('heal', s.x, this.mid(s), 120, { hold: 200, grow: 1.1 }); this.number(s.x, this.top(s) - 10, '+' + Math.max(1, Math.round(r.hpAfter - r.hpBefore)), '#5FE39A', 24); });
       });
       hooks.onImpact?.();
+      if (hooks.backup && speed < 4) {   // 받쳐 주기: the defender steps in front of the hurt dealer, shield up
+        const b = hooks.backup, def = this.sprites[b.role], dl = this.sprites.dealer;
+        await sleep(d(260));
+        this.say(def, '내가 받칠게!', 1000);
+        const hx = def.x, hy = def.y;
+        await this.tw({ targets: def, x: dl.x - 70, y: dl.y + 6, duration: d(220), ease: 'power2.out' });
+        this.fx('shield', dl.x - 20, this.mid(dl), 300, { inMs: 80, hold: 700, outMs: 240, depth: 46 }); sfx.shield?.();
+        this.callout('받쳐 줬어요!', '#9FE8FF', `${charOf(b.role).name} ${fmtPct(b.ret)} · 성장주 ${fmtPct(b.dealerRet)}`);
+        await sleep(d(900));
+        await this.tw({ targets: def, x: hx, y: hy, duration: d(260), ease: 'power2.inOut' });
+      }
       await swing;
       await this.tw({ targets: boss, x: boss.home.x, duration: d(360), ease: 'power2.out' });
       this.idle(boss);
@@ -2877,9 +2963,9 @@ async function startBattle() {
   await sleep(200 / speedFactor());
   await raidLoop();
 }
-let drama = { combo: 0, maxCombo: 0, guards: 0, rage: false };
+let drama = { combo: 0, maxCombo: 0, guards: 0, rage: false, backups: 0 };
 async function raidLoop() {
-  drama = { combo: 0, maxCombo: 0, guards: 0, rage: false };
+  drama = { combo: 0, maxCombo: 0, guards: 0, rage: false, backups: 0 };
   while (!battle.done && !aborted) {
     await waitResume(); if (aborted) return;
     const nb = currentTape.bars[battle.bar + 1];
@@ -2897,6 +2983,9 @@ async function raidLoop() {
       news: freshFact(turn.bar + 1),
       onMarket: async () => { flashChart(ret); await battleChartEq.reveal(turn.bar, 520 / sp); renderChartLegends(); renderTurnLine(turn); },
       onImpact: () => { renderPartyHud(turn); renderBossHud(); popStats(turn); },
+      backup: (() => { if (drama.backups >= 2 || ret >= 0) return null; const d = turn.roles.dealer?.ret ?? 0; if (d > -1.0) return null;
+        const def = ['tank', 'healer', 'support'].filter(r => battle.partyHp[r] > 0 && (turn.roles[r]?.ret ?? 0) > 0.05 && battle.party.weights[r] > 0).sort((a, b) => turn.roles[b].ret - turn.roles[a].ret)[0];
+        if (!def) return null; drama.backups++; return { role: def, ret: turn.roles[def].ret, dealerRet: d }; })(),
       onGuard: () => { drama.guards++; },
     });
     battleChartEq.markers();
@@ -3145,7 +3234,12 @@ async function showResult() {
   // one-line introduction: there are real ETFs that split stocks and bonds the way this party does (iShares Core Allocation, 2026-10-27 확인)
   { const eq = (s.party.weights.dealer || 0) + (s.party.weights.support || 0);
     const pick = eq >= 70 ? ['AOA', '주식 80%'] : eq >= 55 ? ['AOR', '주식 60%'] : eq >= 40 ? ['AOM', '주식 40%'] : ['AOK', '주식 30%'];
-    if (!chartMode()) lines.push(`참고로 주식과 채권을 이렇게 나눠 담아 주는 ETF도 있어요. ${pick[0]}(${pick[1]}) 같은 상품이에요.`); }
+    const AO = { AOA: ['iShares Core Aggressive Allocation', 80], AOR: ['iShares Core Growth Allocation', 60], AOM: ['iShares Core Moderate Allocation', 40], AOK: ['iShares Core Conservative Allocation', 30] }[pick[0]];
+    const card = $('#rEtfCard');
+    if (card) { card.hidden = chartMode(); card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
+        <div class="ec-bar"><i style="width:${AO[1]}%">주식 ${AO[1]}</i><em style="width:${100 - AO[1]}%">채권 ${100 - AO[1]}</em></div>
+        <div class="ec-bar mine"><i style="width:${eq}%">내 파티 주식 ${eq}</i><em style="width:${100 - eq}%">${100 - eq}</em></div>
+        <p>네 캐릭터가 하는 일을 상품 하나가 대신해 주는 셈이에요. 참고용이고 추천은 아니에요.</p></div></div>`; } }
   (async () => { for (const line of lines) { const p = document.createElement('p'); p.className = 'typing'; bubble.appendChild(p); for (const ch of line) { p.textContent += ch; if (!reduceMotion) await sleep(14); } p.classList.remove('typing'); await sleep(200); } })();
   renderProfile();
 }
@@ -3175,7 +3269,8 @@ $('#dexBtn').addEventListener('click', () => { sfx.select(); renderCollection();
 $('#dexClose').addEventListener('click', () => { sfx.back(); $('#dex').hidden = true; });
 let tutStep = 0;
 const TUT = [
-  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '채권·성장주·금·현금·배당주에게 비중을 나눠요. 기술은 전부 실제 ETF·채권·금·옵션이에요. 비중을 어떻게 나누느냐가 곧 투자 포트폴리오예요.' },
+  { art: 'hero_dealer', title: '캐릭터 하나 = ETF 하나', text: '성장주는 회사 한 곳이 아니라 나스닥100 기업 100곳을 한꺼번에 들고 있어요. 이렇게 여러 종목을 한 바구니에 담은 게 ETF예요. 파티 화면에서 🔍를 누르면 가방 속이 보여요.' },
+  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '채권·성장주·금·현금·배당주에게 비중을 나눠요. 비중을 어떻게 나누느냐가 곧 내 포트폴리오예요. 한쪽이 맞을 때 다른 쪽이 받쳐 주는 게 나눠 담는 이유예요.' },
   { art: 'boss_lich', title: '보스 = 실제 시장 이벤트', text: 'FOMC, 실적 발표, 물가 지표가 보스로 나타나요. 데미지는 전부 그날 실제 가격 변동으로 계산돼요. 난수는 없어요.' },
   { art: 'hero_healer', title: '체크포인트에서 개입', text: '레이드는 자동으로 흘러가다 중요한 순간에 멈춰요. 30초 안에 버티기·기술 교체·비중 조정 중 하나를 고르세요. 차트와 자금 평가를 보고 결정하면 돼요.' },
 ];
@@ -3215,7 +3310,7 @@ document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-bat
 renderProfile(); renderSelect(); showScreen('select');
 
 // test/automation hooks (not used by the UI)
-window.__rpg = { TAPES, vsIntro, get dbg() { return { userPaused, skipping, autoMode, justDecided, hasWaiter: !!nextWaiter, aborted, sceneReady: scene?.ready, paused: battle?.paused }; }, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작 · 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언 · 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; if (v >= 4) setAuto(true); }, setAuto, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
+window.__rpg = { TAPES, vsIntro, get dbg() { return { userPaused, skipping, autoMode, justDecided, hasWaiter: !!nextWaiter, aborted, sceneReady: scene?.ready, paused: battle?.paused }; }, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작 · 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언 · 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, get drama() { return drama; }, get lastCallout() { return window.__lastCallout || ''; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; if (v >= 4) setAuto(true); }, setAuto, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
 
 // phone battle menu
 $('#bmenuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $('#bmenu'), o = !m.classList.contains('open'); m.classList.toggle('open', o); $('#bmenuBtn').setAttribute('aria-expanded', String(o)); });

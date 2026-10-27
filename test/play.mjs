@@ -54,6 +54,10 @@ try {
   // locked skill shows toast, not equip
   const lockedBtn = await page.$('#sk-dealer .skill .lock');
   check(!!lockedBtn, 'leverage skill is locked at Lv.1');
+  // 가방 열기: tapping the chosen product again opens the holdings sheet
+  await page.click('#sk-dealer .skill[aria-pressed="true"]'); await page.waitForSelector('#peek:not([hidden])');
+  check((await page.$$('#peek .tile')).length >= 5 && (await page.textContent('#peek .pk-line')).includes('ETF'), '가방 열기 shows holdings tiles + one ETF line');
+  await page.click('#peekClose'); await page.waitForSelector('#peek', { state: 'hidden' });
   await shot(page, '3-party');
 
   // battle at 4x; intervene at checkpoints: hold at first, equip cash healer at second
@@ -94,6 +98,7 @@ try {
   const board = await page.textContent('#rBoard .hd b');
   check(/^이번 판 \d+명 중 \d+등 · 상위 \d+%$/.test(board.trim()), 'leaderboard headline: ' + board.trim());
   check((await page.$$('#rBoard .tbl .me')).length === 1 && (await page.$$('#rBoard .tbl > div')).length >= 6, 'leaderboard lists top 5 + my row');
+  check(!(await page.$eval('#rEtfCard', e => e.hidden)) && /AO[ARMK]/.test(await page.textContent('#rEtfCard b')), 'result shows the allocation ETF card');
   await shot(page, '6-result');
 
   // profile persisted

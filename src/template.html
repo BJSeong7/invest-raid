@@ -843,6 +843,41 @@ body.mode-chart .mg-sec{display:none}
 .cpf-mkt .others b{font-family:var(--display);font-weight:400}
 .cpf-mkt .others .up b{color:var(--green)}.cpf-mkt .others .down b{color:var(--red)}
 @media (max-width:480px){.cpf-mkt{grid-template-columns:1fr}.cpf-mkt .big b{font-size:28px}}
+
+/* ---- 가방 열기 (what's inside an ETF) ---- */
+.skill .peek-ic{display:none;font-size:13px;margin-left:4px;opacity:.8}
+.skill[aria-pressed="true"] .peek-ic{display:inline}
+.pk-box{width:min(560px,100%);gap:12px}
+.pk-head{display:flex;align-items:center;gap:10px}
+.pk-head img{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#E4EFFF;border:3px solid #fff;box-shadow:0 0 0 2px var(--gold)}
+.pk-head small{display:block;font-size:12px;color:var(--muted)}
+.pk-head b{display:block;font-family:var(--display);font-weight:400;font-size:22px;color:var(--navy);line-height:1.1}
+.pk-head span{font-size:12.5px;color:var(--muted)}
+.pk-head .iconbtn{margin-left:auto}
+.pk-bag{position:relative;display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;min-height:190px;border-radius:var(--r);padding:12px;background:linear-gradient(180deg,#EAF6FF,#F3FBF2);overflow:hidden}
+.pk-bag.bonds{background:linear-gradient(180deg,#EEF4FF,#F6F8FF)}.pk-bag.gold{background:linear-gradient(180deg,#FFF4D6,#FFF9EA)}.pk-bag.deriv{background:linear-gradient(180deg,#F3EEFF,#FAF7FF)}
+.pk-art{width:120px;filter:drop-shadow(0 8px 8px rgba(20,30,10,.3));animation:bagShake .6s ease-out}
+@keyframes bagShake{0%{transform:rotate(0)}25%{transform:rotate(-6deg)}50%{transform:rotate(5deg)}75%{transform:rotate(-3deg)}100%{transform:rotate(0)}}
+.pk-tiles{display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.tile{font-family:var(--display);font-size:14px;color:var(--navy);background:#fff;border:2px solid var(--line);border-radius:10px;padding:5px 10px;box-shadow:0 2px 0 var(--edge);opacity:0;animation:tilePour .5s cubic-bezier(.2,1.5,.4,1) forwards;animation-delay:calc(.25s + var(--i) * 70ms)}
+@keyframes tilePour{from{opacity:0;transform:translate(-60px,-20px) rotate(-12deg) scale(.5)}to{opacity:1;transform:none}}
+.tile.bonds{background:#EEF4FF;border-color:#C9D9F5}.tile.gold{background:#FFF1C9;border-color:#E8C978}.tile.deriv{background:#F3EEFF;border-color:#D9CCFA}
+.tile.more{background:var(--panel2);color:var(--muted)}
+.pk-line{margin:0;font-size:15px;line-height:1.6;color:var(--ink);font-family:var(--display)}
+@media (max-width:480px){.pk-bag{grid-template-columns:84px 1fr}.pk-art{width:84px}.tile{font-size:13px;padding:4px 8px}}
+/* ---- result: allocation ETF card ---- */
+.etf-card{perspective:800px}
+.ec-flip{animation:ecFlip .7s cubic-bezier(.2,.9,.3,1) both;transform-origin:center}
+@keyframes ecFlip{from{transform:rotateY(90deg);opacity:0}to{transform:none;opacity:1}}
+.ec-face{display:flex;flex-direction:column;gap:6px;background:linear-gradient(135deg,#FFFDF6,#F4ECD8);border:2px solid var(--line);border-radius:var(--r2);padding:12px 14px;box-shadow:0 3px 0 var(--edge)}
+.ec-face small{font-size:12px;color:var(--muted)}
+.ec-face b{font-family:var(--shout);font-size:30px;color:var(--navy);line-height:1}
+.ec-face>span{font-size:12.5px;color:var(--muted)}
+.ec-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;font-family:var(--display);font-size:12px;color:#fff;margin-top:4px}
+.ec-bar i,.ec-bar em{display:flex;align-items:center;justify-content:center;font-style:normal;white-space:nowrap;overflow:hidden}
+.ec-bar i{background:var(--blue)}.ec-bar em{background:#8EA0B8}
+.ec-bar.mine{height:16px;font-size:11px;margin-top:2px}.ec-bar.mine i{background:#6FA2FF}.ec-bar.mine em{background:#B9C4D4}
+.ec-face p{margin:4px 0 0;font-size:13px;color:var(--ink);line-height:1.55}
 </style>
 
 <div class="wrap">
@@ -985,6 +1020,7 @@ body.mode-chart .mg-sec{display:none}
         <div class="growth-text" id="rGrowthText"></div>
         <div class="growth" id="rGrowth"></div>
         <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
+        <div class="etf-card" id="rEtfCard" hidden></div>
         <div>
           <div class="section-h" style="margin:0 0 8px"><h3 style="font-size:17px">같은 시장, 다른 선택이었다면</h3></div>
           <div class="whatif" id="rWhatIf"></div>
@@ -1051,6 +1087,9 @@ body.mode-chart .mg-sec{display:none}
 
 <!-- minigame -->
 <div class="modal" id="mg" hidden role="dialog" aria-modal="true"><div class="box wide mg-box"></div></div>
+
+<!-- 가방 열기 -->
+<div class="modal" id="peek" hidden role="dialog" aria-modal="true"><div class="box pk-box"></div></div>
 
 <!-- collection (도감) -->
 <div class="modal" id="dex" hidden role="dialog" aria-modal="true" aria-labelledby="dexTitle">
