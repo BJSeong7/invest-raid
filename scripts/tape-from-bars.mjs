@@ -42,7 +42,7 @@ export function buildTape(spec, loadBars) {
     instruments[id] = { name: ins.name, kind: ins.kind, currency: ins.currency || (spec.market === 'KR' ? 'KRW' : 'USD') };
   }
   const tape = { id: spec.id, title: spec.title, boss: spec.boss, bossSpecies: spec.bossSpecies, market: spec.market, example: false, settled: spec.settled !== false,
-    daily: !!spec.daily, dailyRaid: spec.dailyRaid || undefined, playDate: spec.playDate || undefined, source: spec.source || '', scale: spec.scale || undefined, event: spec.event || undefined,
+    daily: !!spec.daily, dailyRaid: spec.dailyRaid || undefined, headline: spec.headline || undefined, playDate: spec.playDate || undefined, source: spec.source || '', scale: spec.scale || undefined, event: spec.event || undefined,
     briefing: spec.briefing, lesson: spec.lesson, concepts: spec.concepts || [], instruments, skills: spec.skills, checkpoints: spec.checkpoints || [], bars };
   const errs = validateTape(tape);
   if (errs.length) throw new Error('tape invalid: ' + errs.join('; '));

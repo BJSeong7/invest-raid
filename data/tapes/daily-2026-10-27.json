@@ -8,6 +8,7 @@
  "settled": true,
  "daily": true,
  "dailyRaid": true,
+ "headline": "메타 실적 발표 다음 날부터 어제까지",
  "playDate": "2026-10-27",
  "source": "stockanalysis.com 일별 종가 (2026-10-27 수집)",
  "scale": {
@@ -17,7 +18,7 @@
  },
  "event": {
   "kind": "daily",
-  "company": "어제까지 사흘",
+  "company": "최근 사흘",
   "ticker": "DAILY",
   "logo": null,
   "source": "stockanalysis.com 일별 종가 (2026-10-27 수집)",
@@ -43,7 +44,7 @@
    }
   ]
  },
- "briefing": "어제까지 사흘을 1분 만에 다시 해 봐요. 메타 실적 충격으로 시작해서, 어제 반도체가 반등했어요.",
+ "briefing": "메타 실적 발표 다음 날부터 어제까지 사흘이에요. 목요일에 크게 빠졌고, 어제는 반도체가 반등했어요.",
  "lesson": "급락 다음 날 바로 팔면 반등을 놓치기 쉬워요. 어제 반도체는 이틀 만에 낙폭의 절반을 되찾았어요.",
  "concepts": [
   {

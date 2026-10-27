@@ -220,7 +220,7 @@ function renderRhythm() {
   if (t) {
     tc.hidden = false; tc.classList.toggle('done', !!done);
     tc.innerHTML = `<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
-      <div class="tx"><small>오늘의 한 판 · 3턴</small><b>${done ? '오늘 판을 끝냈어요' : '어제까지 사흘, 1분이면 끝나요'}</b><span>${done ? `내일 아침에 새 판이 열려요. 최고 ${profile.plays[t.id].best}` : `${t.boss}${josa(t.boss, '이', '가')} 기다리고 있어요`}</span></div>
+      <div class="tx"><small>오늘의 한 판</small><b>${done ? '오늘 판은 끝났어요' : t.headline || t.title}</b><span>${done ? `내일 아침에 새 판이 열려요` : `3턴 · 보스 ${t.boss}`}</span></div>
       <span class="go">${done ? '다시 하기' : '시작'}</span>`;
     tc.onclick = async () => { unlock(); sfx.select(); await openBrief(t.id); openParty(); };
   } else tc.hidden = true;

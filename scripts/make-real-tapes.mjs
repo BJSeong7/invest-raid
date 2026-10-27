@@ -426,13 +426,13 @@ const capex = buildTape({
 const daily = buildTape({
   ...common,
   id: 'daily-2026-10-27', title: '오늘의 한 판', boss: '꼬마 뼈다귀', bossSpecies: 'skeleton', dailyRaid: true, playDate: '2026-10-27',
-  event: { kind: 'daily', company: '어제까지 사흘', ticker: 'DAILY', logo: null, source: SOURCE,
+  event: { kind: 'daily', company: '최근 사흘', ticker: 'DAILY', logo: null, source: SOURCE,
     facts: [
       { at: 0, label: '출발', value: '10/21(수) 메타 실적 발표일 종가' },
       { at: 1, label: '10/22(목) 나스닥100', value: '−2.86%', note: 'AI 투자 비용 우려', good: false },
       { at: 3, label: '10/26(월) 반도체', value: '+2.85%', note: '이틀 만에 반등', good: true },
     ] },
-  briefing: '어제까지 사흘을 1분 만에 다시 해 봐요. 메타 실적 충격으로 시작해서, 어제 반도체가 반등했어요.',
+  headline: '메타 실적 발표 다음 날부터 어제까지', briefing: '메타 실적 발표 다음 날부터 어제까지 사흘이에요. 목요일에 크게 빠졌고, 어제는 반도체가 반등했어요.',
   lesson: '급락 다음 날 바로 팔면 반등을 놓치기 쉬워요. 어제 반도체는 이틀 만에 낙폭의 절반을 되찾았어요.',
   concepts: [
     { name: '급락 뒤 반등', text: '크게 빠진 다음엔 싸다고 보는 사람이 들어와요. 다만 언제 올지는 아무도 몰라요.' },
