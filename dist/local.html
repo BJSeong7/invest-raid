@@ -147,7 +147,12 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .sumrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .radar-card{display:flex;align-items:center;gap:10px;background:var(--panel2);border:2px solid var(--line);border-radius:var(--r);padding:8px 14px 8px 6px;min-width:300px}
 .radar-card .ptype{font-family:var(--display);font-size:24px;color:var(--navy);display:block}
-.radar-card p{margin:2px 0 0;max-width:150px;line-height:1.45}
+.radar-card p{margin:2px 0 0;max-width:180px;line-height:1.45}
+#partyRadar{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;padding-left:8px}
+.mixbar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:#EFE7D3}
+.mixbar i{display:block;height:100%}
+.mixleg{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted)}
+.mixleg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:0}
 @media (max-width:700px){.party-top{grid-template-columns:1fr}.radar-card{min-width:0}}
 .stat-mini{display:flex;gap:3px;margin-top:3px}
 .stat-mini i{display:block;width:34px;height:5px;background:#EEE6D2;border-radius:3px;overflow:hidden}
@@ -393,7 +398,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;font-family:var(--display);font-size:19px;padding:12px 22px;border-radius:999px;opacity:0;z-index:60;pointer-events:none;box-shadow:0 4px 0 #122236,0 10px 30px rgba(20,30,50,.35);white-space:nowrap;border:2px solid #fff}
 .foot{font-size:12px;color:var(--dim);text-align:center}
 .sti{vertical-align:-.2em;flex-shrink:0}
-.stchip{display:inline-flex;margin-left:2px}
+.stchip{display:inline-flex;align-items:center;margin-left:4px;padding:1px 6px;border-radius:6px;font-size:11px;font-family:var(--display);color:#fff;background:var(--tc,#888);white-space:nowrap}
 .skill .chips{display:inline-flex;gap:2px;flex-shrink:0;align-items:center}
 .money-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:0 4px}
 .money-top small{color:var(--muted);font-size:13px}
@@ -401,7 +406,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .money-top .ret{font-family:var(--display);font-size:17px}
 .phud .t{align-items:center}
 .phud{min-width:0;overflow:hidden;position:relative}
-.statpop{position:absolute;right:8px;top:30px;display:flex;align-items:center;gap:2px;font-family:var(--display);font-size:15px;pointer-events:none;animation:statPop 1.2s cubic-bezier(.2,1.4,.4,1) both;filter:drop-shadow(0 2px 0 #fff)}
 @keyframes statPop{0%{transform:translateY(14px) scale(.4);opacity:0}25%{transform:translateY(0) scale(1.15);opacity:1}70%{transform:translateY(-6px) scale(1);opacity:1}100%{transform:translateY(-16px);opacity:0}}
 @media (max-width:480px){.phud .t small{display:none}.phud .t b{font-size:15px}.money-top b{font-size:28px}}
 .phud .t img{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#E4EFFF;flex-shrink:0}
@@ -415,7 +419,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .sw-h b{font-family:var(--display);font-weight:400;font-size:16px;color:var(--navy);display:block;line-height:1.1}
 .sw-h span{font-size:11.5px;color:var(--muted)}
 .sw-st{display:flex;flex-direction:column;gap:4px}
-.sw-st div{display:grid;grid-template-columns:14px 1fr 20px 26px;align-items:center;gap:6px}
+.sw-st div{display:grid;grid-template-columns:minmax(0,76px) 1fr 22px 28px;align-items:center;gap:6px}
+.sw-st span{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sw-st i{height:8px;border-radius:4px;background:#EFE7D3;overflow:hidden}
 .sw-st em{display:block;height:100%;border-radius:4px;min-width:3px}
 .sw-st b{font-family:var(--display);font-weight:400;font-size:13px;text-align:right}
@@ -453,14 +458,10 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .hs-head span{font-family:var(--display);font-size:14px;color:#fff;background:var(--rc);border-radius:999px;padding:2px 10px}
 .hs-line{margin:0;font-size:14.5px;line-height:1.55;color:var(--ink)}
 .hs-stats{display:flex;flex-direction:column;gap:7px}
-.hs-stat{display:grid;grid-template-columns:18px 34px 1fr 24px;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.hs-stat{display:grid;grid-template-columns:minmax(0,96px) 1fr 28px;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .hs-stat i{height:10px;border-radius:5px;background:#EFE7D3;overflow:hidden}
 .hs-stat em{display:block;height:100%;border-radius:5px;min-width:4px;transition:width .5s cubic-bezier(.2,1.2,.4,1)}
 .hs-stat b{font-family:var(--display);font-weight:400;font-size:15px;color:var(--ink);text-align:right}
-.hs-path{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.hs-path div{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;background:#F6F0E1;font-family:var(--display);font-size:13px;color:var(--dim);border:2px solid transparent;text-align:center}
-.hs-path div.lead{background:#fff;color:var(--bc);border-color:var(--bc)}
-.hs-path div.off{opacity:.45}
 .hs-evo{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:auto}
 .hs-evo .feet{display:inline-flex;gap:4px;flex:1}
 .hs-evo .feet i{flex:1;height:10px;border-radius:5px;background:#EFE7D3}
@@ -961,14 +962,14 @@ body.mode-chart .mg-sec{display:none}
         <h2 style="font-size:28px;color:var(--navy)" data-chart="포트폴리오 정하기">파티 짜기</h2>
         <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><span class="hold"></span></span><i class="mini-alloc"></i></button>
         <div class="presets" role="group" aria-label="추천 편성">
-          <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>균형형</b><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>안정형</b><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="aggro" aria-pressed="false"><b>공격형</b><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>헤지형</b><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>기본 배분</b><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>주식 적게</b><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="aggro" aria-pressed="false"><b>주식 많이</b><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>풋옵션·금 포함</b><i class="mini-alloc"></i></button>
         </div>
         <div class="sumrow"><div class="sum" id="sumTxt">100 / 100</div><div class="alloc" id="alloc"></div></div>
       </div>
-      <div class="radar-card"><div id="partyRadar"></div><div><b id="partyType" class="ptype">균형형</b><p id="partyTypeDesc" class="small muted"></p></div></div>
+      <div class="radar-card"><div id="partyRadar"></div><div><b id="partyType" class="ptype"></b><p id="partyTypeDesc" class="small muted"></p></div></div>
     </div>
     <details class="card more" id="partyDetail" open><summary>직접 조정</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
     <div class="row" style="justify-content:space-between">
@@ -1764,7 +1765,7 @@ const unitNote = (tape = currentTape) => tape?.daily ? '뉴욕 종가' : 'KST';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 /** heroes are called by their job; after 전직 by their new class */
 const jobOf = role => ROLE_META[role].char;
-const charOf = role => { const b = profile?.heroes?.[role]?.branch; return { name: b ? CLASSES[role][b] : ROLE_META[role].char, title: ROLE_META[role].title }; };
+const charOf = role => { const b = profile?.heroes?.[role]?.branch; return { name: b ? className(role, b) : ROLE_META[role].char, title: ROLE_META[role].title }; };
 const portrait = unit => 'assets/anime/portrait_' + unit + '.png';
 const cutArt = (unit, hit = false) => `assets/anime/${unit}_${hit ? 'hurt' : 'idle'}.png`;
 const heroUnit = role => ({ tank: 'hero_tank', dealer: 'hero_dealer', healer: 'hero_healer', support: 'hero_support' })[role];
@@ -1894,16 +1895,16 @@ function recordBoss(species, grade, bossDown) {
 function renderCollection() {
   $('#dexBosses').innerHTML = SPECIES_ALL.map(sp => { const e = profile.bosses[sp];
     return `<div class="dex ${e ? '' : 'unknown'}"><img src="${portrait(bossUnit(sp))}" alt=""><b>${e ? SPECIES_NAME[sp] : '???'}</b><span class="small muted">${e ? `조우 ${e.met} · 격파 ${e.down}` : '아직 만나지 못함'}</span>${e?.best ? `<i class="stamp-mini ${e.best}">${e.best}</i>` : ''}</div>`; }).join('');
-  $('#dexClasses').innerHTML = ROLES.map(role => Object.entries(CLASSES[role]).map(([br, name]) => { const got = hero(role).branch === br;
-    return `<div class="dex ${got ? '' : 'unknown'}" style="--bc:${BRANCH_COLOR[br]}"><img src="${portrait(heroUnit(role))}" alt=""><b>${got ? name : '???'}</b><span class="small muted">${charOf(role).name} · ${got ? '전직 완료' : `${STAT_LABEL[br === 'def' ? 'def' : br]} 성향으로 키우면`}</span></div>`; }).join('')).join('');
+  $('#dexClasses').innerHTML = ROLES.map(role => { const b = hero(role).branch;
+    return `<div class="dex ${b ? '' : 'unknown'}" style="--bc:${EVO_COLOR}"><img src="${portrait(heroUnit(role))}" alt=""><b>${b ? className(role, b) : '???'}</b><span class="small muted">${b ? '전직 완료' : '가장 많이 든 상품 이름으로 전직'}</span></div>`; }).join('');
   const pr = profile.products || {};
   $('#dexProducts').innerHTML = Object.keys(PRODUCTS).map(id => pr[id] ? `<div class="pcard" style="--rc:${ROLE_COLOR[PRODUCTS[id].cls]}" title="${PRODUCTS[id].role}"><div class="ph"><b>${id}</b></div><span class="small muted">${PRODUCTS[id].index}</span><span class="small">${pr[id].uses}회 사용 · 보수 ${PRODUCTS[id].fee}</span></div>` : `<div class="pcard locked"><div class="ph"><b>???</b></div><span class="small muted">레이드에서 써보면 열려요</span></div>`).join('');
   const met = Object.keys(profile.bosses).length, cls = ROLES.filter(r => hero(r).branch).length;
-  $('#dexSummary').textContent = `전직 ${cls}/12 · 만난 보스 ${met}/${SPECIES_ALL.length} · 써 본 상품 ${Object.keys(pr).length}/${Object.keys(PRODUCTS).length}`;
+  $('#dexSummary').textContent = `전직 ${cls}/4 · 만난 보스 ${met}/${SPECIES_ALL.length} · 써 본 상품 ${Object.keys(pr).length}/${Object.keys(PRODUCTS).length}`;
 }
 function renderProfile() {
   const got = ROLES.filter(r => hero(r).branch).length;
-  $('#dexBtn').textContent = got ? `도감 ${got}/12` : '도감';
+  $('#dexBtn').textContent = got ? `도감 ${got}/4` : '도감';
   $('#unlockBtn').setAttribute('aria-pressed', String(!!profile.unlockAll));
   $('#unlockBtn').textContent = profile.unlockAll ? '체험 모드 ON' : '체험 모드';
 }
@@ -2006,12 +2007,12 @@ function renderBoard(s) {
     <p class="small muted">같은 판을 플레이한 ${chartMode() ? '포트폴리오' : '모험단'} 기준 · 실제 서비스에서는 같은 주에 플레이한 고객이 올라요</p>`;
   return { rank, total, pct };
 }
-/** in-game reward: every new star adds a point to each hero's leading stat; finishing a chapter adds more */
+/** in-game reward: every new star adds a point to each hero's most-held product; finishing a chapter adds more */
 function grantStars(id, flags) {
   profile.stars = profile.stars || {};
   const before = starsOf(id), now = flags.filter(Boolean).length, gain = Math.max(0, now - before);
   if (now > before) profile.stars[id] = now;
-  const bump = n => ROLES.forEach(r => { const h = hero(r), k = STAT_KEYS.slice().sort((a, b) => h.st[b] - h.st[a])[0]; h.st[k] += n; });
+  const bump = n => ROLES.forEach(r => { const h = hero(r), p = battle?.party || party, k = topUsed(h) || (p ? productKey(p._bySkill[p.skills[r]]) : null); if (k) h.used[k] = (h.used[k] || 0) + n; });
   if (gain) bump(gain);
   let chapterDone = null;
   for (const ch of CHAPTERS) { profile.chapters = profile.chapters || {}; if (!profile.chapters[ch.id] && ch.stages.every(x => starsOf(x) >= 1)) { profile.chapters[ch.id] = today(); bump(ch.reward); chapterDone = ch; } }
@@ -2131,78 +2132,66 @@ async function openBrief(id) {
 }
 
 /* ---------- 3. party setup ---------- */
-/** Four plain stats per instrument (0-5), read off its kind/name. 공격 = how much it moves with a rally,
- *  방어 = how little it loses in a sell-off, 안정 = day-to-day calm, 헤지 = gains when the market falls. */
-function instStats(ins) {
+/** What an instrument is, read only from its kind and name. No score for how it "behaves": that depends on the market. */
+function assetClass(id, ins = currentTape?.instruments?.[id] || {}) {
   const n = ins.name || '', k = ins.kind;
-  if (k === 'cash') return { atk: 0, def: 5, stab: 5, ins: 1 };
-  if (k === 'lev') return /인버스/.test(n) ? { atk: 1, def: 2, stab: 1, ins: 4 } : { atk: 5, def: 0, stab: 1, ins: 0 };
-  if (k === 'option') return /인버스/.test(n) ? { atk: 1, def: 3, stab: 2, ins: 4 } : { atk: 0, def: 4, stab: 1, ins: 5 };
-  if (/반도체/.test(n)) return { atk: 4, def: 1, stab: 2, ins: 0 };
-  if (/장기채|국고채/.test(n)) return { atk: 2, def: 3, stab: 3, ins: 2 };
-  if (/단기채/.test(n)) return { atk: 0, def: 4, stab: 5, ins: 1 };
-  if (/금/.test(n) && !/금리/.test(n)) return { atk: 2, def: 4, stab: 3, ins: 3 };
-  if (/배당/.test(n)) return { atk: 2, def: 3, stab: 4, ins: 1 };
-  return { atk: 3, def: 2, stab: 3, ins: 0 };
+  if (k === 'cash') return '현금';
+  if (k === 'lev') return '레버리지';
+  if (k === 'option' || k === 'future') return /풋|인버스|매도/.test(n) ? '하락 베팅' : /콜/.test(n) ? '콜옵션' : '선물';
+  if (/채/.test(n)) return '채권';
+  if (/금/.test(n) && !/금리/.test(n)) return '금';
+  return '주식';
 }
-function skillStats(sk) {
-  const parts = sk.blend ? Object.entries(sk.blend) : [[sk.instrument, 1]];
-  const out = { atk: 0, def: 0, stab: 0, ins: 0 };
-  parts.forEach(([id, w]) => { const st = instStats(currentTape.instruments[id]); for (const k in out) out[k] += st[k] * w; });
-  return out;
+const MIX_COLOR = { 주식: '#6E9BFF', 레버리지: '#D6453F', 채권: '#8EA0B8', 금: '#E0A72E', 현금: '#B9C4D4', '하락 베팅': '#7458C9', 콜옵션: '#E58A3A', 선물: '#B5544F' };
+const skillParts = sk => sk.blend ? Object.entries(sk.blend) : [[sk.instrument, 1]];
+/** the party's money by asset class, in % of the total */
+function partyMix(p = party) {
+  const out = {};
+  ROLES.forEach(r => skillParts(p._bySkill[p.skills[r]]).forEach(([id, w]) => { const c = assetClass(id); out[c] = (out[c] || 0) + w * p.weights[r]; }));
+  return Object.entries(out).map(([c, v]) => [c, Math.round(v)]).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
 }
-function partyStats(p = party) {
-  const out = { atk: 0, def: 0, stab: 0, ins: 0 };
-  ROLES.forEach(r => { const st = skillStats(p._bySkill[p.skills[r]]); for (const k in out) out[k] += st[k] * p.weights[r] / 100; });
-  return out;
+function partyType(p = party) {
+  const m = Object.fromEntries(partyMix(p)), stock = (m['주식'] || 0) + (m['레버리지'] || 0);
+  if (m['하락 베팅']) return [`하락 베팅 ${m['하락 베팅']}%`, '시장이 내릴 때 버는 상품이 들어 있어요.'];
+  if (m['레버리지']) return [`레버리지 ${m['레버리지']}%`, '하루 움직임의 몇 배로 움직이는 상품이 들어 있어요.'];
+  return [`주식 ${stock}%`, `나머지 ${100 - stock}%는 채권, 금, 현금이에요.`];
 }
-function partyType(st) {
-  if (st.ins >= 2.2) return ['헤지형', '하락에 대비한 비중이 커요. 시장이 빠질 땐 덜 잃고, 오를 땐 덜 벌어요.'];
-  if (st.atk >= 3.4) return ['공격형', '오를 때 크게 버는 대신, 빠질 때도 크게 맞는 파티예요.'];
-  if (st.def >= 3.0 && st.atk < 2.4) return ['안정형', '덜 벌고 덜 잃는 파티예요. 보스를 쓰러뜨리긴 어려워요.'];
-  return ['균형형', '공격과 방어를 고르게 나눈 파티예요. 중간 선택에서 방향을 정해요.'];
+function mixBarHTML(p = party) {
+  const mix = partyMix(p);
+  return `<div class="mixbar">${mix.map(([c, v]) => `<i style="width:${v}%;background:${MIX_COLOR[c]}"></i>`).join('')}</div><div class="mixleg">${mix.map(([c, v]) => `<span><i style="background:${MIX_COLOR[c]}"></i>${c} ${v}%</span>`).join('')}</div>`;
 }
-const STAT_LABEL = { atk: '공격', def: '방어', stab: '안정', ins: '헤지' };
-const STAT_KEYS = ['atk', 'def', 'stab', 'ins'];
-const STAT_COLOR = { atk: '#D6453F', def: '#2F6BD0', stab: '#2E9A58', ins: '#7458C9' };
-// one icon per stat, used everywhere the stat appears (choices, party, status windows, pop-ups)
-const STAT_SVG = {
-  atk: '<path d="M14.5 3.5 20.5 3.5 20.5 9.5 10 20 4 14z" fill="#FFB3AE" stroke="#D6453F" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 20l3-3" stroke="#D6453F" stroke-width="2.4" stroke-linecap="round"/>',
-  def: '<path d="M12 3 19 6v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z" fill="#B9D0F5" stroke="#2F6BD0" stroke-width="1.8" stroke-linejoin="round"/>',
-  stab: '<circle cx="12" cy="12" r="8.5" fill="#BFE8CC" stroke="#2E9A58" stroke-width="1.8"/><path d="M7.5 12h9" stroke="#2E9A58" stroke-width="2.2" stroke-linecap="round"/>',
-  ins: '<path d="M3.5 12a8.5 8.5 0 0 1 17 0z" fill="#D9CCFA" stroke="#7458C9" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v6.5a2 2 0 0 1-4 0" fill="none" stroke="#7458C9" stroke-width="1.8" stroke-linecap="round"/>',
-};
-const statIcon = (k, size = 16) => `<svg class="sti" width="${size}" height="${size}" viewBox="0 0 24 24" aria-label="${STAT_LABEL[k]}">${STAT_SVG[k]}</svg>`;
-/** the two strongest stats of a skill, as icons — "이걸 고르면 이게 오른다" without reading */
-function skillStatChips(sk) { const st = skillStats(sk); return STAT_KEYS.filter(k => st[k] >= 2.5).sort((a, b) => st[b] - st[a]).slice(0, 2).map(k => `<span class="stchip">${statIcon(k, 14)}</span>`).join(''); }
+/** a small tag only for products that work differently from plain holdings */
+function skillStatChips(sk) { const c = skillParts(sk).map(([id]) => assetClass(id)).find(c => ['레버리지', '하락 베팅', '콜옵션', '선물'].includes(c)); return c ? `<span class="stchip" style="--tc:${MIX_COLOR[c]}">${c}</span>` : ''; }
 
 /* ---------- hero growth & 전직 ----------
-   Each raid adds to every hero's four stats from the product it ended with (scaled by weight) plus a bonus for a
-   checkpoint swap. At EVO_PTS total a hero changes class by its strongest stat group. */
-const EVO_PTS = 30, STEPS = 5;   // 전직 when a hero's four stats add up to EVO_PTS; heavier-weighted heroes get there first
-const CLASSES = {
-  tank: { def: '방어형 채권', atk: '공격형 채권', ins: '헤지형 채권' },
-  dealer: { def: '방어형 성장주', atk: '공격형 성장주', ins: '헤지형 성장주' },
-  healer: { def: '방어형 금·현금', atk: '공격형 금·현금', ins: '헤지형 금·현금' },
-  support: { def: '방어형 배당주', atk: '공격형 배당주', ins: '헤지형 배당주' },
-};
-const BRANCH_COLOR = { def: '#2F6BD0', atk: '#D6453F', ins: '#7458C9' };
-const STAT_GROW = { atk: '공격이 올랐어요.', def: '방어가 올랐어요.', stab: '안정이 올랐어요.', ins: '헤지가 올랐어요.' };
+   Each raid adds points to the product a hero held (more for a heavier weight, +2 for a checkpoint swap).
+   At EVO_PTS a hero takes the name of the product it held most. Nothing is inferred about the asset. */
+const EVO_PTS = 30, STEPS = 5, EVO_COLOR = '#E0A72E';
+const SHORT = { QQQ: '나스닥100', TQQQ: '나스닥100 3배', SOXX: '반도체', TLT: '장기채', SHY: '단기채', GLD: '금', BIL: '현금', PSQ: '나스닥 인버스', SQQQ: '나스닥 인버스 3배', SCHD: '배당 ETF', QQQP: 'QQQ 풋옵션', QQQ_P: 'QQQ 풋옵션', QQQC: 'QQQ 콜옵션', NQF: '나스닥 선물', NQFS: '나스닥 선물 매도', K200: '코스피200', K200L: '코스피200 2배', K200_P: '코스피200 풋옵션', KSEMI: '반도체', KBOND: '국고채', KGOLD: '금', KCASH: '현금', KDIV: '배당 ETF' };
+const isCashId = id => id === 'BIL' || id === 'KCASH';
+const mainInst = sk => skillParts(sk).slice().sort((a, b) => isCashId(a[0]) - isCashId(b[0]) || b[1] - a[1])[0][0];
+const productKey = sk => { const id = mainInst(sk); return SHORT[id] || (currentTape.instruments[id]?.name || sk.name).replace(/\s*\(.*\)/, '').replace(/ ETF$/, ''); };
+const className = (role, key) => `${ROLE_META[role].char} · ${key}`;
 const josa = (word, a, b) => { const c = word.charCodeAt(word.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 ? a : b; };
-function hero(role) { profile.heroes = profile.heroes || {}; return profile.heroes[role] ||= { raids: 0, st: { atk: 0, def: 0, stab: 0, ins: 0 }, branch: null, last: 0 }; }
+function hero(role) {
+  profile.heroes = profile.heroes || {};
+  const h = profile.heroes[role] ||= { raids: 0, used: {}, branch: null, last: 0 };
+  if (!h.used) { h.used = {}; h.branch = null; delete h.st; }   // saves from the old stat system start over
+  return h;
+}
 const KNUM = n => ['', '한', '두', '세', '네', '다섯'][n] || String(n);
-const heroPts = h => STAT_KEYS.reduce((a, k) => a + h.st[k], 0);
+const heroPts = h => Object.values(h.used || {}).reduce((a, v) => a + v, 0);
+const topUsed = h => Object.entries(h.used || {}).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
 /** raids left until 전직, estimated from the last raid's gain */
 const raidsLeft = role => { const h = hero(role); if (h.branch) return 0; const need = EVO_PTS - heroPts(h); return need <= 0 ? 0 : Math.ceil(need / Math.max(4, h.last || 8)); };
-const branchOf = st => { const g = { atk: st.atk, ins: st.ins, def: (st.def + st.stab) / 2 }; return Object.keys(g).sort((a, b) => g[b] - g[a])[0]; };
 const ROLE_DESC = { tank: '장기·단기 국채', dealer: '기술·성장주', healer: '금·단기국채', support: '배당 많이 주는 주식' };
 const heroTitle = role => ROLE_DESC[role];
 function raidGains(state) {
   const out = {};
   ROLES.forEach(role => {
-    const sk = state.party._bySkill[state.party.skills[role]], st = skillStats(sk), w = state.party.weights[role];
-    const g = Object.fromEntries(STAT_KEYS.map(k => [k, Math.round(st[k] * (0.4 + w / 50))]));
-    (state.actions || []).filter(a => a.type === 'equip' && state.party._bySkill[a.to]?.role === role).forEach(a => { const st2 = skillStats(state.party._bySkill[a.to]); const top = STAT_KEYS.slice().sort((x, y) => st2[y] - st2[x])[0]; g[top] += 2; });
+    const g = {}, add = (sk, v) => { const k = productKey(sk); g[k] = (g[k] || 0) + v; };
+    add(state.party._bySkill[state.party.skills[role]], Math.round(4 + state.party.weights[role] / 5));
+    (state.actions || []).filter(a => a.type === 'equip' && state.party._bySkill[a.to]?.role === role).forEach(a => add(state.party._bySkill[a.to], 2));
     out[role] = g;
   });
   return out;
@@ -2210,44 +2199,42 @@ function raidGains(state) {
 /** applies gains; returns { gains, evolved: [role...] } */
 function growHeroes(state) {
   const gains = raidGains(state), evolved = [];
-  ROLES.forEach(role => { const h = hero(role); STAT_KEYS.forEach(k => { h.st[k] += gains[role][k]; }); h.last = STAT_KEYS.reduce((a, k) => a + gains[role][k], 0); h.raids++; if (!h.branch && heroPts(h) >= EVO_PTS) { h.branch = branchOf(h.st); evolved.push(role); } });
+  ROLES.forEach(role => { const h = hero(role); for (const k in gains[role]) h.used[k] = (h.used[k] || 0) + gains[role][k]; h.last = Object.values(gains[role]).reduce((a, v) => a + v, 0); h.raids++; if (!h.branch && heroPts(h) >= EVO_PTS) { h.branch = topUsed(h); evolved.push(role); } });
   return { gains, evolved };
 }
+const usedRows = (h, n) => Object.entries(h.used || {}).sort((a, b) => b[1] - a[1]).slice(0, n);
 function statusWindowHTML(role, opts = {}) {
   const h = hero(role), left = raidsLeft(role), on = Math.min(STEPS, Math.floor(heroPts(h) / EVO_PTS * STEPS));
   const steps = Array.from({ length: STEPS }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('');
-  return `<div class="stwin ${h.branch ? 'evo' : ''}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}">
+  const rows = usedRows(h, 3), mx = Math.max(12, ...rows.map(r => r[1]));
+  return `<div class="stwin ${h.branch ? 'evo' : ''}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? EVO_COLOR : 'transparent'}">
     <div class="sw-h"><img src="${portrait(heroUnit(role))}" alt=""><div><b>${charOf(role).name}</b><span>${heroTitle(role)}</span></div></div>
-    <div class="sw-st">${STAT_KEYS.map(k => { const mx = Math.max(12, ...STAT_KEYS.map(x => h.st[x])); return `<div>${statIcon(k, 14)}<i><em style="width:${(h.st[k] / mx * 100).toFixed(1)}%;background:${STAT_COLOR[k]}"></em></i><b class="tabular">${h.st[k]}</b><u>${opts.gains?.[k] ? `+${opts.gains[k]}` : ''}</u></div>`; }).join('')}</div>
+    <div class="sw-st">${rows.map(([k, v]) => `<div><span>${k}</span><i><em style="width:${(v / mx * 100).toFixed(1)}%;background:${ROLE_COLOR[role]}"></em></i><b class="tabular">${v}</b><u>${opts.gains?.[k] ? `+${opts.gains[k]}` : ''}</u></div>`).join('')}</div>
     <div class="sw-ev">${h.branch ? `<span class="done">전직 완료</span>` : `<span class="steps">${steps}</span><small>${!h.raids ? '레이드를 하면 자라요' : left ? `${KNUM(left)} 판 더 하면 전직` : '전직 준비 완료'}</small>`}</div></div>`;
 }
 /* ---------- home: the party on stage; tap one to see how it is growing ---------- */
 let homeSel = null;
-const LEAN = { atk: '공격 쪽으로', def: '방어 쪽으로', ins: '헤지 쪽으로' };
-const BRANCH_ICON = { atk: 'atk', def: 'def', ins: 'ins' };
 function renderHome() {
   if (!homeSel) homeSel = ROLES.filter(r => !hero(r).branch && hero(r).raids).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0] || 'dealer';
   const plays = Object.values(profile.plays || {}).reduce((a, p) => a + p.count, 0), tp = profile.totalPnl || 0;
   $('#homeChip').innerHTML = plays ? `레이드 ${plays}판 <i></i> 지금까지 <b class="${tp >= 0 ? 'up' : 'down'}">${tp >= 0 ? '+' : '−'}${wonWords(tp)}</b>` : '첫 레이드를 기다리고 있어요';
   $('#homeCast').innerHTML = ROLES.map((r, i) => { const h = hero(r), sel = r === homeSel;
-    return `<button type="button" class="cast ${sel ? 'sel' : ''} ${h.branch ? 'evo' : ''}" data-role="${r}" style="--rc:${ROLE_COLOR[r]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : ROLE_COLOR[r]};--d:${-i * .45}s" aria-pressed="${sel}">
+    return `<button type="button" class="cast ${sel ? 'sel' : ''} ${h.branch ? 'evo' : ''}" data-role="${r}" style="--rc:${ROLE_COLOR[r]};--bc:${h.branch ? EVO_COLOR : ROLE_COLOR[r]};--d:${-i * .45}s" aria-pressed="${sel}">
       <span class="tag"><b>${charOf(r).name}</b>${sel || h.branch ? `<small>${heroTitle(r)}</small>` : ''}</span>
       <img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span class="ring"></span></button>`; }).join('');
   $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); });
   $('#heroSheet').innerHTML = heroSheetHTML(homeSel);
 }
 function heroSheetHTML(role) {
-  const h = hero(role), name = charOf(role).name, lead = h.branch || branchOf(h.st), started = h.raids > 0;
-  const max = Math.max(12, ...STAT_KEYS.map(k => h.st[k]));
-  const line = h.branch ? `${CLASSES[role][h.branch]}${josa(CLASSES[role][h.branch], '으로', '로')} 전직했어요.`
-    : !started ? '레이드에서 어떤 상품을 들었는지에 따라 성격이 달라져요.'
-    : `${LEAN[lead]} 자라고 있어요. 이대로면 <b style="color:${BRANCH_COLOR[lead]}">${CLASSES[role][lead]}</b>${josa(CLASSES[role][lead], '이', '가')} 돼요.`;
+  const h = hero(role), name = charOf(role).name, lead = h.branch || topUsed(h), started = h.raids > 0;
+  const rows = usedRows(h, 4), max = Math.max(12, ...rows.map(r => r[1]));
+  const line = h.branch ? `${lead}${josa(lead, '을', '를')} 가장 많이 들어서 ${name}${josa(name, '이', '가')} 됐어요.`
+    : !started || !lead ? '레이드에서 가장 많이 든 상품의 이름으로 전직해요.'
+    : `지금까지 ${lead}${josa(lead, '을', '를')} 가장 많이 들었어요. 이대로면 <b>${className(role, lead)}</b>${josa(lead, '이', '가')} 돼요.`;
   const left = raidsLeft(role), on = h.branch ? STEPS : Math.min(STEPS, Math.floor(heroPts(h) / EVO_PTS * STEPS));
   return `<div class="hs-head" style="--rc:${ROLE_COLOR[role]}"><b>${name}</b><span>${heroTitle(role)}</span></div>
     <p class="hs-line">${line}</p>
-    <div class="hs-stats">${STAT_KEYS.map(k => `<div class="hs-stat">${statIcon(k, 18)}<span>${STAT_LABEL[k]}</span><i><em style="width:${(h.st[k] / max * 100).toFixed(1)}%;background:${STAT_COLOR[k]}"></em></i><b class="tabular">${h.st[k]}</b></div>`).join('')}</div>
-    <div class="hs-path">${Object.keys(CLASSES[role]).map(br => { const known = h.branch === br || (started && lead === br);
-      return `<div class="${br === lead && started ? 'lead' : ''} ${h.branch && h.branch !== br ? 'off' : ''}" style="--bc:${BRANCH_COLOR[br]}">${statIcon(BRANCH_ICON[br], 16)}<span>${known ? CLASSES[role][br] : '???'}</span></div>`; }).join('')}</div>
+    ${rows.length ? `<div class="hs-stats">${rows.map(([k, v]) => `<div class="hs-stat"><span>${k}</span><i><em style="width:${(v / max * 100).toFixed(1)}%;background:${ROLE_COLOR[role]}"></em></i><b class="tabular">${v}</b></div>`).join('')}</div>` : ''}
     <div class="hs-evo">${h.branch ? '<span class="done">전직 완료</span>' : `<span>전직까지</span><span class="feet">${Array.from({ length: STEPS }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('')}</span><small>${!started ? '' : left ? `${KNUM(left)} 판 더` : '다음 판에 전직'}</small>`}</div>`;
 }
 
@@ -2259,24 +2246,12 @@ function nextBossSentence() {
   return `다음 보스 ${up.boss}${josa(up.boss, '은', '는')} ${when}에 와요.`;
 }
 const wonWords = v => { const a = Math.abs(Math.round(v)); return a >= 10000 ? `${Math.round(a / 10000).toLocaleString('ko-KR')}만원` : a >= 1000 ? `${Math.round(a / 1000)}천원` : `${a}원`; };
-function radarSVG(st, size = 150) {
-  const c = size / 2, R = c - 22, keys = ['atk', 'def', 'stab', 'ins'];
-  const pt = (i, v) => { const a = -Math.PI / 2 + i * Math.PI / 2; return [c + Math.cos(a) * R * v / 5, c + Math.sin(a) * R * v / 5]; };
-  const ring = v => keys.map((_, i) => pt(i, v).join(',')).join(' ');
-  const poly = keys.map((k, i) => pt(i, Math.max(.3, st[k])).join(',')).join(' ');
-  const labels = keys.map((k, i) => { const [x, y] = pt(i, 6.3); return `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="13" font-family="Jua, sans-serif" fill="${STAT_COLOR[k]}">${STAT_LABEL[k]} ${st[k].toFixed(1)}</text>`; }).join('');
-  return `<svg viewBox="-28 0 ${size + 56} ${size}" width="${size + 56}" height="${size}" role="img" aria-label="파티 스탯">
-    ${[1, 2, 3, 4, 5].map(v => `<polygon points="${ring(v)}" fill="none" stroke="#D8C9A3" stroke-width="${v === 5 ? 1.5 : .8}"/>`).join('')}
-    ${keys.map((_, i) => `<line x1="${c}" y1="${c}" x2="${pt(i, 5)[0]}" y2="${pt(i, 5)[1]}" stroke="#D8C9A3" stroke-width=".8"/>`).join('')}
-    <polygon points="${poly}" fill="rgba(224,167,46,.35)" stroke="#E0A72E" stroke-width="2.5" stroke-linejoin="round"/>
-    ${labels}</svg>`;
-}
 /** one-tap formations; locked skills fall back to the role's default */
 const PRESETS = {
-  balanced: { name: '균형형', weights: { tank: 25, dealer: 40, healer: 20, support: 15 }, pick: {} },
-  safe: { name: '안정형', weights: { tank: 40, dealer: 20, healer: 20, support: 20 }, pick: { healer: ['cash'] } },
-  aggro: { name: '공격형', weights: { tank: 10, dealer: 60, healer: 10, support: 20 }, pick: { dealer: ['lev', 'sector'], healer: ['cash'] } },
-  hedge: { name: '헤지형', weights: { tank: 30, dealer: 30, healer: 25, support: 15 }, pick: { healer: ['option', 'gold'] } },
+  balanced: { name: '기본 배분', weights: { tank: 25, dealer: 40, healer: 20, support: 15 }, pick: {} },
+  safe: { name: '주식 적게', weights: { tank: 40, dealer: 20, healer: 20, support: 20 }, pick: { healer: ['cash'] } },
+  aggro: { name: '주식 많이', weights: { tank: 10, dealer: 60, healer: 10, support: 20 }, pick: { dealer: ['lev', 'sector'], healer: ['cash'] } },
+  hedge: { name: '풋옵션·금 포함', weights: { tank: 30, dealer: 30, healer: 25, support: 15 }, pick: { healer: ['option', 'gold'] } },
 };
 /* ---------- 내 계좌로 편성 ----------
    A sample brokerage account (in the real app: the user's holdings via the account API). Each holding is mapped to a
@@ -2337,9 +2312,9 @@ function renderPresets() {
   $$('.preset').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.preset === cur)); const pr = PRESETS[b.dataset.preset]; b.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${pr.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); });
 }
 function renderPartyMeta() {
-  const st = partyStats(), [type, desc] = partyType(st);
-  $('#partyRadar').innerHTML = radarSVG(st);
-  $('#partyType').textContent = type; $('#partyTypeDesc').textContent = '';
+  const [type, desc] = partyType();
+  $('#partyRadar').innerHTML = mixBarHTML();
+  $('#partyType').textContent = type; $('#partyTypeDesc').textContent = desc;
   renderPresets();
 }
 function openParty() {
@@ -2712,7 +2687,7 @@ function cutForTurn(turn) {
 
 function evolveCut(role) {
   const h = hero(role); sfx.level();
-  return cutIn({ text: '전직!', sub: `${jobOf(role)} → ${charOf(role).name}`, bg: BRANCH_COLOR[h.branch], artL: cutArt(heroUnit(role)), artR: null }, 1);
+  return cutIn({ text: '전직!', sub: `${jobOf(role)} → ${charOf(role).name}`, bg: EVO_COLOR, artL: cutArt(heroUnit(role)), artR: null }, 1);
 }
 
 /* ---------- VS intro: party vs boss, 1.6s ---------- */
@@ -2720,7 +2695,7 @@ function vsIntro(speed = 1) {
   return new Promise(res => {
     const v = $('#vs'); v.hidden = false;
     $('#vsParty').innerHTML = ROLES.map(r => `<img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}">`).join('');
-    $('#vsPartyName').textContent = `${partyType(partyStats(party))[0]} 모험단`;
+    $('#vsPartyName').textContent = `우리 파티 · ${partyType(party)[0]}`;
     $('#vsBoss').src = cutArt(bossUnit(currentTape.bossSpecies)); $('#vsBossName').textContent = currentTape.boss;
     $('#vsSub').textContent = `${currentTape.title} · ${fmtDate(currentTape.bars[0].t)}`;
     sfx.cutin();
@@ -2761,30 +2736,14 @@ $('#abortBtn').addEventListener('click', () => {
 const waitResume = () => userPaused ? new Promise(r => resumeWaiters.push(r)) : Promise.resolve();
 
 function hpClass(v) { return v > 50 ? '' : v > 20 ? 'mid' : 'low'; }
-/** after each hit: the stat a hero just showed pops up over its card (same icons as the choices) */
-function popStats(turn) {
-  if (reduceMotion) return;
-  const mkt = turn.boss.portfolioRet;
-  ROLES.forEach((role, i) => {
-    const r = turn.roles[role]?.ret; if (r === undefined) return;
-    const st = skillStats(battle.party._bySkill[battle.party.skills[role]]);
-    let k = null;
-    if (r > 0.05) k = STAT_KEYS.slice().sort((a, b) => st[b] - st[a])[0];
-    else if (mkt < 0 && r >= -0.05) k = ['def', 'ins', 'stab'].sort((a, b) => st[b] - st[a])[0];
-    if (!k) return;
-    const card = $('#phud-' + role); if (!card) return;
-    const el = document.createElement('span'); el.className = 'statpop'; el.innerHTML = statIcon(k, 22) + '<b>+1</b>';
-    el.style.color = STAT_COLOR[k]; el.style.animationDelay = (i * 90) + 'ms'; card.appendChild(el);
-    setTimeout(() => el.remove(), 1400);
-  });
-}
+function popStats() {}
 function renderPartyHud(turn) {
   const s = battle;
   $('#partyhud').innerHTML = ROLES.map(role => {
     const sk = s.party._bySkill[s.party.skills[role]], hp = s.partyHp[role], sh = s.shield[role];
     const r = turn?.roles[role]?.ret;
     const h = hero(role);
-    return `<div class="phud ${hp <= 0 ? 'dead' : ''} ${h.branch ? 'evo' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}">
+    return `<div class="phud ${hp <= 0 ? 'dead' : ''} ${h.branch ? 'evo' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? EVO_COLOR : 'transparent'}">
       <div class="t"><img src="${portrait(heroUnit(role))}" alt=""><b>${charOf(role).name}</b><small>${heroTitle(role)}</small>${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</div>
       <div class="hp"><i class="${hpClass(hp)}" style="width:${hp}%"></i><em style="width:${Math.min(100, sh)}%"></em></div>
       <div class="num"><span>${skillStatChips(sk)}<b>${sk.name}</b> ${s.party.weights[role]}%</span><b class="tabular">${fmtKRW(roleValue(role))}</b></div></div>`;
@@ -3215,15 +3174,14 @@ async function showResult() {
   $('#coachAv').src = portrait('hero_healer');
   renderBoard(s);
   // growth: plain sentences + status windows with this raid's gains
-  const pnl = totalValue() - SEED, top = ROLES.map(role => { const g = growth.gains[role], k = STAT_KEYS.slice().sort((a, b) => g[b] - g[a])[0]; return { role, k, v: g[k] }; }).sort((a, b) => b.v - a.v)[0];
-  const nm = charOf(top.role).name, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
+  const pnl = totalValue() - SEED, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
   const nameList = rs => rs.map(r => jobOf(r)).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
   const evoNames = nameList(growth.evolved), evoLast = jobOf(growth.evolved[growth.evolved.length - 1] || 'tank');
   const soonN = soon ? raidsLeft(soon) : 0, soonName = soon ? charOf(soon).name : '';
   const lines2 = [
     pnl >= 0 ? `${wonWords(pnl)}을 벌었어요.` : r.alpha > 0 ? `이번엔 ${wonWords(pnl)}을 잃었지만, 시장보다는 덜 잃었어요.` : `이번엔 ${wonWords(pnl)}을 잃었어요.`,
-    growth.evolved.length === 1 ? `${evoNames}${josa(evoLast, '이', '가')} ${heroTitle(growth.evolved[0])}${josa(heroTitle(growth.evolved[0]), '으로', '로')} 전직했어요!`
-      : growth.evolved.length ? `${evoNames}${josa(evoLast, '이', '가')} 전직했어요!` : `${nm}${josa(nm, '이', '가')} 한층 ${STAT_GROW[top.k]}`,
+    growth.evolved.length === 1 ? `${evoNames}${josa(evoLast, '이', '가')} ${charOf(growth.evolved[0]).name}${josa(charOf(growth.evolved[0]).name, '으로', '로')} 전직했어요!`
+      : growth.evolved.length ? `${evoNames}${josa(evoLast, '이', '가')} 전직했어요!` : '',
     (() => { const opened = currentTape.skills.filter(k => k.unlockLevel && growth.evolved.includes(k.role)).map(k => k.name); return opened.length ? `이제 ${opened.join(', ')}${josa(opened.at(-1), '을', '를')} 쓸 수 있어요.` : ''; })(),
     soon && soonN ? `${KNUM(soonN)} 판만 더 하면 ${soonName}${josa(soonName, '이', '가')} 전직해요. ${nextBossSentence()}` : nextBossSentence(),
   ].filter(Boolean);
