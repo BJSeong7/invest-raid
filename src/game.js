@@ -18,7 +18,7 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fmtPct = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 // The raid plays with a notional 1,000만원 of 모험단 자금. Equity is a constant-mix index (engine), so a role's
 // current value is equity × its current weight — the number a brokerage user actually wants to see.
-const SEED = 10_000_000;
+const SEED = 18_640_000;   // 샘플 계좌 평가금: the raid replays this account, not play money
 const fmtKRW = n => Math.round(n).toLocaleString('ko-KR') + '원';
 // tiny inline icons (currentColor) so labels read as game UI, not form labels
 const ICON = {
@@ -256,6 +256,7 @@ let bChart = null;
 async function openBrief(id) {
   $('#raidSheet').hidden = true;
   currentTape = await adapter.load(id);
+  currentTape = { ...currentTape, skills: currentTape.skills.filter(k => !k.unlockLevel) };   // leverage and inverse are never game rewards
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
   $('#bArt').alt = t.boss;
@@ -344,11 +345,18 @@ const raidsLeft = role => { const h = hero(role); if (h.branch) return 0; const 
 const branchOf = st => { const g = { atk: st.atk, ins: st.ins, def: (st.def + st.stab) / 2 }; return Object.keys(g).sort((a, b) => g[b] - g[a])[0]; };
 const heroTitle = role => { const h = hero(role); return h.branch ? CLASSES[role][h.branch] : ROLE_META[role].title; };
 function raidGains(state) {
+  const acts = (state.actions || []).filter(a => a.type !== 'hold'), held = !acts.length;
+  const w = state.party.weights, diversified = Math.max(...ROLES.map(r => w[r])) <= 40;
+  const dropped = state.log.some(t => t.boss.portfolioRet < -0.3), pnl = state.equity - 100;
   const out = {};
   ROLES.forEach(role => {
-    const sk = state.party._bySkill[state.party.skills[role]], st = skillStats(sk), w = state.party.weights[role];
-    const g = Object.fromEntries(STAT_KEYS.map(k => [k, Math.round(st[k] * (0.4 + w / 50))]));
-    (state.actions || []).filter(a => a.type === 'equip' && state.party._bySkill[a.to]?.role === role).forEach(a => { const st2 = skillStats(state.party._bySkill[a.to]); const top = STAT_KEYS.slice().sort((x, y) => st2[y] - st2[x])[0]; g[top] += 2; });
+    const g = { atk: 0, def: 0, stab: 0, ins: 0 };
+    if (held) { g.stab += dropped ? 3 : 2; g.def += 1; }                     // 버텼다: the behaviour a brokerage wants after a drop
+    if (diversified) g.def += 2;                                            // 고르게 나눴다
+    if (acts.some(a => a.type === 'equip' && state.party._bySkill[a.to]?.role === role)) g.ins += 3;   // 위험을 줄였다
+    if (acts.some(a => a.type === 'rebalance')) g.ins += 1;
+    if (pnl > 0) g.atk += 1;
+    if (w[role] === Math.max(...ROLES.map(r => w[r]))) g.atk += 1;
     out[role] = g;
   });
   return out;
@@ -382,11 +390,13 @@ function renderHome() {
   $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); openHeroSheet(); });
   $('#heroSheet').innerHTML = heroSheetHTML(homeSel);
   $('#homeTitle').textContent = homeSentence(plays);
+  $('#homeLabel').textContent = `내 계좌 ${fmtKRW(SEED)} · 샘플`;
   const t = TAPES.find(x => x.dailyRaid), done = t && profile.plays[t.id]?.count;
   $('#homeHelper').textContent = !t ? '' : done ? '오늘 판은 끝났어요. 내일 아침에 새 판이 열려요.' : `어제 뉴욕 종가로 3턴 · 보스 ${t.boss}`;
-  $('#homeStart').textContent = done ? '오늘의 한 판 다시 하기' : '오늘의 한 판 시작';
+  $('#homeStart').textContent = done ? '어제 다시 보기' : '어제 내 계좌 보기';
+  if (!done && t) $('#homeTitle').textContent = '어제 내 계좌는 어땠을까요?';
   $('#moreRaidsBtn').onclick = () => { sfx.select(); window.__openRaids(); };
-  $('#homeStart').onclick = async () => { if (!t) return; unlock(); sfx.select(); await openBrief(t.id); openParty(); };
+  $('#homeStart').onclick = async () => { if (!t) return; unlock(); sfx.select(); await openBrief(t.id); party = accountPartyFor(currentTape); setAuto(true); startBattle(); };
 }
 function homeSentence(plays) {
   if (!plays) return '첫 레이드를 떠나 볼까요?';
@@ -422,6 +432,25 @@ function heroSheetHTML(role) {
     <div class="hs-evo">${h.branch ? '<span class="done">전직 완료</span>' : `<span>전직까지</span><span class="feet">${Array.from({ length: STEPS }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('')}</span><small>${!started ? '' : left ? `${KNUM(left)} 판 더` : '다음 판에 전직'}</small>`}</div>`;
 }
 
+/** 같은 시장, 다른 선택: what the other button would have done, in won */
+function otherChoiceLine(state) {
+  const acts = (state.actions || []).filter(a => a.type !== 'hold'), alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
+  const me = state.equity - 100;
+  let other, word;
+  if (acts.length) { other = alts.find(a => a.detail.type === 'hold'); word = '버텼다면'; }
+  else if (lastSafe) { other = alts.find(a => a.detail.type === 'equip' && a.detail.skill === lastSafe.s.id && a.detail.role === lastSafe.role); word = '피했다면'; }
+  if (!other) return '';
+  const diff = SEED * (other.returnPct - me) / 100;
+  if (Math.abs(diff) < 5000) return `${word} 결과는 거의 같았어요.`;
+  return `${word} ${wonWords(diff)} ${diff > 0 ? '더 벌었을' : '더 잃었을'} 거예요.`;
+}
+function behaviourLine(state) {
+  const acts = (state.actions || []).filter(a => a.type !== 'hold');
+  if (!acts.length) return state.log.some(t => t.boss.portfolioRet < -0.3) ? '흔들려도 끝까지 버텨서 모험단이 한층 침착해졌어요.' : '끝까지 버텨서 모험단이 한층 침착해졌어요.';
+  const eq = acts.find(a => a.type === 'equip'); if (eq) { const r = state.party._bySkill[eq.to]?.role, n = charOf(r).name; return `위험을 줄여서 ${n}${josa(n, '이', '가')} 한층 신중해졌어요.`; }
+  return '비중을 다시 나눠서 모험단이 한층 신중해졌어요.';
+}
+let lastSafe = null;
 function nextBossSentence() {
   const now = Date.now(), up = UPCOMING.map(u => ({ ...u, t: Date.parse(u.date) })).filter(u => u.t > now).sort((a, b) => a.t - b.t)[0];
   if (!up) return '';
@@ -513,8 +542,9 @@ function renderPartyMeta() {
   $('#partyType').textContent = type; $('#partyTypeDesc').textContent = '';
   renderPresets();
 }
+function accountPartyFor(tape) { const p = Object.assign(defaultParty(tape), { _tapeId: tape.id }), a = accountParty(); p.weights = a.weights; Object.assign(p.skills, a.skills); return p; }
 function openParty() {
-  party = party && party._tapeId === currentTape.id ? party : Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
+  if (!(party && party._tapeId === currentTape.id)) { party = accountPartyFor(currentTape); presetKey = 'account'; }
   renderPartyScreen();
   showScreen('party');
 }
@@ -1275,8 +1305,9 @@ async function showCheckpoint(cp) {
       const bold = opts.filter(o => o.b.up > base.up + 1e-6).sort((a, b) => b.b.up - a.b.up)[0];
       const say = o => { const nm = charOf(o.role).name; return `${nm}${josa(nm, '을', '를')} ${o.s.name}${josa(o.s.name, '으로', '로')} 바꾸기`; };
       const rows = [];
-      if (safe) rows.push(`<button type="button" class="qc" data-q="safe"><small>덜 잃게</small><b>${say(safe)}</b><span>떨어지면 ${fmtMan(-v * safe.b.down * mv / 100)}, 지금은 ${fmtMan(-v * base.down * mv / 100)}</span></button>`);
-      if (bold) rows.push(`<button type="button" class="qc" data-q="bold"><small>더 벌게</small><b>${say(bold)}</b><span>오르면 ${fmtMan(v * bold.b.up * mv / 100)}, 지금은 ${fmtMan(v * base.up * mv / 100)}</span></button>`);
+      if (safe) rows.push(`<button type="button" class="qc" data-q="safe"><small>피하기</small><b>${say(safe)}</b><span>떨어지면 ${fmtMan(-v * safe.b.down * mv / 100)}, 지금은 ${fmtMan(-v * base.down * mv / 100)}</span></button>`);
+      lastSafe = safe || null;
+      if (false && bold) rows.push(`<button type="button" class="qc" data-q="bold"><small>더 벌게</small><b>${say(bold)}</b><span>오르면 ${fmtMan(v * bold.b.up * mv / 100)}, 지금은 ${fmtMan(v * base.up * mv / 100)}</span></button>`);
       $('#cpQuick').innerHTML = rows.join('');
       $$('#cpQuick .qc').forEach(btn => btn.onclick = () => { const o = btn.dataset.q === 'safe' ? safe : bold; sfx.select(); done({ type: 'equip', role: o.role, skill: o.s.id, level: 99 }, `${charOf(o.role).name} → ${o.s.name}`); });
       $('.cp-box').classList.remove('manual');
@@ -1323,6 +1354,8 @@ async function showResult() {
   const next = order2.find(t => !profile.plays[t.id] && t.id !== currentTape.id) || order2[(order2.findIndex(t => t.id === currentTape.id) + 1) % order2.length];
   $('#nextRaidBtn').textContent = `다음 레이드: ${next.title}`;
   $('#nextRaidBtn').onclick = () => { sfx.select(); party = null; openBrief(next.id); };
+  $('#rLabel').textContent = currentTape.dailyRaid ? '어제 내 계좌' : '레이드 결과';
+  if (currentTape.dailyRaid) { $('#nextRaidBtn').textContent = '확인'; $('#nextRaidBtn').onclick = () => { sfx.select(); setAuto(false); $('#otherBtn').click(); }; }
   $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
   $('#rMoney').textContent = fmtKRW(totalValue());
   $('#rAlphaLabel').textContent = `시장(${benchmarkOf(currentTape)})에 넣었다면`;
@@ -1363,14 +1396,14 @@ async function showResult() {
   const soonN = soon ? raidsLeft(soon) : 0, soonName = soon ? charOf(soon).name : '';
   const lines2 = [
     pnl >= 0 ? `${wonWords(pnl)}을 벌었어요.` : r.alpha > 0 ? `이번엔 ${wonWords(pnl)}을 잃었지만, 시장보다는 덜 잃었어요.` : `이번엔 ${wonWords(pnl)}을 잃었어요.`,
-    growth.evolved.length === 1 ? `${evoNames}${josa(evoLast, '이', '가')} ${heroTitle(growth.evolved[0])}${josa(heroTitle(growth.evolved[0]), '으로', '로')} 전직했어요!`
-      : growth.evolved.length ? `${evoNames}${josa(evoLast, '이', '가')} 전직했어요!` : `${nm}${josa(nm, '이', '가')} 한층 ${STAT_GROW[top.k]}`,
+    behaviourLine(s) || (growth.evolved.length === 1 ? `${evoNames}${josa(evoLast, '이', '가')} ${heroTitle(growth.evolved[0])}${josa(heroTitle(growth.evolved[0]), '으로', '로')} 전직했어요!`
+      : growth.evolved.length ? `${evoNames}${josa(evoLast, '이', '가')} 전직했어요!` : `${nm}${josa(nm, '이', '가')} 한층 ${STAT_GROW[top.k]}`),
     (() => { const opened = currentTape.skills.filter(k => k.unlockLevel && growth.evolved.includes(k.role)).map(k => k.name); return opened.length ? `이제 ${opened.join(', ')}${josa(opened.at(-1), '을', '를')} 쓸 수 있어요.` : ''; })(),
     soon && soonN ? `${KNUM(soonN)} 판만 더 하면 ${soonName}${josa(soonName, '이', '가')} 전직해요. ${nextBossSentence()}` : nextBossSentence(),
   ].filter(Boolean);
   $('#rGrowthText').innerHTML = lines2.map(l => `<p>${l}</p>`).join('');
   $('#rTitle').textContent = lines2[0];
-  $('#rSub').textContent = Math.abs(r.alpha) < 0.005 ? '시장과 거의 같았어요.' : r.alpha > 0 ? `시장(${s._benchId})보다 ${r.alpha.toFixed(2)}%p 앞섰어요.` : `시장(${s._benchId})보다 ${(-r.alpha).toFixed(2)}%p 뒤졌어요.`;
+  $('#rSub').textContent = otherChoiceLine(s) || (Math.abs(r.alpha) < 0.005 ? '시장과 거의 같았어요.' : r.alpha > 0 ? `시장(${s._benchId})보다 ${r.alpha.toFixed(2)}%p 앞섰어요.` : `시장(${s._benchId})보다 ${(-r.alpha).toFixed(2)}%p 뒤졌어요.`);
   const pk = ROLES.filter(x => !hero(x).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
   $('#rGrowth').insertAdjacentHTML('beforebegin', ''); $('#rPeek')?.remove();
   if (pk) $('#rGrowth').insertAdjacentHTML('afterend', `<div id="rPeek">${peekHTML(pk)}</div>`);
@@ -1426,7 +1459,7 @@ const TIPS = {
   select: ['먼저 <b>훈련 레이드</b> 하나를 골라 보세요. 예시 시세라 부담 없이 연습할 수 있어요.', 'raidsExample'],
   brief: ['보스 = 실제 시장 이벤트예요. 이벤트 자료와 지금까지의 차트를 보고 <b>파티 짜기</b>를 누르세요.', 'toParty'],
   party: ['비중 = 포트폴리오, 상품 = 실제 ETF·채권·옵션. 처음엔 <b>프리셋 하나</b>만 고르고 출발해도 돼요.', 'startBattle'],
-  battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
+  battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 계좌 칸에서 돈이 어떻게 변하는지 보세요.', null],
   cp: ['여기가 핵심. 선택지마다 <b>▲ 오르면 / ▼ 내리면 걸린 돈</b>이 적혀 있어요. 30초 안에 하나를 고르세요.', 'cpHoldBtn'],
   result: ['<b>같은 시장, 다른 선택이었다면</b>이 복기예요. 최고 선택과 내 선택의 차이가 곧 배울 점이에요.', 'rWhatIf'],
 };

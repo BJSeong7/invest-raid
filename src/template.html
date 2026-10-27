@@ -887,7 +887,9 @@ body::after{display:none}
 .qc span{font-size:13px;color:var(--tsub)}
 .qc:active{transform:scale(.98)}
 #cpManual{align-self:center}
-.growth-text{display:none}
+.growth-text p{display:none}
+.growth-text p:nth-child(2){display:block;color:var(--tink);font-size:16px}
+.home-cast-wrap{box-shadow:none!important}
 
 .home-stage{box-shadow:none!important}
 .home-cast-wrap{min-height:320px}
@@ -899,7 +901,7 @@ body::after{display:none}
   <header class="top">
     <div class="brand">
       <div>
-        <h1>모험단 레이드</h1>
+        <h1>내 계좌 모험단</h1>
       </div>
     </div>
     <div class="row">
@@ -914,13 +916,13 @@ body::after{display:none}
 
   <!-- 1. raid select -->
   <section id="screen-select" class="screen">
-    <div class="hd"><small>모험단</small><h2 id="homeTitle"></h2></div>
+    <div class="hd"><small id="homeLabel">내 계좌</small><h2 id="homeTitle"></h2></div>
     <div class="home-stage">
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
     </div>
     <p class="hint-line">캐릭터를 누르면 얼마나 자랐는지 볼 수 있어요</p>
     <div class="sheet" id="heroSheetWrap" hidden><div class="sheet-bg" data-close></div><div class="sheet-box"><i class="grab"></i><div class="hero-sheet" id="heroSheet"></div><button class="btn secondary" type="button" data-close>닫기</button></div></div>
-    <div class="sheet" id="raidSheet" hidden><div class="sheet-bg" data-close></div><div class="sheet-box"><i class="grab"></i><h3 class="sheet-h">다른 레이드</h3>
+    <div class="sheet" id="raidSheet" hidden><div class="sheet-bg" data-close></div><div class="sheet-box"><i class="grab"></i><h3 class="sheet-h">다른 시장 이벤트</h3>
     <div class="rhythm">
       <button type="button" class="today-card" id="todayCard" hidden></button>
       <div class="week-card" id="weekCard"></div>
@@ -939,7 +941,7 @@ body::after{display:none}
     </div>
     <p class="foot">학습용 게임이며 특정 상품의 투자권유가 아닙니다. · <button class="iconbtn" id="resetBtn" type="button" style="padding:3px 10px;font-size:11px">진행 초기화</button></p>
     </div></div>
-    <div class="cta-bar" id="homeCta"><button class="linkbtn" id="moreRaidsBtn" type="button">다른 레이드 고르기</button><p class="helper" id="homeHelper" hidden></p><button class="btn cta" id="homeStart" type="button">오늘의 한 판 시작</button></div>
+    <div class="cta-bar" id="homeCta"><button class="linkbtn" id="moreRaidsBtn" type="button">다른 시장 이벤트 보기</button><p class="helper" id="homeHelper" hidden></p><button class="btn cta" id="homeStart" type="button">오늘의 한 판 시작</button></div>
   </section>
 
   <!-- 2. briefing -->
@@ -991,7 +993,7 @@ body::after{display:none}
   <!-- 4. battle -->
   <section id="screen-battle" hidden style="display:flex;flex-direction:column;gap:10px">
     <div class="hud">
-      <div class="money-top"><small>내 자금</small><b class="tabular" id="hMoney">10,000,000원</b><span class="ret tabular" id="hMoneyD"></span></div>
+      <div class="money-top"><small>내 계좌</small><b class="tabular" id="hMoney">10,000,000원</b><span class="ret tabular" id="hMoneyD"></span></div>
       <div class="bossbar"><span class="name"><img id="hBossPf" alt=""><span id="hBossName">보스</span></span><div class="bar"><i id="hBossHp"></i><b id="hBossHpTxt">100</b></div><span class="phase" id="hPhase"></span><span class="goal tabular" id="hBreak"></span></div>
       <div class="turnline"><span><span class="label" id="hLabel">대기</span> <span class="tabular" id="hTime"></span></span><span class="balance"><span class="muted">이번 구간 </span><span class="ret tabular" id="hRet">0.00%</span><span hidden><b id="hBal"></b><span id="hBalD"></span></span></span></div>
 
@@ -1026,7 +1028,7 @@ body::after{display:none}
         <div class="r-head"><small id="rLabel">레이드 결과</small><h2 id="rTitle"></h2><p id="rSub"></p></div>
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
         <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
-        <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
+        <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 계좌</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
         <div class="stats">
           <div class="stat"><small id="rAlphaLabel">시장에 넣었다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
           <div class="stat"><small>보스</small><b id="rBoss"></b></div>
@@ -1075,8 +1077,8 @@ body::after{display:none}
       <div class="timer" id="cpTimer" title="시간이 다 되면 그대로 진행"><span id="cpTimerTxt">30</span><i><b id="cpTimerBar"></b></i></div>
     </div>
     <p class="cp-hint" id="cpHint"></p>
-    <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
-    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 가기</b><small>지금 파티 그대로 다음 날로</small></span><span id="cpHoldPay"></span></button>
+    <div class="cp-money"><small>내 계좌</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
+    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>그대로 버티기</b><small>팔지 않고 그대로 둬요</small></span><span id="cpHoldPay"></span></button>
     <div class="cp-quick" id="cpQuick"></div>
     <button class="linkbtn" id="cpManual" type="button">직접 고르기</button>
     <div class="choices two" role="tablist">

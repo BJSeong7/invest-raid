@@ -45,6 +45,8 @@ try {
   await page.click('#toParty');
   await page.waitForSelector('#screen-party:not([hidden])');
   await page.evaluate(() => { document.querySelector('#partyDetail').open = true; document.querySelectorAll('.role').forEach(r => r.classList.add('open')); });
+  check((await page.getAttribute('#accountBtn', 'aria-pressed')) === 'true', 'party starts from the account');
+  await page.click('[data-preset="balanced"]'); await page.evaluate(() => document.querySelectorAll('.role').forEach(r => r.classList.add('open')));
   for (let i = 0; i < 4; i++) await page.click('.wbtn[data-w="dealer"][data-d="5"]');   // 40 -> 60, taken from the largest other role
   check((await page.evaluate(() => Object.values(window.__rpg.profile ? 1 : 1))) !== null && (await page.textContent('#o-dealer')) === '60%', 'dealer stepped to 60% and total stays 100');
   await page.click('.wbtn[data-w="tank"][data-d="-5"]');
@@ -52,8 +54,7 @@ try {
   await page.click('.wbtn[data-w="healer"][data-d="5"]');
   check(await page.isDisabled('#startBattle') === false, 'start enabled once the pool is reassigned');
   // locked skill shows toast, not equip
-  const lockedBtn = await page.$('#sk-dealer .skill .lock');
-  check(!!lockedBtn, 'leverage skill is locked at Lv.1');
+  check(!(await page.textContent('#sk-dealer')).includes('3배'), 'no leverage product is offered');
   await shot(page, '3-party');
 
   // battle at 4x; intervene at checkpoints: hold at first, equip cash healer at second
@@ -137,7 +138,7 @@ try {
   await page.evaluate(() => document.querySelector('.cp-box').classList.add('manual')); await page.click('#cp [data-tab="equip"]');
   const healerOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:not(:disabled)');
   const lockedOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:disabled');
-  check(healerOpts.length >= 1 && lockedOpts.length >= 1, `daily tape healer has ${healerOpts.length} open + ${lockedOpts.length} locked alternatives`);
+  check(healerOpts.length >= 1 && lockedOpts.length === 0, `daily tape healer has ${healerOpts.length} open + ${lockedOpts.length} locked alternatives`);
   await healerOpts[0].click();
   await page.waitForSelector('#cp', { state: 'hidden' });
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
