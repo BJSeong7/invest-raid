@@ -362,13 +362,13 @@ function matchPreset() {
 }
 function renderPresets() {
   const cur = matchPreset() || (presetKey === 'account' && (() => { const a = accountParty(); return ROLES.every(r => party.weights[r] === a.weights[r] && party.skills[r] === a.skills[r]); })() ? 'account' : null);
-  const acc = $('#accountBtn'); if (acc) { acc.setAttribute('aria-pressed', String(cur === 'account')); const a = accountParty(); acc.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${a.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); acc.querySelector('.hold').textContent = SAMPLE_ACCOUNT.map(h => `${h.name} ${h.pct}%`).join(' · '); }
+  const acc = $('#accountBtn'); if (acc) { acc.setAttribute('aria-pressed', String(cur === 'account')); const a = accountParty(); acc.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${a.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); acc.querySelector('.hold').textContent = '샘플 계좌 · ' + SAMPLE_ACCOUNT.map(h => `${h.name.split(' ')[0]} ${h.pct}`).join(' · '); }
   $$('.preset').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.preset === cur)); const pr = PRESETS[b.dataset.preset]; b.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${pr.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); });
 }
 function renderPartyMeta() {
   const st = partyStats(), [type, desc] = partyType(st);
   $('#partyRadar').innerHTML = radarSVG(st);
-  $('#partyType').textContent = type; $('#partyTypeDesc').textContent = desc;
+  $('#partyType').textContent = type; $('#partyTypeDesc').textContent = '';
   renderPresets();
 }
 function openParty() {
@@ -383,7 +383,7 @@ function renderPartyScreen() {
     const m = ROLE_META[role], c = charOf(role);
     const card = document.createElement('div'); card.className = 'role'; card.style.setProperty('--rc', ROLE_COLOR[role]);
     card.innerHTML = `<img src="${cutArt(heroUnit(role))}" alt="${c.name}">
-      <h3>${c.name} <small>${c.title} · ${m.name} · ${m.asset}</small></h3>
+      <h3>${c.name} <small>${m.asset}</small></h3>
       <div class="wctl"><button type="button" class="wbtn" data-w="${role}" data-d="-5" aria-label="${c.name} 비중 줄이기">−</button><output id="o-${role}">${party.weights[role]}%</output><button type="button" class="wbtn" data-w="${role}" data-d="5" aria-label="${c.name} 비중 늘리기">+</button></div>
       <div class="skills" id="sk-${role}"></div>`;
     $('#roles').appendChild(card);
@@ -399,9 +399,8 @@ function renderSkillList(box, role, lvl) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; if (s.lesson) b.title = s.lesson;
     b.setAttribute('aria-pressed', String(party.skills[role] === s.id));
     const ins = currentTape.instruments[s.instrument];
-    const st = skillStats(s), blendNote = s.blend ? ' ' + Object.entries(s.blend).map(([id, w]) => `${id} ${Math.round(w * 100)}%`).join(' + ') : '';
-    const bars = ['atk', 'def', 'ins'].map(k => `<i title="${STAT_LABEL[k]} ${st[k].toFixed(1)}"><b style="width:${20 * st[k]}%"></b></i>`).join('');
-    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${ins.name}${blendNote}</span><span class="stat-mini">${bars}</span></span>${locked ? `<span class="lock">Lv.${s.unlockLevel} 해금</span>` : ''}`;
+    const tick = s.blend ? Object.entries(s.blend).map(([id, w]) => `${id === 'BIL' || id === 'KCASH' ? '현금' : id} ${Math.round(w * 100)}%`).join(' + ') : s.instrument;
+    b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span>${locked ? `<span class="lock">Lv.${s.unlockLevel}</span>` : ''}`;
     b.addEventListener('click', () => {
       if (locked) { sfx.back(); toast(`Lv.${s.unlockLevel}에 열려요. 상단 '체험 모드'로 미리 써볼 수 있어요.`, 2600); return; }
       sfx.select(); party.skills[role] = s.id;
@@ -781,7 +780,7 @@ function renderPartyHud(turn) {
     const r = turn?.roles[role]?.ret;
     return `<div class="phud ${hp <= 0 ? 'dead' : ''}" id="phud-${role}" style="--rc:${ROLE_COLOR[role]}">
       <div class="t"><b>${charOf(role).name}</b>${r === undefined ? '' : `<span class="delta ${r >= 0 ? 'up' : 'down'}">${fmtPct(r)}</span>`}</div>
-      <div class="sk">${sk.name} · ${s.party.weights[role]}%</div>
+      <div class="sk">${sk.name} ${s.party.weights[role]}%</div>
       <div class="hp"><i class="${hpClass(hp)}" style="width:${hp}%"></i><em style="width:${Math.min(100, sh)}%"></em></div>
       <div class="num"><span>HP <b class="tabular">${Math.round(hp)}</b>${sh > 0 ? ` <span style="color:var(--gold)">+${Math.round(sh)}</span>` : ''}</span><span class="tabular">${(() => { const q = quote(sk.instrument); return `${sk.instrument} ${fmtMoney(q.p, q.cur)}`; })()}</span></div>
       <div class="num"><span class="muted">평가금</span><b class="tabular">${fmtKRW(roleValue(role))}</b></div></div>`;
@@ -1086,7 +1085,7 @@ async function showCheckpoint(cp) {
         const locked = s.unlockLevel && lvl < s.unlockLevel;
         const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; b.disabled = !!locked; if (s.lesson) b.title = s.lesson;
         const skills2 = { ...battle.party.skills, [role]: s.id };
-        b.innerHTML = `<span class="n">${s.name}</span><span class="i">${currentTape.instruments[s.instrument].name}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
+        b.innerHTML = `<span class="n">${s.name}</span><span class="i">${s.instrument}${locked ? ` · Lv.${s.unlockLevel}` : ''}</span>${locked ? '' : payoffHTML(battle.party.weights, skills2, mv)}`;
         b.onclick = () => { sfx.select(); done({ type: 'equip', role, skill: s.id, level: lvl }, `${charOf(role).name} → ${s.name}`); };
         opts.appendChild(b);
       });

@@ -105,7 +105,7 @@
    "id": "tank_kbond",
    "role": "tank",
    "instrument": "KBOND",
-   "name": "국고채 방패",
+   "name": "국고채 10년",
    "default": true,
    "lesson": "국내 금리 이벤트가 아닌 날, 채권은 조용히 버텨요."
   },
@@ -113,7 +113,7 @@
    "id": "dealer_k200",
    "role": "dealer",
    "instrument": "K200",
-   "name": "코스피 베기",
+   "name": "코스피200",
    "default": true,
    "lesson": "지수 ETF는 업종 뉴스를 희석해서 받아요."
   },
@@ -121,14 +121,14 @@
    "id": "dealer_ksemi",
    "role": "dealer",
    "instrument": "KSEMI",
-   "name": "반도체 돌격",
+   "name": "국내 반도체",
    "lesson": "업종 ETF는 그 업종 뉴스에 지수보다 2배쯤 크게 움직여요."
   },
   {
    "id": "dealer_k200l",
    "role": "dealer",
    "instrument": "K200L",
-   "name": "폭주 돌진",
+   "name": "코스피200 2배",
    "unlockLevel": 5,
    "lesson": "레버리지는 하루 안에서도 반동이 두 배예요."
   },
@@ -136,7 +136,7 @@
    "id": "healer_kgold",
    "role": "healer",
    "instrument": "KGOLD",
-   "name": "황금 가호",
+   "name": "금",
    "default": true,
    "lesson": "금은 주식이 흔들릴 때 조용히 버텨줘요."
   },
@@ -144,7 +144,7 @@
    "id": "healer_kcash",
    "role": "healer",
    "instrument": "KCASH",
-   "name": "현금 대기",
+   "name": "현금",
    "lesson": "현금은 안 다치지만 보스도 못 때려요."
   },
   {
@@ -155,7 +155,7 @@
     "K200_P": 0.25,
     "KCASH": 0.75
    },
-   "name": "수호의 계약",
+   "name": "풋옵션 보험",
    "unlockLevel": 10,
    "lesson": "슬롯의 25%만 풋옵션, 나머지는 현금이에요. 급등 땐 보험료가 빠르게 녹아요. 타이밍이 전부예요."
   },
@@ -163,7 +163,7 @@
    "id": "support_kdiv",
    "role": "support",
    "instrument": "KDIV",
-   "name": "배당의 축복",
+   "name": "고배당주",
    "default": true,
    "lesson": "고배당주는 성장주보다 덜 흔들려요."
   }

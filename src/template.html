@@ -494,7 +494,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="brand">
       <div>
         <h1>모험단 레이드</h1>
-        <small>실제 시장 이벤트가 보스가 되는 투자 교육 게임</small>
       </div>
     </div>
     <div class="row">
@@ -515,7 +514,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <section id="screen-select" class="screen">
     <div class="hero">
       <div class="party-preview" id="partyPreview"></div>
-      <div class="hero-copy"><h2>이번 주, 시장에 보스가 나타났다</h2><p class="muted">레이드를 골라 모험단을 보내세요.</p></div>
+      <div class="hero-copy"><h2>레이드 고르기</h2></div>
     </div>
     <div>
       <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
@@ -560,19 +559,18 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="party-top">
       <div class="party-meta">
         <h2 style="font-size:28px;color:var(--navy)">파티 짜기</h2>
-        <div class="small muted">＋/－로 비중을 나누고, 캐릭터마다 상품 하나를 고르세요.</div>
-        <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><small>보유 종목 비중 그대로 이번 보스를 맞아보기 · 샘플 계좌</small><span class="hold"></span></span><i class="mini-alloc"></i></button>
+        <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><span class="hold"></span></span><i class="mini-alloc"></i></button>
         <div class="presets" role="group" aria-label="추천 편성">
-          <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>균형형</b><span>공격·방어 반반</span><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>안정형</b><span>덜 벌고 덜 잃기</span><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="aggro" aria-pressed="false"><b>공격형</b><span>크게 먹고 크게 맞기</span><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>헤지형</b><span>보험 두껍게</span><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>균형형</b><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>안정형</b><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="aggro" aria-pressed="false"><b>공격형</b><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>헤지형</b><i class="mini-alloc"></i></button>
         </div>
         <div class="sumrow"><div class="sum" id="sumTxt">100 / 100</div><div class="alloc" id="alloc"></div></div>
       </div>
       <div class="radar-card"><div id="partyRadar"></div><div><b id="partyType" class="ptype">균형형</b><p id="partyTypeDesc" class="small muted"></p></div></div>
     </div>
-    <details class="card more" id="partyDetail" open><summary>직접 조정 — 캐릭터별 비중 ＋/－ 와 상품 선택</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
+    <details class="card more" id="partyDetail" open><summary>직접 조정</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
     <div class="row" style="justify-content:space-between">
       <button class="btn secondary" id="backToBrief" type="button">브리핑으로</button>
       <button class="btn" id="startBattle" type="button">출발!</button>

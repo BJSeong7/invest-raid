@@ -95,7 +95,7 @@
    "id": "tank_tlt",
    "role": "tank",
    "instrument": "TLT",
-   "name": "장기채 방패",
+   "name": "미국 장기채",
    "default": true,
    "lesson": "물가 서프라이즈는 금리 기대를 올려서 장기채도 같이 맞아요."
   },
@@ -103,14 +103,14 @@
    "id": "tank_shy",
    "role": "tank",
    "instrument": "SHY",
-   "name": "단기채 벽",
+   "name": "미국 단기채",
    "lesson": "단기채는 거의 안 흔들리지만 공격력도 없어요."
   },
   {
    "id": "dealer_qqq",
    "role": "dealer",
    "instrument": "QQQ",
-   "name": "질주 베기",
+   "name": "나스닥100",
    "default": true,
    "lesson": "성장주는 금리 기대가 올라가면 먼저 밀려요. 대신 회복도 빨라요."
   },
@@ -118,7 +118,7 @@
    "id": "dealer_tqqq",
    "role": "dealer",
    "instrument": "TQQQ",
-   "name": "폭주 돌진",
+   "name": "나스닥100 3배",
    "unlockLevel": 5,
    "lesson": "3배 레버리지는 반등 구간에선 영웅, 급락 구간에선 반동이에요."
   },
@@ -126,7 +126,7 @@
    "id": "healer_gld",
    "role": "healer",
    "instrument": "GLD",
-   "name": "황금 가호",
+   "name": "금",
    "default": true,
    "lesson": "금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요. 불개미 떼 앞에서 버틴 이유예요."
   },
@@ -134,7 +134,7 @@
    "id": "healer_cash",
    "role": "healer",
    "instrument": "BIL",
-   "name": "현금 대기",
+   "name": "현금",
    "lesson": "현금은 숫자는 안 변하지만, 물가가 오르면 살 수 있는 게 줄어요. 불개미 떼의 진짜 공격이에요."
   },
   {
@@ -145,7 +145,7 @@
     "QQQ_P": 0.25,
     "BIL": 0.75
    },
-   "name": "수호의 계약",
+   "name": "풋옵션 보험",
    "unlockLevel": 10,
    "lesson": "발표 전에 든 보험은 비쌌지만 분열 구간에서 값을 했어요. 반등이 오면 보험료는 다시 녹아요."
   },
@@ -153,7 +153,7 @@
    "id": "support_schd",
    "role": "support",
    "instrument": "SCHD",
-   "name": "배당의 축복",
+   "name": "미국 배당주",
    "default": true,
    "lesson": "배당주는 성장주보다 덜 밀리고 덜 올라요. 꾸준함이 무기예요."
   }

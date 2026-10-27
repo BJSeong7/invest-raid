@@ -98,7 +98,7 @@
    "id": "tank_tlt",
    "role": "tank",
    "instrument": "TLT",
-   "name": "장기채 방패",
+   "name": "미국 장기채",
    "default": true,
    "lesson": "장기채는 금리 전망에 민감해서, 매파 발언엔 방패도 금이 가요."
   },
@@ -106,14 +106,14 @@
    "id": "tank_shy",
    "role": "tank",
    "instrument": "SHY",
-   "name": "단기채 벽",
+   "name": "미국 단기채",
    "lesson": "단기채는 거의 안 흔들리지만 공격력도 없어요."
   },
   {
    "id": "dealer_qqq",
    "role": "dealer",
    "instrument": "QQQ",
-   "name": "질주 베기",
+   "name": "나스닥100",
    "default": true,
    "lesson": "성장주는 금리 신호에 가장 민감한 자산이에요."
   },
@@ -121,7 +121,7 @@
    "id": "dealer_tqqq",
    "role": "dealer",
    "instrument": "TQQQ",
-   "name": "폭주 돌진",
+   "name": "나스닥100 3배",
    "unlockLevel": 5,
    "lesson": "3배 레버리지는 같은 방향이면 3배, 반대면 반동도 3배예요."
   },
@@ -129,7 +129,7 @@
    "id": "healer_gld",
    "role": "healer",
    "instrument": "GLD",
-   "name": "황금 가호",
+   "name": "금",
    "default": true,
    "lesson": "금은 금리가 오를 땐 이자를 못 줘서 약해지기도 해요."
   },
@@ -137,7 +137,7 @@
    "id": "healer_cash",
    "role": "healer",
    "instrument": "BIL",
-   "name": "현금 대기",
+   "name": "현금",
    "lesson": "현금은 안 다치지만 보스도 못 때려요."
   },
   {
@@ -148,7 +148,7 @@
     "QQQ_P": 0.25,
     "BIL": 0.75
    },
-   "name": "수호의 계약",
+   "name": "풋옵션 보험",
    "unlockLevel": 10,
    "lesson": "보험은 소액이 원칙이에요. 슬롯의 25%만 풋옵션에 쓰고 나머지는 현금으로 뒀어요. 평소엔 보험료가 녹지만 급락 땐 파티를 구해요."
   },
@@ -156,7 +156,7 @@
    "id": "support_schd",
    "role": "support",
    "instrument": "SCHD",
-   "name": "배당의 축복",
+   "name": "미국 배당주",
    "default": true,
    "lesson": "배당주도 주식이라 하락장에선 같이 밀려요. 대신 덜 밀려요."
   }

@@ -159,7 +159,7 @@
    "id": "tank_tlt",
    "role": "tank",
    "instrument": "TLT",
-   "name": "장기채 방패",
+   "name": "미국 장기채",
    "default": true,
    "lesson": "주식이 흔들린 주에 장기채는 올랐어요. 방패가 제 역할을 한 주예요."
   },
@@ -167,14 +167,14 @@
    "id": "tank_shy",
    "role": "tank",
    "instrument": "SHY",
-   "name": "단기채 벽",
+   "name": "미국 단기채",
    "lesson": "단기채는 거의 안 흔들리지만 공격력도 없어요."
   },
   {
    "id": "dealer_qqq",
    "role": "dealer",
    "instrument": "QQQ",
-   "name": "질주 베기",
+   "name": "나스닥100",
    "default": true,
    "lesson": "성장주는 설비투자 우려에 가장 먼저 밀렸어요."
   },
@@ -182,14 +182,14 @@
    "id": "dealer_soxx",
    "role": "dealer",
    "instrument": "SOXX",
-   "name": "반도체 돌격",
+   "name": "미국 반도체",
    "lesson": "반도체는 이 주 가장 크게 흔들린 업종이에요."
   },
   {
    "id": "dealer_tqqq",
    "role": "dealer",
    "instrument": "TQQQ",
-   "name": "폭주 돌진",
+   "name": "나스닥100 3배",
    "unlockLevel": 5,
    "lesson": "3배 레버리지는 하루 -2.9%를 -8.5%로 맞아요."
   },
@@ -197,7 +197,7 @@
    "id": "healer_gld",
    "role": "healer",
    "instrument": "GLD",
-   "name": "황금 가호",
+   "name": "금",
    "default": true,
    "lesson": "금도 이 주엔 같이 빠졌어요. 안전자산이 늘 반대로 가는 건 아니에요."
   },
@@ -205,7 +205,7 @@
    "id": "healer_cash",
    "role": "healer",
    "instrument": "BIL",
-   "name": "현금 대기",
+   "name": "현금",
    "lesson": "현금은 안 다치지만 보스도 못 때려요."
   },
   {
@@ -216,7 +216,7 @@
     "SQQQ": 0.25,
     "BIL": 0.75
    },
-   "name": "역방향 부적",
+   "name": "나스닥 인버스 3배 일부",
    "unlockLevel": 10,
    "lesson": "슬롯의 25%만 3배 인버스에 뒀어요. 쇼크 당일엔 파티를 구했지만, 반등 날엔 거꾸로 맞아요."
   },
@@ -224,7 +224,7 @@
    "id": "support_schd",
    "role": "support",
    "instrument": "SCHD",
-   "name": "배당의 축복",
+   "name": "미국 배당주",
    "default": true,
    "lesson": "배당주는 이 주에 오히려 올랐어요. 성장주에서 빠진 돈이 옮겨간 자리예요."
   }
