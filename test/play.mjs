@@ -100,6 +100,7 @@ try {
   // collection
   await page.click('#dexBtn'); await page.waitForSelector('#dex:not([hidden])');
   check((await page.$$('#dexBosses .dex:not(.unknown)')).length === 1 && (await page.$$('#dexBadges .badge.on')).length >= 1, '도감 shows the met boss and earned badges');
+  check((await page.$$('#dexProducts .pcard:not(.locked)')).length >= 3, '상품 도감 unlocks products used in the raid');
   await page.click('#dexClose');
   // retry flow goes back to party screen
   await page.click('#retryBtn');

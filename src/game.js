@@ -1,7 +1,7 @@
 // Game layer: screens, Phaser battle scene, cut-ins, checkpoint modal, chart, result.
 // The build concatenates engine.js + audio.js + this file into one inline module, so these imports
 // exist for editors/tests only and are stripped at build time.
-import { ROLES, ROLE_META, ReplayAdapter, defaultParty, validateParty, createBattle, step, intervene, nextCheckpoint, settle, coachText, contribution, applyExp, expNext, alternatives, gradeReason } from './engine.js';
+import { ROLES, ROLE_META, ReplayAdapter, defaultParty, validateParty, createBattle, step, intervene, nextCheckpoint, settle, coachText, contribution, applyExp, expNext, alternatives, gradeReason, benchmarkOf } from './engine.js';
 import { unlock, setMuted, isMuted, sfx, startBgm, stopBgm } from './audio.js';
 
 const TAPES = window.__TAPES__ || [];
@@ -74,6 +74,47 @@ function loadProfile() {
 }
 function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch {} }
 function effectiveLevel() { return profile.unlockAll ? 99 : profile.level; }
+/* ---------- product catalog (상품 도감) ----------
+   Facts verified on stockanalysis.com, 2026-10-27. The game role line explains how the product behaved in raids. */
+const PRODUCTS = {
+  QQQ:  { name: 'Invesco QQQ Trust', issuer: 'Invesco', index: '나스닥100', fee: '0.18%', role: '미국 대형 기술·성장주 100개. 금리 신호와 실적 시즌에 가장 크게 반응하는 공격수.', cls: 'dealer' },
+  TQQQ: { name: 'ProShares UltraPro QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 3배', fee: '0.78%', role: '하루 수익률의 3배를 추종. 같은 방향이면 3배로 벌고, 반대면 3배로 맞는다.', warn: '일간 배수라 여러 날 보유하면 지수×3과 결과가 달라질 수 있어요.', cls: 'dealer' },
+  SOXX: { name: 'iShares Semiconductor ETF', issuer: 'BlackRock (iShares)', index: 'NYSE 반도체 지수 · 34종목', fee: '0.33%', role: '반도체 한 업종에 집중. 지수보다 두 배쯤 크게 움직인다 — 양쪽 다.', cls: 'dealer' },
+  TLT:  { name: 'iShares 20+ Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 20년 이상', fee: '0.15%', role: '주식이 흔들릴 때 버티는 방패. 단, 금리 전망이 오르면 같이 밀린다.', cls: 'tank' },
+  SHY:  { name: 'iShares 1-3 Year Treasury Bond', issuer: 'BlackRock (iShares)', index: '미국 국채 1~3년', fee: '0.15%', role: '거의 안 흔들리는 벽. 대신 공격력도 거의 없다.', cls: 'tank' },
+  GLD:  { name: 'SPDR Gold Shares', issuer: 'State Street', index: 'LBMA 금 가격 (실물 금 보관)', fee: '0.40%', role: '물가와 불안에 강한 전통적 피난처. 금리가 오르면 이자가 없어 약해지기도.', cls: 'healer' },
+  BIL:  { name: 'SPDR Bloomberg 1-3 Month T-Bill', issuer: 'State Street', index: '미국 단기국채 1~3개월', fee: '0.14%', role: '사실상 현금. 다치지 않지만 보스도 못 때린다.', cls: 'healer' },
+  PSQ:  { name: 'ProShares Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −1배', fee: '0.95%', role: '나스닥이 내리면 오르는 인버스. 하락 보험이지만 오르는 날마다 깎인다.', warn: '방향이 틀리면 매일 손실이 쌓여요. 짧게 쓰는 도구예요.', cls: 'healer' },
+  SQQQ: { name: 'ProShares UltraPro Short QQQ', issuer: 'ProShares', index: '나스닥100 · 일간 −3배', fee: '0.94%', role: '나스닥 하루 수익률의 −3배. 급락 하루에 크게 벌고, 반등 하루에 크게 잃는다.', warn: '고위험 상품. 일간 배수라 장기 보유에 맞지 않아요.', cls: 'healer' },
+  SCHD: { name: 'Schwab U.S. Dividend Equity', issuer: 'Charles Schwab', index: 'Dow Jones U.S. Dividend 100', fee: '0.06%', role: '꾸준히 배당하는 기업 100곳. 랠리 땐 뒤처지고 급락 땐 덜 빠지는 서포터.', cls: 'support' },
+};
+function productInfo(id, tape) {
+  const ins = tape?.instruments[id] || {};
+  if (PRODUCTS[id]) return { id, ...PRODUCTS[id], real: true };
+  return { id, name: ins.name || id, issuer: '—', index: ins.kind === 'option' ? '옵션 계약' : '예시 상품', fee: '—', role: ins.kind === 'option' ? '하락할 때 가치가 커지는 보험. 평소엔 시간이 지날수록 보험료가 녹는다.' : '훈련 레이드용 예시 상품이에요. 실제 상품 정보는 연결 후 표시돼요.', warn: ins.kind === 'option' ? '옵션은 만기와 행사가가 있고 원금 전액 손실이 가능해요.' : '', cls: null, real: false };
+}
+function usedInstruments(state) {
+  const ids = new Set();
+  const add = sk => (sk.blend ? Object.keys(sk.blend) : [sk.instrument]).forEach(i => ids.add(i));
+  Object.values(state.party.skills).forEach(id => add(state.party._bySkill[id]));
+  (state.actions || []).forEach(a => { if (a.type === 'equip') { add(state.party._bySkill[a.to]); add(state.party._bySkill[a.from]); } });
+  return [...ids];
+}
+function productCardHTML(id, tape, opts = {}) {
+  const p = productInfo(id, tape), bars = tape.bars;
+  const mv = bars.at(-1).prices[id] / bars[0].prices[id] * 100 - 100;
+  const rc = p.cls ? ROLE_COLOR[p.cls] : 'var(--line)';
+  return `<div class="pcard" style="--rc:${rc}"><div class="ph"><b>${id}</b><span>${p.name}</span></div>
+    <dl><dt>운용사</dt><dd>${p.issuer}</dd><dt>추종</dt><dd>${p.index}</dd><dt>총보수</dt><dd>${p.fee}</dd></dl>
+    <div class="prole">${p.role}</div>${p.warn ? `<div class="warn">⚠ ${p.warn}</div>` : ''}
+    <div class="move">이번 레이드 <span class="ret ${mv >= 0 ? 'up' : 'down'} tabular">${fmtPct(mv)}</span></div>
+    ${p.real ? '<button type="button" class="go">상품 화면 보기</button>' : ''}</div>`;
+}
+function recordProducts(state) {
+  profile.products = profile.products || {};
+  usedInstruments(state).forEach(id => { if (!PRODUCTS[id]) return; const e = profile.products[id] || { uses: 0 }; e.uses++; profile.products[id] = e; });
+}
+
 /* ---------- badges · boss collection · streak ---------- */
 const BADGES = [
   { id: 'first', name: '첫 레이드', desc: '레이드를 한 번 완주했다.', test: ctx => true },
@@ -110,9 +151,11 @@ function recordBoss(species, grade, bossDown) {
 function renderCollection() {
   $('#dexBosses').innerHTML = SPECIES_ALL.map(sp => { const e = profile.bosses[sp];
     return `<div class="dex ${e ? '' : 'unknown'}"><img src="${portrait(bossUnit(sp))}" alt=""><b>${e ? SPECIES_NAME[sp] : '???'}</b><span class="small muted">${e ? `조우 ${e.met} · 격파 ${e.down}` : '아직 만나지 못함'}</span>${e?.best ? `<i class="stamp-mini ${e.best}">${e.best}</i>` : ''}</div>`; }).join('');
+  const pr = profile.products || {};
+  $('#dexProducts').innerHTML = Object.keys(PRODUCTS).map(id => pr[id] ? `<div class="pcard" style="--rc:${ROLE_COLOR[PRODUCTS[id].cls]}" title="${PRODUCTS[id].role}"><div class="ph"><b>${id}</b></div><span class="small muted">${PRODUCTS[id].index}</span><span class="small">${pr[id].uses}회 사용 · 보수 ${PRODUCTS[id].fee}</span></div>` : `<div class="pcard locked"><div class="ph"><b>???</b></div><span class="small muted">레이드에서 써보면 열려요</span></div>`).join('');
   $('#dexBadges').innerHTML = BADGES.map(b => `<div class="badge ${profile.badges[b.id] ? 'on' : ''}" title="${b.desc}"><i></i><b>${b.name}</b><span class="small muted">${profile.badges[b.id] ? profile.badges[b.id].replaceAll('-', '.') : b.desc}</span></div>`).join('');
   const n = Object.keys(profile.badges).length, met = Object.keys(profile.bosses).length;
-  $('#dexSummary').textContent = `보스 도감 ${met} / ${SPECIES_ALL.length} · 배지 ${n} / ${BADGES.length} · 연속 출석 ${profile.streak || 0}일`;
+  $('#dexSummary').textContent = `보스 ${met}/${SPECIES_ALL.length} · 상품 ${Object.keys(pr).length}/${Object.keys(PRODUCTS).length} · 배지 ${n}/${BADGES.length} · 연속 ${profile.streak || 0}일`;
 }
 function renderProfile() {
   $('#pLv').textContent = 'Lv.' + profile.level;
@@ -875,7 +918,7 @@ class BattleChart {
     const up = Math.min(this.upto, this.tape.bars.length - 1);
     if (this.mode === 'equity') { const h = this.state?.history.find(p => p.bar === up); const eq = h ? h.equity - 100 : 0, bm = h ? h.benchmark - 100 : 0;
       const goal = this.state ? 100 / this.state.bossScale : 100 / (this.tape.scale?.bossHpPerPct || 40);
-      return `<span><i style="background:#E0A72E"></i>내 파티 <b class="ret tabular ${eq >= 0 ? 'up' : 'down'}">${fmtPct(eq)}</b> <span class="muted tabular">(${fmtKRW(SEED * (1 + eq / 100))})</span></span><span><i style="background:#9AA0AA"></i>기본 파티 <b class="tabular">${fmtPct(bm)}</b></span><span><i style="background:#D6453F"></i>격파 ${fmtPct(goal)}</span>`; }
+      return `<span><i style="background:#E0A72E"></i>내 파티 <b class="ret tabular ${eq >= 0 ? 'up' : 'down'}">${fmtPct(eq)}</b> <span class="muted tabular">(${fmtKRW(SEED * (1 + eq / 100))})</span></span><span><i style="background:#9AA0AA"></i>시장 ${benchmarkOf(this.tape)} <b class="tabular">${fmtPct(bm)}</b></span><span><i style="background:#D6453F"></i>격파 ${fmtPct(goal)}</span>`; }
     return this.ids.map((id, i) => { const p0 = this.tape.bars[0].prices[id], p = this.tape.bars[up].prices[id], ins = this.tape.instruments[id];
       return `<span><i style="background:${INS_COLORS[i % INS_COLORS.length]}"></i>${id} ${ins.name} <b class="tabular">${fmtMoney(p, ins.currency)}</b> <span class="${p >= p0 ? 'ret up' : 'ret down'} tabular" style="font-size:12px">${fmtPct(100 * (p / p0 - 1))}</span></span>`; }).join('');
   }
@@ -1074,13 +1117,13 @@ async function showResult() {
   // persist play & exp (+ drama bonus: combos and guards add exp, never return)
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
-  bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown);
+  bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
   const newBadges = awardBadges({ s, r, drama });
   const after = applyExp(profile, r.exp + bonus);
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
   play.count++; if (!play.best || order.indexOf(r.grade) > order.indexOf(play.best)) play.best = r.grade;
-  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
+  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, products: profile.products, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
   $('#rBadges').innerHTML = newBadges.length ? newBadges.map(b => `<div class="badge on pop"><i></i><b>${b.name}</b><span class="small muted">${b.desc}</span></div>`).join('') : '';
   $('#rBadgesWrap').hidden = !newBadges.length;
   $('#rBonus').textContent = bonus ? `연출 보너스 +${bonus} (연속 ${drama.maxCombo} · 가드 ${drama.guards})` : '';
@@ -1095,7 +1138,8 @@ async function showResult() {
   $('#nextRaidBtn').onclick = () => { sfx.select(); party = null; openBrief(next.id); };
   $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
   $('#rMoney').textContent = fmtKRW(totalValue());
-  $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)} · 내가 ${fmtPct(r.alpha)}`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
+  $('#rAlphaLabel').textContent = `시장(${benchmarkOf(currentTape)})에 넣었다면`;
+  $('#rAlpha').textContent = `${fmtKRW(SEED * s.benchmark / 100)} · 내가 ${fmtPct(r.alpha)}p`; $('#rAlpha').style.color = r.alpha >= 0 ? 'var(--green)' : 'var(--red)'; $('#rAlpha').style.fontSize = '16px';
   $('#rMore').open = true;
   $('#rBoss').textContent = r.bossDown ? '격파' : `HP ${Math.round(s.bossHp)} 남음`;
   $('#rAlive').textContent = `${r.alive} / 4`;
@@ -1159,9 +1203,16 @@ $('#accountBtn').addEventListener('click', () => { sfx.select(); applyAccount();
 $('#startBattle').addEventListener('click', startBattle);
 $('#retryBtn').addEventListener('click', () => { sfx.select(); openParty(); });
 $('#otherBtn').addEventListener('click', () => { sfx.select(); renderSelect(); showScreen('select'); });
-$('#etfBtn').addEventListener('click', () => { sfx.select(); $('#etfAlloc').innerHTML = ROLES.map(r => `<i style="width:${battle.party.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); $('#etfModal').hidden = false; });
+$('#etfBtn').addEventListener('click', () => {
+  sfx.select();
+  const ids = usedInstruments(battle);
+  $('#pdSub').textContent = `${currentTape.title} · ${fmtDate(currentTape.bars[0].t)} ~ ${fmtDate(currentTape.bars.at(-1).t).slice(5)}`;
+  $('#pdCards').innerHTML = ids.map(id => productCardHTML(id, currentTape)).join('');
+  $$('#pdCards .go').forEach(b => b.addEventListener('click', () => toast('실제 앱에서는 이 버튼이 유진 앱의 상품 상세 화면으로 연결돼요', 2600)));
+  $('#tip').hidden = true; $('#etfModal').hidden = false;
+});
 $('#etfClose').addEventListener('click', () => { sfx.back(); $('#etfModal').hidden = true; });
-$('#dexBtn').addEventListener('click', () => { sfx.select(); renderCollection(); $('#dex').hidden = false; });
+$('#dexBtn').addEventListener('click', () => { sfx.select(); renderCollection(); $('#tip').hidden = true; $('#dex').hidden = false; });
 $('#dexClose').addEventListener('click', () => { sfx.back(); $('#dex').hidden = true; });
 let tutStep = 0;
 const TUT = [

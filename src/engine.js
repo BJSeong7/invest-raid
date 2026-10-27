@@ -178,6 +178,10 @@ export function portfolioReturnPct(tape, party, i) {
  *
  * The scene layer only reads `state` and plays the returned logs. It never computes damage itself.
  */
+/** the market the player is graded against: tape.benchmark, else the default dealer's index ETF (QQQ / 코스피200) */
+export function benchmarkOf(tape) {
+  return tape.benchmark || (tape.skills.find(k => k.role === 'dealer' && k.default) || tape.skills[0]).instrument;
+}
 export function createBattle(tape, party, opts = {}) {
   const errs = [...validateTape(tape), ...validateParty(party, tape)];
   if (errs.length) throw new Error(errs.join('; '));
@@ -192,12 +196,12 @@ export function createBattle(tape, party, opts = {}) {
     shield: Object.fromEntries(ROLES.map(r => [r, 0])),      // max(0, slot - 100)
     bossHp: 100,
     equity: 100,                              // portfolio value, start 100
-    benchmark: 100,                           // equal-weight-of-default-skills value, for grading
+    benchmark: 100,                           // market (benchmarkOf) buy-and-hold, for grading
     log: [],
     paused: null,                             // checkpoint object when waiting for the player
     done: false,
     history: [],                              // per-bar snapshots for the chart
-    _benchParty: defaultParty(tape),
+    _benchId: benchmarkOf(tape),
   };
 }
 
@@ -243,7 +247,7 @@ export function step(state) {
   turn.boss = { portfolioRet: portfolio, hpBefore: bossBefore, hpAfter: state.bossHp };
   turn.cut = classifyCut(portfolio, turn.roles);
 
-  state.benchmark *= 1 + portfolioReturnPct(tape, state._benchParty, i) / 100;
+  state.benchmark *= tape.bars[i].prices[state._benchId] / tape.bars[i - 1].prices[state._benchId];
   state.bar = i;
   state.history.push({ bar: i, t: tape.bars[i].t, equity: state.equity, benchmark: state.benchmark, bossHp: state.bossHp, partyHp: { ...state.partyHp } });
   state.log.push(turn);
@@ -328,9 +332,9 @@ const gradeBonus = g => ({ S: 25, A: 15, B: 5, C: 0, D: 0, F: 0 }[g] || 0);
 export function gradeReason(r) {
   const p = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
   if (r.grade === 'F') return '파티가 전멸했어요.';
-  if (r.grade === 'S') return `수익 ${p(r.returnPct)}, 기본 파티보다 ${p(r.alpha)}p 앞섰어요 (S는 +0.5%p 이상).`;
-  if (r.grade === 'A') return `수익 ${p(r.returnPct)}, 기본 파티보다 앞섰어요 (+0.5%p 이상이면 S).`;
-  if (r.grade === 'B') return `수익 ${p(r.returnPct)} — 플러스로 마치고 기본 파티보다 앞서면 A예요.`;
+  if (r.grade === 'S') return `수익 ${p(r.returnPct)}, 시장보다 ${p(r.alpha)}p 앞섰어요 (S는 +0.5%p 이상).`;
+  if (r.grade === 'A') return `수익 ${p(r.returnPct)}, 시장보다 앞섰어요 (+0.5%p 이상이면 S).`;
+  if (r.grade === 'B') return `수익 ${p(r.returnPct)} — 플러스로 마치고 시장보다 앞서면 A예요.`;
   if (r.grade === 'C') return `수익 ${p(r.returnPct)} — −0.5% 안쪽으로 막으면 B예요.`;
   return `수익 ${p(r.returnPct)} — 크게 밀렸어요. 방어 상품 비중을 늘려 보세요.`;
 }
@@ -366,7 +370,7 @@ export function coachText(state) {
   const sign = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
   const lines = [];
   const mover = Math.abs(worst.c) > Math.abs(best.c) ? worst : best;
-  lines.push(`${sign(r.returnPct)}로 마쳤고, 기본 파티보다 ${sign(r.alpha)}예요. ${mover.c < 0 ? '가장 크게 깎은 건' : '가장 크게 벌어준 건'} ${ROLE_META[mover.role].char}의 ${mover.skill.name}(비중 ${mover.w}%)였어요.`);
+  lines.push(`${sign(r.returnPct)}로 마쳤고, 시장(${state._benchId})보다 ${sign(r.alpha)}p예요. ${mover.c < 0 ? '가장 크게 깎은 건' : '가장 크게 벌어준 건'} ${ROLE_META[mover.role].char}의 ${mover.skill.name}(비중 ${mover.w}%)였어요.`);
   const eq = state.actions?.find(a => a.type === 'equip');
   const maxW = Math.max(...ROLES.map(x => state.party.weights[x]));
   if (eq) { const s = state.party._bySkill[eq.to]; lines.push(`체크포인트에서 ${s.name}(으)로 바꾼 선택은 ${afterCheckpointRet(state, eq.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}.`); }

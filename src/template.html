@@ -372,6 +372,20 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 @media (max-width:700px){.tip{top:10px;bottom:auto;z-index:46;border-radius:16px}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;font-family:var(--display);font-size:19px;padding:12px 22px;border-radius:999px;opacity:0;z-index:60;pointer-events:none;box-shadow:0 4px 0 #122236,0 10px 30px rgba(20,30,50,.35);white-space:nowrap;border:2px solid #fff}
 .foot{font-size:12px;color:var(--dim);text-align:center}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.pgrid.mini{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.pcard{display:flex;flex-direction:column;gap:6px;background:#fff;border:2px solid var(--line);border-top:6px solid var(--rc,var(--gold));border-radius:var(--r2);padding:10px 12px;box-shadow:0 3px 0 var(--edge)}
+.pcard .ph{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pcard .ph b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--navy)}
+.pcard .ph span{font-size:12px;color:var(--muted)}
+.pcard dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0;font-size:12.5px}
+.pcard dt{color:var(--muted)} .pcard dd{margin:0;color:var(--ink)}
+.pcard .prole{font-size:12.5px;line-height:1.5;background:var(--panel2);border-radius:8px;padding:6px 8px}
+.pcard .warn{font-size:12px;color:var(--orange)}
+.pcard .move{font-family:var(--display);font-size:15px}
+.pcard .go{align-self:flex-start;font-family:var(--display);font-size:14px;background:var(--navy);color:#fff;border:0;border-radius:999px;padding:6px 14px;cursor:pointer}
+.pcard.locked{opacity:.5;border-top-color:var(--line)} .pcard.locked .ph b{color:var(--muted)}
+.pgrid.mini .pcard{padding:8px 10px;gap:2px}.pgrid.mini .pcard .ph b{font-size:17px}
 .screen{display:flex;flex-direction:column;gap:14px}
 .hero{grid-template-columns:1fr 1fr}
 .hero-copy h2{font-size:30px;color:var(--navy);text-shadow:0 1px 0 #fff}
@@ -597,7 +611,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
         <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
         <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
         <div class="stats">
-          <div class="stat"><small>기본 파티였다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
+          <div class="stat"><small id="rAlphaLabel">시장에 넣었다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
           <div class="stat"><small>보스</small><b id="rBoss">—</b></div>
           <div class="stat"><small>생존</small><b id="rAlive">4 / 4</b></div>
         </div>
@@ -615,7 +629,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
           <div class="row">
             <button class="btn secondary" id="retryBtn" type="button">다시 도전</button>
             <button class="btn secondary" id="otherBtn" type="button">레이드 목록</button>
-            <button class="btn secondary" id="etfBtn" type="button">닮은 ETF 보기</button>
+            <button class="btn secondary" id="etfBtn" type="button">쓴 상품 보기</button>
           </div>
         </div>
       </div>
@@ -675,6 +689,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="cp-head"><h2 id="dexTitle">모험단 도감</h2><span class="small muted" id="dexSummary"></span></div>
     <div class="small muted">보스 도감</div>
     <div class="dexgrid" id="dexBosses"></div>
+    <div class="small muted">상품 도감 · 레이드에서 써본 상품이 열려요</div>
+    <div class="pgrid mini" id="dexProducts"></div>
     <div class="small muted">배지</div>
     <div class="badges" id="dexBadges"></div>
     <button class="btn secondary" id="dexClose" type="button">닫기</button>
@@ -693,11 +709,11 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 </div>
 
 <!-- ETF link placeholder modal -->
-<div class="modal" id="etfModal" hidden role="dialog" aria-modal="true">
-  <div class="box">
-    <h2 style="font-size:22px">당신의 파티와 닮은 상품</h2>
-    <p class="muted" style="margin:0">이 자리에 실제 ETF 구성비 비교와 유진 앱 상품 화면으로 가는 연결이 들어갑니다. 지금은 자리만 잡아둔 상태예요.</p>
-    <div class="alloc" id="etfAlloc" style="max-width:100%"></div>
+<div class="modal" id="etfModal" hidden role="dialog" aria-modal="true" aria-labelledby="pdTitle">
+  <div class="box wide">
+    <div class="cp-head"><h2 id="pdTitle" style="font-size:24px">이번 레이드에서 쓴 상품</h2><span class="small muted" id="pdSub"></span></div>
+    <div class="pgrid" id="pdCards"></div>
+    <p class="small muted" style="margin:0;font-size:11.5px">총보수·운용사·기초지수: stockanalysis.com, 2026-10-27 확인. 학습용 정보이며 투자권유가 아닙니다. 투자 전 투자설명서를 확인하세요.</p>
     <button class="btn secondary" id="etfClose" type="button">닫기</button>
   </div>
 </div>
