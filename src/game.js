@@ -51,7 +51,9 @@ const fmtBar = (iso, tape = currentTape) => tape?.daily ? `${iso.slice(5, 7)}/${
 const cpWhen = (cp, tape = currentTape) => tape?.daily ? `${fmtBar(tape.bars[Math.max(0, cp.bar - 1)].t, tape)} 마감 후` : fmtBar(tape.bars[cp.bar].t, tape);
 const unitNote = (tape = currentTape) => tape?.daily ? '뉴욕 종가' : 'KST';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const charOf = role => ({ name: ROLE_META[role].char, title: ROLE_META[role].title });
+/** heroes are called by their job; after 전직 by their new class */
+const jobOf = role => ROLE_META[role].char;
+const charOf = role => { const b = profile?.heroes?.[role]?.branch; return { name: b ? CLASSES[role][b] : ROLE_META[role].char, title: ROLE_META[role].title }; };
 const portrait = unit => 'assets/anime/portrait_' + unit + '.png';
 const cutArt = (unit, hit = false) => `assets/anime/${unit}_${hit ? 'hurt' : 'idle'}.png`;
 const heroUnit = role => ({ tank: 'hero_tank', dealer: 'hero_dealer', healer: 'hero_healer', support: 'hero_support' })[role];
@@ -328,7 +330,7 @@ function skillStatChips(sk) { const st = skillStats(sk); return STAT_KEYS.filter
 const EVO_PTS = 30, STEPS = 5;   // 전직 when a hero's four stats add up to EVO_PTS; heavier-weighted heroes get there first
 const CLASSES = {
   tank: { def: '철벽 기사', atk: '돌격 기사', ins: '수호 기사' },
-  dealer: { def: '냉정한 검사', atk: '광전사', ins: '그림자 검사' },
+  dealer: { def: '냉철한 전사', atk: '광전사', ins: '그림자 전사' },
   healer: { def: '금고지기', atk: '연금술사', ins: '예언자' },
   support: { def: '정원사', atk: '사냥꾼', ins: '순찰자' },
 };
@@ -341,7 +343,7 @@ const heroPts = h => STAT_KEYS.reduce((a, k) => a + h.st[k], 0);
 /** raids left until 전직, estimated from the last raid's gain */
 const raidsLeft = role => { const h = hero(role); if (h.branch) return 0; const need = EVO_PTS - heroPts(h); return need <= 0 ? 0 : Math.ceil(need / Math.max(4, h.last || 8)); };
 const branchOf = st => { const g = { atk: st.atk, ins: st.ins, def: (st.def + st.stab) / 2 }; return Object.keys(g).sort((a, b) => g[b] - g[a])[0]; };
-const heroTitle = role => { const h = hero(role); return h.branch ? CLASSES[role][h.branch] : ROLE_META[role].title; };
+const heroTitle = role => { const h = hero(role); return h.branch ? `${jobOf(role)} · ${ROLE_META[role].asset}` : ROLE_META[role].asset; };
 function raidGains(state) {
   const out = {};
   ROLES.forEach(role => {
@@ -845,7 +847,7 @@ function cutForTurn(turn) {
 
 function evolveCut(role) {
   const h = hero(role); sfx.level();
-  return cutIn({ text: '전직!', sub: `${charOf(role).name} · ${heroTitle(role)}`, bg: BRANCH_COLOR[h.branch], artL: cutArt(heroUnit(role)), artR: null }, 1);
+  return cutIn({ text: '전직!', sub: `${jobOf(role)} → ${charOf(role).name}`, bg: BRANCH_COLOR[h.branch], artL: cutArt(heroUnit(role)), artR: null }, 1);
 }
 
 /* ---------- VS intro: party vs boss, 1.6s ---------- */
@@ -1312,8 +1314,8 @@ async function showResult() {
   // growth: plain sentences + status windows with this raid's gains
   const pnl = totalValue() - SEED, top = ROLES.map(role => { const g = growth.gains[role], k = STAT_KEYS.slice().sort((a, b) => g[b] - g[a])[0]; return { role, k, v: g[k] }; }).sort((a, b) => b.v - a.v)[0];
   const nm = charOf(top.role).name, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
-  const nameList = rs => rs.map(r => charOf(r).name).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
-  const evoNames = nameList(growth.evolved), evoLast = charOf(growth.evolved[growth.evolved.length - 1] || 'tank').name;
+  const nameList = rs => rs.map(r => jobOf(r)).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
+  const evoNames = nameList(growth.evolved), evoLast = jobOf(growth.evolved[growth.evolved.length - 1] || 'tank');
   const soonN = soon ? raidsLeft(soon) : 0, soonName = soon ? charOf(soon).name : '';
   const lines2 = [
     pnl >= 0 ? `${wonWords(pnl)}을 벌었어요.` : r.alpha > 0 ? `이번엔 ${wonWords(pnl)}을 잃었지만, 시장보다는 덜 잃었어요.` : `이번엔 ${wonWords(pnl)}을 잃었어요.`,
@@ -1361,7 +1363,7 @@ $('#dexBtn').addEventListener('click', () => { sfx.select(); renderCollection();
 $('#dexClose').addEventListener('click', () => { sfx.back(); $('#dex').hidden = true; });
 let tutStep = 0;
 const TUT = [
-  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '방패기사·대검사·사제·궁수에게 비중을 나눠요. 기술은 전부 실제 ETF·채권·금·옵션이에요. 비중을 어떻게 나누느냐가 곧 투자 포트폴리오예요.' },
+  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '기사·전사·사제·궁수에게 비중을 나눠요. 기술은 전부 실제 ETF·채권·금·옵션이에요. 비중을 어떻게 나누느냐가 곧 투자 포트폴리오예요.' },
   { art: 'boss_lich', title: '보스 = 실제 시장 이벤트', text: 'FOMC, 실적 발표, 물가 지표가 보스로 나타나요. 데미지는 전부 그날 실제 가격 변동으로 계산돼요. 난수는 없어요.' },
   { art: 'hero_healer', title: '체크포인트에서 개입', text: '레이드는 자동으로 흘러가다 중요한 순간에 멈춰요. 30초 안에 버티기·기술 교체·비중 조정 중 하나를 고르세요. 차트와 자금 평가를 보고 결정하면 돼요.' },
 ];
