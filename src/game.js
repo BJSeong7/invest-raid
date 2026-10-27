@@ -264,9 +264,43 @@ const PRESETS = {
   aggro: { name: '공격형', weights: { tank: 10, dealer: 60, healer: 10, support: 20 }, pick: { dealer: ['lev', 'sector'], healer: ['cash'] } },
   hedge: { name: '헤지형', weights: { tank: 30, dealer: 30, healer: 25, support: 15 }, pick: { healer: ['option', 'gold'] } },
 };
+/* ---------- 내 계좌로 편성 ----------
+   A sample brokerage account (in the real app: the user's holdings via the account API). Each holding is mapped to a
+   role by asset class, weights are summed per role and rounded to 5%, and each role equips the tape's skill closest to
+   what the user actually holds. The raid then answers: "how did MY portfolio take this event?" */
+const SAMPLE_ACCOUNT = [
+  { name: 'QQQ 나스닥100', cls: 'growth', pct: 35 },
+  { name: 'NVIDIA', cls: 'growth', pct: 10 },
+  { name: 'TLT 미국 장기채', cls: 'bond', pct: 15 },
+  { name: 'SCHD 미국 배당', cls: 'dividend', pct: 15 },
+  { name: 'GLD 금', cls: 'gold', pct: 10 },
+  { name: '예수금(현금)', cls: 'cash', pct: 15 },
+];
+const CLS_ROLE = { growth: 'dealer', bond: 'tank', dividend: 'support', gold: 'healer', cash: 'healer' };
+function accountParty() {
+  const w = { tank: 0, dealer: 0, healer: 0, support: 0 }, healerMix = { gold: 0, cash: 0 };
+  SAMPLE_ACCOUNT.forEach(h => { w[CLS_ROLE[h.cls]] += h.pct; if (h.cls in healerMix) healerMix[h.cls] += h.pct; });
+  ROLES.forEach(r => { w[r] = Math.round(w[r] / 5) * 5; });
+  const diff = 100 - ROLES.reduce((a, r) => a + w[r], 0); w.dealer += diff;
+  const lvl = effectiveLevel();
+  const skills = {
+    dealer: pickSkill('dealer', [], lvl),                                         // the default index skill = 지수 ETF
+    tank: pickSkill('tank', ['longbond'], lvl),
+    support: pickSkill('support', [], lvl),
+    healer: pickSkill('healer', healerMix.cash > healerMix.gold ? ['cash', 'gold'] : ['gold', 'cash'], lvl),
+  };
+  return { weights: w, skills };
+}
+function applyAccount() {
+  const a = accountParty();
+  party = Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
+  party.weights = a.weights; Object.assign(party.skills, a.skills);
+  presetKey = 'account'; renderPartyScreen();
+  toast('내 계좌 비중으로 편성했어요');
+}
 function pickSkill(role, prefs, lvl) {
   const list = currentTape.skills.filter(k => k.role === role), open = k => !(k.unlockLevel && lvl < k.unlockLevel);
-  const by = { lev: k => currentTape.instruments[k.instrument].kind === 'lev', sector: k => /반도체/.test(currentTape.instruments[k.instrument].name), cash: k => currentTape.instruments[k.instrument].kind === 'cash', option: k => k.blend || currentTape.instruments[k.instrument].kind === 'option', gold: k => /금/.test(currentTape.instruments[k.instrument].name) };
+  const by = { longbond: k => /장기채|국고채/.test(currentTape.instruments[k.instrument].name), lev: k => currentTape.instruments[k.instrument].kind === 'lev', sector: k => /반도체/.test(currentTape.instruments[k.instrument].name), cash: k => currentTape.instruments[k.instrument].kind === 'cash', option: k => k.blend || currentTape.instruments[k.instrument].kind === 'option', gold: k => /금/.test(currentTape.instruments[k.instrument].name) };
   for (const pref of prefs) { const hit = list.find(k => by[pref]?.(k) && open(k)); if (hit) return hit.id; }
   return (list.find(k => k.default) || list[0]).id;
 }
@@ -284,7 +318,8 @@ function matchPreset() {
   return Object.keys(PRESETS).find(k => { const pr = PRESETS[k]; return ROLES.every(r => party.weights[r] === pr.weights[r] && party.skills[r] === (pr.pick[r] ? pickSkill(r, pr.pick[r], lvl) : (currentTape.skills.find(x => x.role === r && x.default) || {}).id)); }) || null;
 }
 function renderPresets() {
-  const cur = matchPreset();
+  const cur = matchPreset() || (presetKey === 'account' && (() => { const a = accountParty(); return ROLES.every(r => party.weights[r] === a.weights[r] && party.skills[r] === a.skills[r]); })() ? 'account' : null);
+  const acc = $('#accountBtn'); if (acc) { acc.setAttribute('aria-pressed', String(cur === 'account')); const a = accountParty(); acc.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${a.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); acc.querySelector('.hold').textContent = SAMPLE_ACCOUNT.map(h => `${h.name} ${h.pct}%`).join(' · '); }
   $$('.preset').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.preset === cur)); const pr = PRESETS[b.dataset.preset]; b.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${pr.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); });
 }
 function renderPartyMeta() {
@@ -1120,6 +1155,7 @@ $('#toParty').addEventListener('click', () => { sfx.select(); openParty(); });
 $('#backToSelect').addEventListener('click', () => { sfx.back(); showScreen('select'); });
 $('#backToBrief').addEventListener('click', () => { sfx.back(); showScreen('brief'); });
 $$('[data-preset]').forEach(b => b.addEventListener('click', () => { sfx.select(); applyPreset(b.dataset.preset); }));
+$('#accountBtn').addEventListener('click', () => { sfx.select(); applyAccount(); });
 $('#startBattle').addEventListener('click', startBattle);
 $('#retryBtn').addEventListener('click', () => { sfx.select(); openParty(); });
 $('#otherBtn').addEventListener('click', () => { sfx.select(); renderSelect(); showScreen('select'); });
