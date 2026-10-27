@@ -589,6 +589,27 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .tut-art{height:220px;width:auto;filter:drop-shadow(0 10px 10px rgba(20,30,10,.3))}
 .dots{display:flex;gap:6px;justify-content:center}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--gold)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* phone: one big button, the rest in a menu; compact party cards */
+.bmenu-btn{display:none}
+.bmenu{display:contents}
+@media (max-width:760px){
+  .controls{flex-wrap:nowrap;position:relative}
+  .controls .next{flex:1 1 auto}
+  .bmenu-btn{display:flex;align-items:center;justify-content:center;min-width:56px;min-height:56px;font-size:22px;border-radius:16px}
+  .bmenu{display:none;position:absolute;right:0;bottom:calc(100% + 8px);z-index:20;flex-direction:column;gap:8px;background:var(--panel);border:2px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 10px 26px rgba(30,45,70,.22)}
+  .bmenu.open{display:flex}
+  .bmenu .row{flex-direction:column;align-items:stretch}
+  .controls:not(:has(#nextBtn:not([hidden]))) .bmenu-btn{margin-left:auto}
+  .partyhud{gap:6px}
+  .phud{padding:6px 7px;gap:4px;border-left-width:4px}
+  .phud .t img,.phud .t small,.phud .num{display:none}
+  .phud .t{flex-direction:column;align-items:flex-start;gap:0}
+  .phud .t b{font-size:14px}
+  .phud .delta{font-size:12px}
+  .toast{bottom:auto;top:calc(12px + env(safe-area-inset-top,0px))}
+  .role img{height:96px}
+}
 </style>
 
 <div class="wrap">
@@ -697,8 +718,11 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="partyhud" id="partyhud"></div>
     <div class="controls">
       <button class="btn next" id="nextBtn" type="button" hidden><b>다음 턴 ▶</b></button>
-      <div class="row"><button class="iconbtn" id="autoBtn" type="button" aria-pressed="false">자동 재생</button><div class="seg" role="group" aria-label="연출 속도"><button type="button" data-speed="1" aria-pressed="false">1×</button><button type="button" data-speed="2" aria-pressed="true">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div><button class="iconbtn" id="skipBtn" type="button" title="다음 체크포인트까지 빠르게">▶▶ 체크포인트까지</button></div>
-      <div class="row"><button class="iconbtn" id="pauseBtn" type="button">일시정지</button><button class="iconbtn" id="abortBtn" type="button">포기</button></div>
+      <button class="iconbtn bmenu-btn" id="bmenuBtn" type="button" aria-expanded="false" aria-label="전투 메뉴">⋯</button>
+      <div class="bmenu" id="bmenu">
+        <div class="row"><button class="iconbtn" id="autoBtn" type="button" aria-pressed="false">자동 재생</button><div class="seg" role="group" aria-label="연출 속도"><button type="button" data-speed="1" aria-pressed="false">1×</button><button type="button" data-speed="2" aria-pressed="true">2×</button><button type="button" data-speed="4" aria-pressed="false">4×</button></div><button class="iconbtn" id="skipBtn" type="button" title="다음 체크포인트까지 빠르게">▶▶ 체크포인트까지</button></div>
+        <div class="row"><button class="iconbtn" id="pauseBtn" type="button">일시정지</button><button class="iconbtn" id="abortBtn" type="button">포기</button></div>
+      </div>
     </div>
   </section>
 
