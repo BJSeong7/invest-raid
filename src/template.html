@@ -687,6 +687,43 @@ body.mode-chart .bthumb::before{content:"";position:absolute;inset:0;background:
 body.mode-chart .bthumb>div{position:relative;display:flex;flex-direction:column;gap:2px;padding:14px 16px;color:#fff}
 body.mode-chart .bthumb b{font-family:var(--body);font-weight:700;font-size:22px}
 body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
+
+/* ---- scenario map (game mode) ---- */
+body.mode-chart .chapter{display:none}
+body:not(.mode-chart) .raid-lists{display:none}
+.chapter{position:relative;border-radius:var(--r);overflow:hidden;border:2px solid var(--line);box-shadow:0 4px 0 var(--edge);
+  background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(40,70,20,.12)),url(assets/anime/bg_meadow.jpg) center 70%/cover;aspect-ratio:16/8;max-width:100%}
+@media (max-width:760px){.chapter{aspect-ratio:3/4.2}.chapter .ch-title{max-width:calc(100% - 24px)}.chapter .ch-title span{display:none!important}}
+.chapter svg.road{position:absolute;inset:0;width:100%;height:100%}
+.chapter .ch-title{position:absolute;left:12px;top:12px;z-index:3;max-width:min(360px,70%);background:rgba(20,40,70,.82);color:#fff;border-radius:14px;padding:8px 12px}
+.chapter .ch-title small{display:block;font-family:var(--shout);font-size:13px;letter-spacing:.5px;color:#FFE38A}
+.chapter .ch-title b{display:block;font-family:var(--display);font-weight:400;font-size:19px;line-height:1.2}
+.chapter .ch-title span{display:block;font-size:12px;opacity:.9;margin-top:2px}
+.chapter .ch-title em{display:inline-block;margin-top:4px;font-style:normal;font-family:var(--display);font-size:13px;color:#FFE38A}
+.stage{position:absolute;transform:translate(-50%,-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;padding:0;cursor:pointer;width:96px}
+.stage .node{position:relative;width:62px;height:62px;border-radius:50%;background:#fff;border:4px solid #fff;box-shadow:0 0 0 3px var(--gold),0 6px 10px rgba(0,0,0,.25);overflow:hidden}
+.stage .node img{width:100%;height:100%;object-fit:cover;background:#E4EFFF}
+.stage.boss{width:120px}.stage.boss .clear{top:34px}.stage.boss .node{width:86px;height:86px;box-shadow:0 0 0 4px var(--red),0 8px 14px rgba(0,0,0,.3)}
+.stage .lbl{font-family:var(--display);font-size:13px;color:#fff;background:rgba(20,40,70,.8);border-radius:999px;padding:1px 9px;white-space:nowrap}
+.stage .stars{display:flex;gap:1px;font-size:14px;line-height:1;color:#FFD54A;text-shadow:0 1px 0 #6B4A05}
+.stage .stars i{font-style:normal}.stage .stars i.off{color:rgba(255,255,255,.55);text-shadow:none}
+.stage .clear{white-space:nowrap;position:absolute;left:50%;top:22px;transform:translate(-50%,-50%) rotate(-14deg);font-family:var(--shout);font-size:15px;color:#fff;background:#D6453F;border:2px solid #fff;border-radius:999px;padding:1px 8px;box-shadow:0 2px 0 rgba(0,0,0,.2);z-index:3;pointer-events:none}
+.stage.locked .node{filter:grayscale(1) brightness(.75);box-shadow:0 0 0 3px #9AA0AA}
+.stage.locked .node::after{content:"🔒";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(0,0,0,.25)}
+.stage.locked .lbl{background:rgba(60,60,60,.7)}
+.stage.next .node{animation:nodePulse 1.4s ease-in-out infinite}
+.stage.next::before{content:"여기!";position:absolute;top:-30px;font-family:var(--display);font-size:13px;color:var(--navy);background:#FFE38A;border-radius:8px;padding:1px 8px;animation:hop 1s ease-in-out infinite}
+@keyframes nodePulse{50%{box-shadow:0 0 0 7px rgba(224,167,46,.55),0 6px 10px rgba(0,0,0,.25)}}
+@keyframes hop{50%{transform:translateY(-4px)}}
+.chapter .next-ch{white-space:nowrap;position:absolute;transform:translate(-50%,-50%);z-index:2;font-family:var(--display);font-size:13px;color:#fff;background:rgba(60,60,60,.72);border-radius:12px;padding:6px 10px;text-align:center}
+.rstars{display:flex;flex-direction:column;gap:6px;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px}
+.rstars .row3{display:flex;gap:8px}
+.rstars .st{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;color:var(--muted);text-align:center}
+.rstars .st b{font-size:26px;line-height:1;color:#D9D3C2}
+.rstars .st.on b{color:#FFC93C;text-shadow:0 2px 0 #B07E14}
+.rstars .st.new b{animation:starPop .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes starPop{from{transform:scale(.2) rotate(-40deg);opacity:0}}
+.rstars .rw{font-family:var(--display);font-size:14px;color:var(--navy);text-align:center}
 </style>
 
 <div class="wrap">
@@ -716,6 +753,8 @@ body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
       <button type="button" class="today-card" id="todayCard" hidden></button>
       <div class="week-card" id="weekCard"></div>
     </div>
+    <section class="chapter" id="chapterMap" aria-label="시나리오 지도"></section>
+    <div class="raid-lists">
     <div>
       <div class="section-h"><h3 data-chart="실제 이벤트">실전 레이드</h3><span class="chip real">실제 종가</span></div>
       <div class="raids" id="raids"></div>
@@ -723,6 +762,7 @@ body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
     <div>
       <div class="section-h"><h3 data-chart="연습 시나리오">훈련 레이드</h3><span class="chip example">예시 시세</span></div>
       <div class="raids" id="raidsExample"></div>
+    </div>
     </div>
     <div>
       <div class="section-h"><h3 data-chart="다가오는 이벤트">다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
@@ -812,6 +852,7 @@ body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
         <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
+        <div class="rstars" id="rStars" hidden></div>
         <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
         <div class="stats">
           <div class="stat"><small id="rAlphaLabel">시장에 넣었다면</small><b class="tabular" id="rAlpha">0.00%</b></div>

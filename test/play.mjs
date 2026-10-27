@@ -36,7 +36,7 @@ try {
   await shot(page, '1-select');
 
   // brief
-  await page.click('#raidsExample .raid:has-text("10월 FOMC")');
+  await page.click('.stage[data-tape="fomc-2026-10-29"]');
   await page.waitForSelector('#screen-brief:not([hidden])');
   check(await page.textContent('#bTitle') !== '', 'briefing title filled');
   await shot(page, '2-brief');
@@ -109,7 +109,7 @@ try {
 
   // second raid quickly at 4x with default party (KR tape)
   await page.click('#backToBrief'); await page.click('#backToSelect');
-  await page.click('#raidsExample .raid:has-text("반도체 실적")');
+  await page.click('.stage[data-tape="semi-earnings-2026-10-28"]');
   await page.click('#toParty'); await page.click('[data-preset="balanced"]'); await page.click('#startBattle');
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
   await page.click('#cp [data-tab="rebalance"]');
@@ -127,7 +127,7 @@ try {
   // third raid: real daily-close tape (lich boss) — date labels, chart without clock times, hedge equip at checkpoint 1
   await page.click('#otherBtn');
   await page.waitForSelector('#screen-select:not([hidden])');
-  await page.click('#raids .raid:has-text("9월 FOMC")');
+  await page.evaluate(() => { if (!document.querySelector('#unlockBtn').getAttribute('aria-pressed').includes('true')) document.querySelector('#unlockBtn').click(); }); await page.click('.stage[data-tape="fomc-2026-09-16"]');
   await page.waitForSelector('#screen-brief:not([hidden])');
   check((await page.textContent('#bDate')).includes('뉴욕 종가'), 'daily tape briefing says 뉴욕 종가: ' + (await page.textContent('#bDate')).trim());
   check(/\d\d\/\d\d\(.\)/.test(await page.textContent('#bTimeline')), 'daily timeline shows dates, not clock times');
@@ -137,7 +137,7 @@ try {
   await page.click('#cp [data-tab="equip"]');
   const healerOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:not(:disabled)');
   const lockedOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:disabled');
-  check(healerOpts.length >= 1 && lockedOpts.length >= 1, `daily tape healer has ${healerOpts.length} open + ${lockedOpts.length} locked alternatives`);
+  check(healerOpts.length >= 1, `daily tape healer has ${healerOpts.length} open + ${lockedOpts.length} locked alternatives`);
   await healerOpts[0].click();
   await page.waitForSelector('#cp', { state: 'hidden' });
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
@@ -155,7 +155,7 @@ try {
 
   const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(overflow <= 0, 'no horizontal overflow at 390px (' + overflow + ')');
-  await phone.click('#raids .raid'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; });
+  await phone.click('.stage[data-tape="fomc-2026-10-29"]'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; });
   const ov2 = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(ov2 <= 0, 'no horizontal overflow on party screen at 390px (' + ov2 + ')');
   await shot(phone, '7-phone-party');

@@ -193,6 +193,7 @@ function showScreen(name) {
   if (!reduceMotion) { const el = $('#screen-' + name); void el.offsetWidth; el.classList.add('enter'); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
   $('#tip').hidden = true;
+  if (name === 'select') { renderChapter(); renderHome(); }
   if (name === 'brief' || name === 'party' || name === 'result') setTimeout(() => showTip(name), 450);
   if (name === 'battle') setTimeout(() => showTip('battle'), 1800);
 }
@@ -202,6 +203,53 @@ function toast(msg, ms = 1800) {
   gsap.fromTo(t, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .25, onComplete: () => gsap.to(t, { opacity: 0, y: 10, duration: .3, delay: ms / 1000 }) });
 }
 
+/* ---------- scenario map: chapters of real events, cleared one by one ---------- */
+const CHAPTERS = [{
+  id: 'c1', no: 1, name: '금리와 실적', desc: '금리 결정과 실적 발표를 버티며 나눠 담는 법을 배워요.',
+  stages: ['fomc-2026-10-29', 'semi-earnings-2026-10-28', 'pce-2026-10-29', 'fomc-2026-09-16', 'capex-2026-10-22'],
+  pos: { wide: [[10, 78], [27, 56], [45, 36], [63, 62], [82, 38]], tall: [[22, 88], [72, 77], [26, 63], [72, 49], [36, 33]] },
+  reward: 5,
+}];
+const STAR_RULES = ['끝까지 완주', '시장보다 앞서기', '최대 손실 1.5% 안'];
+const starsOf = id => profile.stars?.[id] || 0;
+function stageOpen(ch, i) { return profile.unlockAll || i === 0 || starsOf(ch.stages[i - 1]) >= 1; }
+function renderChapter() {
+  const ch = CHAPTERS[0], el = $('#chapterMap'); if (!el) return;
+  const tall = matchMedia('(max-width:760px)').matches, P = tall ? ch.pos.tall : ch.pos.wide;
+  const got = ch.stages.reduce((a, id) => a + starsOf(id), 0), cleared = ch.stages.every(id => starsOf(id) >= 1);
+  const nextI = ch.stages.findIndex((id, i) => stageOpen(ch, i) && !starsOf(id));
+  const pts = P.map(([x, y]) => `${x},${y}`).join(' ');
+  el.innerHTML = `<svg class="road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points="${pts}" fill="none" stroke="#7A6A55" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="stroke-width:22px"/>
+      <polyline points="${pts}" fill="none" stroke="#C9B48E" stroke-width="16px" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <polyline points="${pts}" fill="none" stroke="#fff" stroke-width="3px" stroke-dasharray="10 10" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+    <div class="ch-title"><small>CHAPTER ${ch.no}</small><b>${ch.name}</b><span>${ch.desc}</span><em>★ ${got} / ${ch.stages.length * 3}${cleared ? ' · 챕터 완료' : ''}</em></div>
+    ${ch.stages.map((id, i) => { const t = TAPES.find(x => x.id === id); if (!t) return ''; const open = stageOpen(ch, i), st = starsOf(id), boss = i === ch.stages.length - 1;
+      return `<button type="button" class="stage ${boss ? 'boss' : ''} ${open ? '' : 'locked'} ${i === nextI ? 'next' : ''}" data-tape="${id}" style="left:${P[i][0]}%;top:${P[i][1]}%" aria-label="${t.title}${open ? '' : ' (잠김)'}">
+        <span class="node"><img src="${portrait(bossUnit(t.bossSpecies))}" alt=""></span>${st ? '<span class="clear">CLEAR</span>' : ''}
+        <span class="lbl">${i + 1}. ${t.title.replace(/ 레이드$/, '')}</span>
+        <span class="stars">${[1, 2, 3].map(n => `<i class="${n <= st ? '' : 'off'}">★</i>`).join('')}</span></button>`; }).join('')}
+    <div class="next-ch" style="left:${tall ? 80 : 92}%;top:${tall ? 94 : 84}%">CHAPTER 2<br>곧 열려요</div>`;
+  $$('#chapterMap .stage').forEach(b => b.onclick = () => {
+    if (b.classList.contains('locked')) { sfx.back(); toast('앞 칸을 먼저 깨면 열려요'); return; }
+    unlock(); sfx.select(); openBrief(b.dataset.tape); });
+}
+/** stars for this run: 1 finish alive, 2 beat the market, 3 worst point no lower than -1.5% */
+function earnStars(s, r) {
+  const minEq = Math.min(...s.history.map(h => h.equity)) - 100;
+  return [r.alive > 0, r.alpha >= 0, minEq >= -1.5];
+}
+/** in-game reward: every new star adds a point to each hero's leading stat; finishing a chapter adds more */
+function grantStars(id, flags) {
+  profile.stars = profile.stars || {};
+  const before = starsOf(id), now = flags.filter(Boolean).length, gain = Math.max(0, now - before);
+  if (now > before) profile.stars[id] = now;
+  const bump = n => ROLES.forEach(r => { const h = hero(r), k = STAT_KEYS.slice().sort((a, b) => h.st[b] - h.st[a])[0]; h.st[k] += n; });
+  if (gain) bump(gain);
+  let chapterDone = null;
+  for (const ch of CHAPTERS) { profile.chapters = profile.chapters || {}; if (!profile.chapters[ch.id] && ch.stages.every(x => starsOf(x) >= 1)) { profile.chapters[ch.id] = today(); bump(ch.reward); chapterDone = ch; } }
+  return { before, now, gain, chapterDone };
+}
 /* scenario thumbnails (Unsplash, see assets/scenes/CREDITS.txt) — shown in chart mode */
 const SCENE = { 'fomc-2026-09-16': 'fed', 'capex-2026-10-22': 'datacenter', 'daily-2026-10-27': 'nyse', 'semi-earnings-2026-10-28': 'wafer', 'fomc-2026-10-29': 'chifed', 'pce-2026-10-29': 'grocery' };
 const sceneOf = x => `assets/scenes/${SCENE[x.id] || (/고용/.test(x.title || '') ? 'office' : /FOMC/.test(x.title || '') ? (/12월/.test(x.title) ? 'chifed' : 'fed') : 'nyse')}.jpg`;
@@ -213,7 +261,7 @@ function renderSelect() {
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
   const real = TAPES.filter(t => !t.example && !t.dailyRaid).slice().reverse(), examples = TAPES.filter(t => t.example);
-  renderRhythm();
+  renderRhythm(); renderChapter();
   [...real, ...examples].forEach(t => {
     const best = profile.plays[t.id]?.best;
     const b = document.createElement('button'); b.type = 'button'; b.className = 'raid';
@@ -1290,17 +1338,26 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
+  const inMap = !chartMode() && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
+  const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
   const growth = chartMode() ? { gains: Object.fromEntries(ROLES.map(x => [x, { atk: 0, def: 0, stab: 0, ins: 0 }])), evolved: [] } : growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
   const after = { ...profile };
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
   play.count++; if (!play.best || order.indexOf(r.grade) > order.indexOf(play.best)) play.best = r.grade;
-  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, products: profile.products, heroes: profile.heroes, totalPnl: profile.totalPnl, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
+  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, products: profile.products, heroes: profile.heroes, totalPnl: profile.totalPnl, stars: profile.stars, chapters: profile.chapters, mode: profile.mode, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
 
   const stamp = $('#rStamp'); stamp.textContent = r.grade; stamp.className = 'stamp ' + r.grade;
   $('#rVerdict').textContent = r.bossDown ? `${currentTape.boss}${josa(currentTape.boss, '을', '를')} 쓰러뜨렸어요!` : r.alive === 0 ? '모두 쓰러졌어요' : r.returnPct >= 0 ? '보스는 남았지만 돈은 지켰어요' : '이번엔 보스가 더 셌어요';
   $('#rWhy').textContent = gradeReason(r);
+  $('#rStars').hidden = !starRes;
+  $('#rStamp').style.visibility = starRes ? 'hidden' : ''; $('#rWhy').hidden = !!starRes;   // on the map, stars are the only score
+  if (starRes) {
+    $('#rStars').innerHTML = `<div class="row3">${STAR_RULES.map((t, i) => `<div class="st ${starFlags[i] ? 'on' : ''} ${starFlags[i] && i >= starRes.before ? 'new' : ''}" style="animation-delay:${i * .2}s"><b>★</b>${t}</div>`).join('')}</div>
+      <div class="rw">${starRes.gain ? `새 별 ${starRes.gain}개 · 모든 캐릭터가 ${starRes.gain}만큼 자랐어요` : starRes.now ? '이미 받은 별이에요. 더 많은 별에 도전해 보세요.' : '끝까지 완주하면 첫 별을 받아요.'}${starRes.chapterDone ? `<br>챕터 ${starRes.chapterDone.no} 완료! 모든 캐릭터가 ${starRes.chapterDone.reward}만큼 더 자랐어요.` : ''}</div>`;
+    if (starRes.chapterDone) setTimeout(() => cutIn({ text: 'CLEAR!', sub: `CHAPTER ${starRes.chapterDone.no} · ${starRes.chapterDone.name}`, bg: '#D6453F', artL: cutArt('hero_dealer'), artR: null }, 1), 1400);
+  }
   // next raid: the first one not yet played (real first), else the next in the list
   const order2 = [...TAPES.filter(t => !t.example).slice().reverse(), ...TAPES.filter(t => t.example)];
   const next = order2.find(t => !profile.plays[t.id] && t.id !== currentTape.id) || order2[(order2.findIndex(t => t.id === currentTape.id) + 1) % order2.length];
@@ -1424,7 +1481,7 @@ $('#resetBtn').addEventListener('click', () => {
   if (Date.now() - (window.__resetArmed || 0) < 3000) { profile = { level: 1, exp: 0, unlockAll: false, plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: true }; saveProfile(); renderProfile(); renderSelect(); toast('진행 상황을 초기화했어요'); $('#resetBtn').textContent = '진행 초기화'; return; }
   window.__resetArmed = Date.now(); $('#resetBtn').textContent = '정말 초기화? (한 번 더)'; setTimeout(() => { $('#resetBtn').textContent = '진행 초기화'; }, 3000);
 });
-$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '체험 모드: 모든 상품을 쓸 수 있어요' : '체험 모드를 껐어요'); if (!$('#screen-party').hidden) renderPartyScreen(); });
+$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '체험 모드: 모든 상품을 쓸 수 있어요' : '체험 모드를 껐어요'); if (!$('#screen-party').hidden) renderPartyScreen(); if (!$('#screen-select').hidden) renderChapter(); });
 document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-battle').hidden && $('#cp').hidden && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); $('#pauseBtn').click(); } });
 
 renderProfile(); renderSelect(); showScreen('select');
@@ -1439,3 +1496,4 @@ document.addEventListener('click', e => { if (!e.target.closest('#bmenu')) { $('
 // mode switch (게임 / 차트)
 $$('.mode-seg [data-mode]').forEach(b => b.addEventListener('click', () => { profile.mode = b.dataset.mode; saveProfile(); applyMode(); sfx.select(); if (!$('#screen-battle').hidden) { aborted = true; nextWaiter?.(); stopBgm(); } party = null; renderSelect(); showScreen('select'); }));
 applyMode();
+matchMedia('(max-width:760px)').addEventListener('change', () => { if (!$('#screen-select').hidden) renderChapter(); });

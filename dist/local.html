@@ -689,6 +689,43 @@ body.mode-chart .bthumb::before{content:"";position:absolute;inset:0;background:
 body.mode-chart .bthumb>div{position:relative;display:flex;flex-direction:column;gap:2px;padding:14px 16px;color:#fff}
 body.mode-chart .bthumb b{font-family:var(--body);font-weight:700;font-size:22px}
 body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
+
+/* ---- scenario map (game mode) ---- */
+body.mode-chart .chapter{display:none}
+body:not(.mode-chart) .raid-lists{display:none}
+.chapter{position:relative;border-radius:var(--r);overflow:hidden;border:2px solid var(--line);box-shadow:0 4px 0 var(--edge);
+  background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(40,70,20,.12)),url(assets/anime/bg_meadow.jpg) center 70%/cover;aspect-ratio:16/8;max-width:100%}
+@media (max-width:760px){.chapter{aspect-ratio:3/4.2}.chapter .ch-title{max-width:calc(100% - 24px)}.chapter .ch-title span{display:none!important}}
+.chapter svg.road{position:absolute;inset:0;width:100%;height:100%}
+.chapter .ch-title{position:absolute;left:12px;top:12px;z-index:3;max-width:min(360px,70%);background:rgba(20,40,70,.82);color:#fff;border-radius:14px;padding:8px 12px}
+.chapter .ch-title small{display:block;font-family:var(--shout);font-size:13px;letter-spacing:.5px;color:#FFE38A}
+.chapter .ch-title b{display:block;font-family:var(--display);font-weight:400;font-size:19px;line-height:1.2}
+.chapter .ch-title span{display:block;font-size:12px;opacity:.9;margin-top:2px}
+.chapter .ch-title em{display:inline-block;margin-top:4px;font-style:normal;font-family:var(--display);font-size:13px;color:#FFE38A}
+.stage{position:absolute;transform:translate(-50%,-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;padding:0;cursor:pointer;width:96px}
+.stage .node{position:relative;width:62px;height:62px;border-radius:50%;background:#fff;border:4px solid #fff;box-shadow:0 0 0 3px var(--gold),0 6px 10px rgba(0,0,0,.25);overflow:hidden}
+.stage .node img{width:100%;height:100%;object-fit:cover;background:#E4EFFF}
+.stage.boss{width:120px}.stage.boss .clear{top:34px}.stage.boss .node{width:86px;height:86px;box-shadow:0 0 0 4px var(--red),0 8px 14px rgba(0,0,0,.3)}
+.stage .lbl{font-family:var(--display);font-size:13px;color:#fff;background:rgba(20,40,70,.8);border-radius:999px;padding:1px 9px;white-space:nowrap}
+.stage .stars{display:flex;gap:1px;font-size:14px;line-height:1;color:#FFD54A;text-shadow:0 1px 0 #6B4A05}
+.stage .stars i{font-style:normal}.stage .stars i.off{color:rgba(255,255,255,.55);text-shadow:none}
+.stage .clear{white-space:nowrap;position:absolute;left:50%;top:22px;transform:translate(-50%,-50%) rotate(-14deg);font-family:var(--shout);font-size:15px;color:#fff;background:#D6453F;border:2px solid #fff;border-radius:999px;padding:1px 8px;box-shadow:0 2px 0 rgba(0,0,0,.2);z-index:3;pointer-events:none}
+.stage.locked .node{filter:grayscale(1) brightness(.75);box-shadow:0 0 0 3px #9AA0AA}
+.stage.locked .node::after{content:"🔒";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(0,0,0,.25)}
+.stage.locked .lbl{background:rgba(60,60,60,.7)}
+.stage.next .node{animation:nodePulse 1.4s ease-in-out infinite}
+.stage.next::before{content:"여기!";position:absolute;top:-30px;font-family:var(--display);font-size:13px;color:var(--navy);background:#FFE38A;border-radius:8px;padding:1px 8px;animation:hop 1s ease-in-out infinite}
+@keyframes nodePulse{50%{box-shadow:0 0 0 7px rgba(224,167,46,.55),0 6px 10px rgba(0,0,0,.25)}}
+@keyframes hop{50%{transform:translateY(-4px)}}
+.chapter .next-ch{white-space:nowrap;position:absolute;transform:translate(-50%,-50%);z-index:2;font-family:var(--display);font-size:13px;color:#fff;background:rgba(60,60,60,.72);border-radius:12px;padding:6px 10px;text-align:center}
+.rstars{display:flex;flex-direction:column;gap:6px;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px}
+.rstars .row3{display:flex;gap:8px}
+.rstars .st{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;color:var(--muted);text-align:center}
+.rstars .st b{font-size:26px;line-height:1;color:#D9D3C2}
+.rstars .st.on b{color:#FFC93C;text-shadow:0 2px 0 #B07E14}
+.rstars .st.new b{animation:starPop .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes starPop{from{transform:scale(.2) rotate(-40deg);opacity:0}}
+.rstars .rw{font-family:var(--display);font-size:14px;color:var(--navy);text-align:center}
 </style>
 
 <div class="wrap">
@@ -718,6 +755,8 @@ body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
       <button type="button" class="today-card" id="todayCard" hidden></button>
       <div class="week-card" id="weekCard"></div>
     </div>
+    <section class="chapter" id="chapterMap" aria-label="시나리오 지도"></section>
+    <div class="raid-lists">
     <div>
       <div class="section-h"><h3 data-chart="실제 이벤트">실전 레이드</h3><span class="chip real">실제 종가</span></div>
       <div class="raids" id="raids"></div>
@@ -725,6 +764,7 @@ body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
     <div>
       <div class="section-h"><h3 data-chart="연습 시나리오">훈련 레이드</h3><span class="chip example">예시 시세</span></div>
       <div class="raids" id="raidsExample"></div>
+    </div>
     </div>
     <div>
       <div class="section-h"><h3 data-chart="다가오는 이벤트">다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
@@ -814,6 +854,7 @@ body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
         <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
+        <div class="rstars" id="rStars" hidden></div>
         <div class="money-result"><small><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD66B" stroke="#B9841A" stroke-width="2"/><circle cx="12" cy="12" r="5.5" fill="none" stroke="#B9841A" stroke-width="1.5"/><path d="M12 8.5v7M10 10.5h4M10 13.5h4" stroke="#B9841A" stroke-width="1.5" stroke-linecap="round"/></svg>내 자금</small><b class="tabular" id="rMoney">10,000,000원</b><span class="tabular" id="rRet">0.00%</span></div>
         <div class="stats">
           <div class="stat"><small id="rAlphaLabel">시장에 넣었다면</small><b class="tabular" id="rAlpha">0.00%</b></div>
@@ -1620,6 +1661,7 @@ function showScreen(name) {
   if (!reduceMotion) { const el = $('#screen-' + name); void el.offsetWidth; el.classList.add('enter'); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
   $('#tip').hidden = true;
+  if (name === 'select') { renderChapter(); renderHome(); }
   if (name === 'brief' || name === 'party' || name === 'result') setTimeout(() => showTip(name), 450);
   if (name === 'battle') setTimeout(() => showTip('battle'), 1800);
 }
@@ -1629,6 +1671,53 @@ function toast(msg, ms = 1800) {
   gsap.fromTo(t, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .25, onComplete: () => gsap.to(t, { opacity: 0, y: 10, duration: .3, delay: ms / 1000 }) });
 }
 
+/* ---------- scenario map: chapters of real events, cleared one by one ---------- */
+const CHAPTERS = [{
+  id: 'c1', no: 1, name: '금리와 실적', desc: '금리 결정과 실적 발표를 버티며 나눠 담는 법을 배워요.',
+  stages: ['fomc-2026-10-29', 'semi-earnings-2026-10-28', 'pce-2026-10-29', 'fomc-2026-09-16', 'capex-2026-10-22'],
+  pos: { wide: [[10, 78], [27, 56], [45, 36], [63, 62], [82, 38]], tall: [[22, 88], [72, 77], [26, 63], [72, 49], [36, 33]] },
+  reward: 5,
+}];
+const STAR_RULES = ['끝까지 완주', '시장보다 앞서기', '최대 손실 1.5% 안'];
+const starsOf = id => profile.stars?.[id] || 0;
+function stageOpen(ch, i) { return profile.unlockAll || i === 0 || starsOf(ch.stages[i - 1]) >= 1; }
+function renderChapter() {
+  const ch = CHAPTERS[0], el = $('#chapterMap'); if (!el) return;
+  const tall = matchMedia('(max-width:760px)').matches, P = tall ? ch.pos.tall : ch.pos.wide;
+  const got = ch.stages.reduce((a, id) => a + starsOf(id), 0), cleared = ch.stages.every(id => starsOf(id) >= 1);
+  const nextI = ch.stages.findIndex((id, i) => stageOpen(ch, i) && !starsOf(id));
+  const pts = P.map(([x, y]) => `${x},${y}`).join(' ');
+  el.innerHTML = `<svg class="road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points="${pts}" fill="none" stroke="#7A6A55" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="stroke-width:22px"/>
+      <polyline points="${pts}" fill="none" stroke="#C9B48E" stroke-width="16px" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      <polyline points="${pts}" fill="none" stroke="#fff" stroke-width="3px" stroke-dasharray="10 10" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+    <div class="ch-title"><small>CHAPTER ${ch.no}</small><b>${ch.name}</b><span>${ch.desc}</span><em>★ ${got} / ${ch.stages.length * 3}${cleared ? ' · 챕터 완료' : ''}</em></div>
+    ${ch.stages.map((id, i) => { const t = TAPES.find(x => x.id === id); if (!t) return ''; const open = stageOpen(ch, i), st = starsOf(id), boss = i === ch.stages.length - 1;
+      return `<button type="button" class="stage ${boss ? 'boss' : ''} ${open ? '' : 'locked'} ${i === nextI ? 'next' : ''}" data-tape="${id}" style="left:${P[i][0]}%;top:${P[i][1]}%" aria-label="${t.title}${open ? '' : ' (잠김)'}">
+        <span class="node"><img src="${portrait(bossUnit(t.bossSpecies))}" alt=""></span>${st ? '<span class="clear">CLEAR</span>' : ''}
+        <span class="lbl">${i + 1}. ${t.title.replace(/ 레이드$/, '')}</span>
+        <span class="stars">${[1, 2, 3].map(n => `<i class="${n <= st ? '' : 'off'}">★</i>`).join('')}</span></button>`; }).join('')}
+    <div class="next-ch" style="left:${tall ? 80 : 92}%;top:${tall ? 94 : 84}%">CHAPTER 2<br>곧 열려요</div>`;
+  $$('#chapterMap .stage').forEach(b => b.onclick = () => {
+    if (b.classList.contains('locked')) { sfx.back(); toast('앞 칸을 먼저 깨면 열려요'); return; }
+    unlock(); sfx.select(); openBrief(b.dataset.tape); });
+}
+/** stars for this run: 1 finish alive, 2 beat the market, 3 worst point no lower than -1.5% */
+function earnStars(s, r) {
+  const minEq = Math.min(...s.history.map(h => h.equity)) - 100;
+  return [r.alive > 0, r.alpha >= 0, minEq >= -1.5];
+}
+/** in-game reward: every new star adds a point to each hero's leading stat; finishing a chapter adds more */
+function grantStars(id, flags) {
+  profile.stars = profile.stars || {};
+  const before = starsOf(id), now = flags.filter(Boolean).length, gain = Math.max(0, now - before);
+  if (now > before) profile.stars[id] = now;
+  const bump = n => ROLES.forEach(r => { const h = hero(r), k = STAT_KEYS.slice().sort((a, b) => h.st[b] - h.st[a])[0]; h.st[k] += n; });
+  if (gain) bump(gain);
+  let chapterDone = null;
+  for (const ch of CHAPTERS) { profile.chapters = profile.chapters || {}; if (!profile.chapters[ch.id] && ch.stages.every(x => starsOf(x) >= 1)) { profile.chapters[ch.id] = today(); bump(ch.reward); chapterDone = ch; } }
+  return { before, now, gain, chapterDone };
+}
 /* scenario thumbnails (Unsplash, see assets/scenes/CREDITS.txt) — shown in chart mode */
 const SCENE = { 'fomc-2026-09-16': 'fed', 'capex-2026-10-22': 'datacenter', 'daily-2026-10-27': 'nyse', 'semi-earnings-2026-10-28': 'wafer', 'fomc-2026-10-29': 'chifed', 'pce-2026-10-29': 'grocery' };
 const sceneOf = x => `assets/scenes/${SCENE[x.id] || (/고용/.test(x.title || '') ? 'office' : /FOMC/.test(x.title || '') ? (/12월/.test(x.title) ? 'chifed' : 'fed') : 'nyse')}.jpg`;
@@ -1640,7 +1729,7 @@ function renderSelect() {
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
   const real = TAPES.filter(t => !t.example && !t.dailyRaid).slice().reverse(), examples = TAPES.filter(t => t.example);
-  renderRhythm();
+  renderRhythm(); renderChapter();
   [...real, ...examples].forEach(t => {
     const best = profile.plays[t.id]?.best;
     const b = document.createElement('button'); b.type = 'button'; b.className = 'raid';
@@ -2717,17 +2806,26 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
+  const inMap = !chartMode() && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
+  const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
   const growth = chartMode() ? { gains: Object.fromEntries(ROLES.map(x => [x, { atk: 0, def: 0, stab: 0, ins: 0 }])), evolved: [] } : growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
   const after = { ...profile };
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
   play.count++; if (!play.best || order.indexOf(r.grade) > order.indexOf(play.best)) play.best = r.grade;
-  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, products: profile.products, heroes: profile.heroes, totalPnl: profile.totalPnl, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
+  profile = { ...after, plays: { ...profile.plays, [currentTape.id]: play }, badges: profile.badges, bosses: profile.bosses, products: profile.products, heroes: profile.heroes, totalPnl: profile.totalPnl, stars: profile.stars, chapters: profile.chapters, mode: profile.mode, streak: profile.streak, lastDay: profile.lastDay, seenTutorial: profile.seenTutorial }; saveProfile();
 
   const stamp = $('#rStamp'); stamp.textContent = r.grade; stamp.className = 'stamp ' + r.grade;
   $('#rVerdict').textContent = r.bossDown ? `${currentTape.boss}${josa(currentTape.boss, '을', '를')} 쓰러뜨렸어요!` : r.alive === 0 ? '모두 쓰러졌어요' : r.returnPct >= 0 ? '보스는 남았지만 돈은 지켰어요' : '이번엔 보스가 더 셌어요';
   $('#rWhy').textContent = gradeReason(r);
+  $('#rStars').hidden = !starRes;
+  $('#rStamp').style.visibility = starRes ? 'hidden' : ''; $('#rWhy').hidden = !!starRes;   // on the map, stars are the only score
+  if (starRes) {
+    $('#rStars').innerHTML = `<div class="row3">${STAR_RULES.map((t, i) => `<div class="st ${starFlags[i] ? 'on' : ''} ${starFlags[i] && i >= starRes.before ? 'new' : ''}" style="animation-delay:${i * .2}s"><b>★</b>${t}</div>`).join('')}</div>
+      <div class="rw">${starRes.gain ? `새 별 ${starRes.gain}개 · 모든 캐릭터가 ${starRes.gain}만큼 자랐어요` : starRes.now ? '이미 받은 별이에요. 더 많은 별에 도전해 보세요.' : '끝까지 완주하면 첫 별을 받아요.'}${starRes.chapterDone ? `<br>챕터 ${starRes.chapterDone.no} 완료! 모든 캐릭터가 ${starRes.chapterDone.reward}만큼 더 자랐어요.` : ''}</div>`;
+    if (starRes.chapterDone) setTimeout(() => cutIn({ text: 'CLEAR!', sub: `CHAPTER ${starRes.chapterDone.no} · ${starRes.chapterDone.name}`, bg: '#D6453F', artL: cutArt('hero_dealer'), artR: null }, 1), 1400);
+  }
   // next raid: the first one not yet played (real first), else the next in the list
   const order2 = [...TAPES.filter(t => !t.example).slice().reverse(), ...TAPES.filter(t => t.example)];
   const next = order2.find(t => !profile.plays[t.id] && t.id !== currentTape.id) || order2[(order2.findIndex(t => t.id === currentTape.id) + 1) % order2.length];
@@ -2851,7 +2949,7 @@ $('#resetBtn').addEventListener('click', () => {
   if (Date.now() - (window.__resetArmed || 0) < 3000) { profile = { level: 1, exp: 0, unlockAll: false, plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: true }; saveProfile(); renderProfile(); renderSelect(); toast('진행 상황을 초기화했어요'); $('#resetBtn').textContent = '진행 초기화'; return; }
   window.__resetArmed = Date.now(); $('#resetBtn').textContent = '정말 초기화? (한 번 더)'; setTimeout(() => { $('#resetBtn').textContent = '진행 초기화'; }, 3000);
 });
-$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '체험 모드: 모든 상품을 쓸 수 있어요' : '체험 모드를 껐어요'); if (!$('#screen-party').hidden) renderPartyScreen(); });
+$('#unlockBtn').addEventListener('click', () => { profile.unlockAll = !profile.unlockAll; saveProfile(); renderProfile(); sfx.select(); toast(profile.unlockAll ? '체험 모드: 모든 상품을 쓸 수 있어요' : '체험 모드를 껐어요'); if (!$('#screen-party').hidden) renderPartyScreen(); if (!$('#screen-select').hidden) renderChapter(); });
 document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-battle').hidden && $('#cp').hidden && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); $('#pauseBtn').click(); } });
 
 renderProfile(); renderSelect(); showScreen('select');
@@ -2866,6 +2964,7 @@ document.addEventListener('click', e => { if (!e.target.closest('#bmenu')) { $('
 // mode switch (게임 / 차트)
 $$('.mode-seg [data-mode]').forEach(b => b.addEventListener('click', () => { profile.mode = b.dataset.mode; saveProfile(); applyMode(); sfx.select(); if (!$('#screen-battle').hidden) { aborted = true; nextWaiter?.(); stopBgm(); } party = null; renderSelect(); showScreen('select'); }));
 applyMode();
+matchMedia('(max-width:760px)').addEventListener('change', () => { if (!$('#screen-select').hidden) renderChapter(); });
 
 </script>
 </body></html>
