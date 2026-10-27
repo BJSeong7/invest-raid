@@ -3142,6 +3142,10 @@ async function showResult() {
   // coach typing
   const bubble = $('#coachBubble'); bubble.innerHTML = '';
   const lines = coachText(s);
+  // one-line introduction: there are real ETFs that split stocks and bonds the way this party does (iShares Core Allocation, 2026-10-27 확인)
+  { const eq = (s.party.weights.dealer || 0) + (s.party.weights.support || 0);
+    const pick = eq >= 70 ? ['AOA', '주식 80%'] : eq >= 55 ? ['AOR', '주식 60%'] : eq >= 40 ? ['AOM', '주식 40%'] : ['AOK', '주식 30%'];
+    if (!chartMode()) lines.push(`참고로 주식과 채권을 이렇게 나눠 담아 주는 ETF도 있어요. ${pick[0]}(${pick[1]}) 같은 상품이에요.`); }
   (async () => { for (const line of lines) { const p = document.createElement('p'); p.className = 'typing'; bubble.appendChild(p); for (const ch of line) { p.textContent += ch; if (!reduceMotion) await sleep(14); } p.classList.remove('typing'); await sleep(200); } })();
   renderProfile();
 }
