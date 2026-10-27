@@ -1302,6 +1302,19 @@ async function showCheckpoint(cp) {
     $('#cpTitle span:last-child').textContent = cp.title;
     const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
     $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간 <b>${fmtBar(next.t)} ${next.label}</b></span>`;
+    // what is already known, large: the event's results so far and how the market has moved since the start
+    const ev = currentTape.event, known = visibleFacts(currentTape, cp.bar), fresh = known.filter(f => f.at >= Math.max(1, cp.bar - 1));
+    const shown = (fresh.length ? fresh : known.filter(f => f.at > 0)).slice(0, 4);
+    const mainI = mainInstrument(currentTape), bars = currentTape.bars, b0 = bars[0].prices[mainI], bNow = bars[cp.bar - 1].prices[mainI], bPrev = bars[Math.max(0, cp.bar - 2)].prices[mainI];
+    const sinceStart = 100 * (bNow / b0 - 1), lastBar = 100 * (bNow / bPrev - 1);
+    const moves = Object.keys(currentTape.instruments).filter(id => !/^(NQF|NQFS|QQQP|QQQC)$/.test(id) && bars[0].prices[id] > 0).map(id => ({ id, r: 100 * (bNow && bars[cp.bar - 1].prices[id] / bars[0].prices[id] - 1) })).sort((a, b) => b.r - a.r);
+    const plain = id => ({ QQQ: '나스닥100', TQQQ: '나스닥 3배', SOXX: '반도체', TLT: '장기채', SHY: '단기채', GLD: '금', BIL: '현금', SQQQ: '인버스 3배', PSQ: '인버스', SCHD: '배당주', KBOND: '국고채', K200: '코스피200', K200L: '코스피 2배', KSEMI: '반도체', KGOLD: '금', KCASH: '현금', KDIV: '고배당', K200_P: '풋옵션', QQQ_P: '풋옵션' })[id] || id;
+    const kindName = ev ? (ev.kind === 'earnings' ? '실적 발표' : ev.kind === 'fomc' ? '금리 결정' : ev.kind === 'crisis' ? '시장 상황' : '지표 발표') : '시장 상황';
+    $('#cpFacts').innerHTML = `<div class="cpf-h"><b>${shown.length ? `지금까지 나온 ${kindName}` : `${kindName}은 아직 안 나왔어요`}</b><small>${ev?.company || ''}</small></div>
+      ${shown.length ? `<div class="cpf-list">${shown.map(f => `<div class="cpf ${f.good === true ? 'good' : f.good === false ? 'bad' : ''}"><small>${f.label}</small><b>${f.value}</b>${f.note ? `<em>${f.note}</em>` : ''}</div>`).join('')}</div>`
+        : `<div class="cpf-list">${known.slice(0, 2).map(f => `<div class="cpf"><small>${f.label}</small><b>${f.value}</b></div>`).join('')}</div>`}
+      <div class="cpf-mkt"><div class="big ${sinceStart >= 0 ? 'up' : 'down'}"><small>${plain(mainI)} · 시작부터 지금까지</small><b>${fmtPct(sinceStart)}</b><em>직전 구간 ${fmtPct(lastBar)}</em></div>
+        <div class="others">${moves.filter(m => m.id !== mainI).slice(0, 6).map(m => `<span class="${m.r >= 0 ? 'up' : 'down'}">${plain(m.id)} <b>${fmtPct(m.r)}</b></span>`).join('')}</div></div>`;
     $('#cpMore').open = false;
     // the chart is the question: real closes up to now, the rest still hidden
     const main = mainInstrument(currentTape);

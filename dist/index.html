@@ -816,6 +816,29 @@ body.mode-chart .mg-sec{display:none}
 .mg-end{text-align:center;display:flex;flex-direction:column;gap:6px}
 .mg-end b{font-family:var(--shout);font-size:40px;color:var(--gold-dark)}
 .mg-end p{margin:0;font-size:15px;line-height:1.5}
+
+/* checkpoint: the known results and the market, first and large */
+.cp-facts{display:flex;flex-direction:column;gap:8px;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px}
+.cpf-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.cpf-h b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--navy)}
+.cpf-h small{font-size:12px;color:var(--muted)}
+.cpf-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 10px}
+.cpf{display:flex;flex-direction:column;gap:1px;border-left:4px solid var(--line);padding-left:9px;min-width:0}
+.cpf small{font-size:11.5px;color:var(--muted)}
+.cpf b{font-family:var(--display);font-weight:400;font-size:20px;line-height:1.2;color:var(--ink)}
+.cpf em{font-style:normal;font-size:11.5px;color:var(--muted)}
+.cpf.good{border-color:var(--green)}.cpf.good b{color:var(--green)}
+.cpf.bad{border-color:var(--red)}.cpf.bad b{color:var(--red)}
+.cpf-mkt{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;border-top:1.5px dashed var(--line);padding-top:8px}
+.cpf-mkt .big{display:flex;flex-direction:column;line-height:1.1}
+.cpf-mkt .big small{font-size:11.5px;color:var(--muted)}
+.cpf-mkt .big b{font-family:var(--display);font-weight:400;font-size:34px}
+.cpf-mkt .big em{font-style:normal;font-size:12px;color:var(--muted)}
+.cpf-mkt .big.up b{color:var(--green)}.cpf-mkt .big.down b{color:var(--red)}
+.cpf-mkt .others{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:12.5px;color:var(--muted)}
+.cpf-mkt .others b{font-family:var(--display);font-weight:400}
+.cpf-mkt .others .up b{color:var(--green)}.cpf-mkt .others .down b{color:var(--red)}
+@media (max-width:480px){.cpf-mkt{grid-template-columns:1fr}.cpf-mkt .big b{font-size:28px}}
 </style>
 
 <div class="wrap">
@@ -997,6 +1020,7 @@ body.mode-chart .mg-sec{display:none}
       <div><span class="cp-step" id="cpStep">체크포인트</span><h2 id="cpTitle"><span class="pause"></span><span></span></h2></div>
       <div class="timer" id="cpTimer" title="시간이 다 되면 그대로 진행"><span id="cpTimerTxt">30</span><i><b id="cpTimerBar"></b></i></div>
     </div>
+    <div class="cp-facts" id="cpFacts"></div>
     <p class="cp-hint" id="cpHint"></p>
     <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
     <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b data-chart="그대로 두기">이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
@@ -2943,6 +2967,19 @@ async function showCheckpoint(cp) {
     $('#cpTitle span:last-child').textContent = cp.title;
     const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
     $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간 <b>${fmtBar(next.t)} ${next.label}</b></span>`;
+    // what is already known, large: the event's results so far and how the market has moved since the start
+    const ev = currentTape.event, known = visibleFacts(currentTape, cp.bar), fresh = known.filter(f => f.at >= Math.max(1, cp.bar - 1));
+    const shown = (fresh.length ? fresh : known.filter(f => f.at > 0)).slice(0, 4);
+    const mainI = mainInstrument(currentTape), bars = currentTape.bars, b0 = bars[0].prices[mainI], bNow = bars[cp.bar - 1].prices[mainI], bPrev = bars[Math.max(0, cp.bar - 2)].prices[mainI];
+    const sinceStart = 100 * (bNow / b0 - 1), lastBar = 100 * (bNow / bPrev - 1);
+    const moves = Object.keys(currentTape.instruments).filter(id => !/^(NQF|NQFS|QQQP|QQQC)$/.test(id) && bars[0].prices[id] > 0).map(id => ({ id, r: 100 * (bNow && bars[cp.bar - 1].prices[id] / bars[0].prices[id] - 1) })).sort((a, b) => b.r - a.r);
+    const plain = id => ({ QQQ: '나스닥100', TQQQ: '나스닥 3배', SOXX: '반도체', TLT: '장기채', SHY: '단기채', GLD: '금', BIL: '현금', SQQQ: '인버스 3배', PSQ: '인버스', SCHD: '배당주', KBOND: '국고채', K200: '코스피200', K200L: '코스피 2배', KSEMI: '반도체', KGOLD: '금', KCASH: '현금', KDIV: '고배당', K200_P: '풋옵션', QQQ_P: '풋옵션' })[id] || id;
+    const kindName = ev ? (ev.kind === 'earnings' ? '실적 발표' : ev.kind === 'fomc' ? '금리 결정' : ev.kind === 'crisis' ? '시장 상황' : '지표 발표') : '시장 상황';
+    $('#cpFacts').innerHTML = `<div class="cpf-h"><b>${shown.length ? `지금까지 나온 ${kindName}` : `${kindName}은 아직 안 나왔어요`}</b><small>${ev?.company || ''}</small></div>
+      ${shown.length ? `<div class="cpf-list">${shown.map(f => `<div class="cpf ${f.good === true ? 'good' : f.good === false ? 'bad' : ''}"><small>${f.label}</small><b>${f.value}</b>${f.note ? `<em>${f.note}</em>` : ''}</div>`).join('')}</div>`
+        : `<div class="cpf-list">${known.slice(0, 2).map(f => `<div class="cpf"><small>${f.label}</small><b>${f.value}</b></div>`).join('')}</div>`}
+      <div class="cpf-mkt"><div class="big ${sinceStart >= 0 ? 'up' : 'down'}"><small>${plain(mainI)} · 시작부터 지금까지</small><b>${fmtPct(sinceStart)}</b><em>직전 구간 ${fmtPct(lastBar)}</em></div>
+        <div class="others">${moves.filter(m => m.id !== mainI).slice(0, 6).map(m => `<span class="${m.r >= 0 ? 'up' : 'down'}">${plain(m.id)} <b>${fmtPct(m.r)}</b></span>`).join('')}</div></div>`;
     $('#cpMore').open = false;
     // the chart is the question: real closes up to now, the rest still hidden
     const main = mainInstrument(currentTape);
