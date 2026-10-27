@@ -610,6 +610,26 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   .toast{bottom:auto;top:calc(12px + env(safe-area-inset-top,0px))}
   .role img{height:96px}
 }
+
+/* ---- chart mode: same engine, no characters, no boss, no effects ---- */
+.mode-seg{display:inline-flex}
+.chart-intro{display:none}
+body.mode-chart .chart-intro{display:flex;flex-direction:column;gap:6px}
+.chart-intro h2{font-family:var(--body);font-weight:700;font-size:24px;color:var(--navy)}
+.chart-intro p{margin:0;color:var(--muted);font-size:14.5px}
+body.mode-chart{--display:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+body.mode-chart .brand h1{font-family:var(--body);font-weight:700;font-size:22px;color:var(--navy);-webkit-text-stroke:0;text-shadow:none}
+body.mode-chart .home-stage,body.mode-chart #todayCard .pf,body.mode-chart .week-card .pf,body.mode-chart .raid img,body.mode-chart #dexBtn{display:none!important}
+body.mode-chart .boss-stage{display:none}
+body.mode-chart .brief{grid-template-columns:1fr}
+body.mode-chart .role img{display:none}
+body.mode-chart .arena,body.mode-chart .partyhud,body.mode-chart .bossbar,body.mode-chart #guardBtn{display:none!important}
+body.mode-chart .battlegrid{grid-template-columns:1fr}
+body.mode-chart .chartbox.big .chart{min-height:340px}
+body.mode-chart #cpSay,body.mode-chart .cp-role>.pf{display:none!important}
+body.mode-chart .stamp-wrap,body.mode-chart #rGrowthText,body.mode-chart #rGrowth,body.mode-chart .coach .av,body.mode-chart .stats .stat:nth-child(n+2){display:none!important}
+body.mode-chart .stats{grid-template-columns:1fr}
+body.mode-chart .event-card .eh>img{display:none}
 </style>
 
 <div class="wrap">
@@ -620,6 +640,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       </div>
     </div>
     <div class="row">
+      <div class="seg mode-seg" role="group" aria-label="보기 방식"><button type="button" data-mode="game" aria-pressed="true">게임</button><button type="button" data-mode="chart" aria-pressed="false">차트</button></div>
       <button class="iconbtn" id="dexBtn" type="button">도감</button>
       <button class="iconbtn" id="helpBtn" type="button" title="게임 방법">?</button>
       <button class="iconbtn" id="unlockBtn" type="button" aria-pressed="false" title="전직 전에도 모든 상품을 써 보는 체험 모드">체험 모드</button>
@@ -633,20 +654,21 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
       <div class="hero-sheet" id="heroSheet"></div>
     </div>
+    <div class="chart-intro"><h2>실제 시장 이벤트에 내 포트폴리오를 넣어 보세요</h2><p>캐릭터 없이 차트와 숫자로만 진행해요. 이벤트를 고르고, 비중을 정하고, 하루씩 넘기며 시장과 비교해요.</p></div>
     <div class="rhythm">
       <button type="button" class="today-card" id="todayCard" hidden></button>
       <div class="week-card" id="weekCard"></div>
     </div>
     <div>
-      <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
+      <div class="section-h"><h3 data-chart="실제 이벤트">실전 레이드</h3><span class="chip real">실제 종가</span></div>
       <div class="raids" id="raids"></div>
     </div>
     <div>
-      <div class="section-h"><h3>훈련 레이드</h3><span class="chip example">예시 시세</span></div>
+      <div class="section-h"><h3 data-chart="연습 시나리오">훈련 레이드</h3><span class="chip example">예시 시세</span></div>
       <div class="raids" id="raidsExample"></div>
     </div>
     <div>
-      <div class="section-h"><h3>다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
+      <div class="section-h"><h3 data-chart="다가오는 이벤트">다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
       <div class="raids" id="raidsUpcoming"></div>
     </div>
     <p class="foot">학습용 게임이며 특정 상품의 투자권유가 아닙니다. · <button class="iconbtn" id="resetBtn" type="button" style="padding:3px 10px;font-size:11px">진행 초기화</button></p>
@@ -660,7 +682,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
         <p class="brief-copy" id="bBrief"></p>
         <div class="event-card" id="bEvent"></div>
         <div class="row">
-          <button class="btn" id="toParty" type="button">파티 짜기</button>
+          <button class="btn" id="toParty" type="button" data-chart="비중 정하기">파티 짜기</button>
           <button class="btn secondary" id="backToSelect" type="button">돌아가기</button>
         </div>
         <details class="cp-more" id="bMore">
@@ -679,7 +701,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <section id="screen-party" class="screen" hidden style="display:flex;flex-direction:column;gap:14px">
     <div class="party-top">
       <div class="party-meta">
-        <h2 style="font-size:28px;color:var(--navy)">파티 짜기</h2>
+        <h2 style="font-size:28px;color:var(--navy)" data-chart="포트폴리오 정하기">파티 짜기</h2>
         <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><span class="hold"></span></span><i class="mini-alloc"></i></button>
         <div class="presets" role="group" aria-label="추천 편성">
           <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>균형형</b><i class="mini-alloc"></i></button>
@@ -694,7 +716,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <details class="card more" id="partyDetail" open><summary>직접 조정</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
     <div class="row" style="justify-content:space-between">
       <button class="btn secondary" id="backToBrief" type="button">브리핑으로</button>
-      <button class="btn" id="startBattle" type="button">출발!</button>
+      <button class="btn" id="startBattle" type="button" data-chart="시작하기">출발!</button>
     </div>
   </section>
 
@@ -751,7 +773,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
           <button class="btn" id="nextRaidBtn" type="button">다음 레이드 ▶</button>
           <div class="row">
             <button class="btn secondary" id="retryBtn" type="button">다시 도전</button>
-            <button class="btn secondary" id="otherBtn" type="button">레이드 목록</button>
+            <button class="btn secondary" id="otherBtn" type="button" data-chart="이벤트 목록">레이드 목록</button>
             <button class="btn secondary" id="etfBtn" type="button">이번에 고른 상품</button>
           </div>
         </div>
@@ -784,10 +806,10 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     </div>
     <p class="cp-hint" id="cpHint"></p>
     <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
-    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
+    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b data-chart="그대로 두기">이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
     <div class="choices two" role="tablist">
-      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
-      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
+      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span data-chart="한 자산의 상품만 교체">한 캐릭터의 상품만 교체</span></button>
+      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span data-chart="자산 간 비중 이동">캐릭터 간 비중 이동</span></button>
     </div>
     <div id="cpHold" hidden></div>
     <div class="cp-panel cp-roles" id="cpEquip" hidden></div>

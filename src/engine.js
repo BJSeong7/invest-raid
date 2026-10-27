@@ -16,10 +16,10 @@
 export const ROLES = ['tank', 'dealer', 'healer', 'support'];
 
 export const ROLE_META = {
-  tank:    { name: '탱커',  asset: '채권',    char: '기사', title: '기사', color: '#8EA0B8' },
-  dealer:  { name: '딜러',  asset: '성장주',  char: '전사', title: '전사',   color: '#6E9BFF' },
-  healer:  { name: '힐러',  asset: '금·현금', char: '사제', title: '사제',     color: '#F2C14E' },
-  support: { name: '서포터', asset: '배당주', char: '궁수', title: '궁수',     color: '#6FD39A' },
+  tank:    { name: '탱커',  asset: '채권',    char: '채권', title: '채권', color: '#8EA0B8' },
+  dealer:  { name: '딜러',  asset: '성장주',  char: '성장주', title: '성장주',   color: '#6E9BFF' },
+  healer:  { name: '힐러',  asset: '금·현금', char: '금·현금', title: '금·현금',     color: '#F2C14E' },
+  support: { name: '서포터', asset: '배당주', char: '배당주', title: '배당주',     color: '#6FD39A' },
 };
 
 /**
@@ -371,7 +371,7 @@ export function coachText(state) {
   const lines = [];
   const mover = Math.abs(worst.c) > Math.abs(best.c) ? worst : best;
   const vsMkt = Math.abs(r.alpha) < 0.005 ? '시장과 비슷했어요' : r.alpha > 0 ? `시장(${state._benchId})보다 ${r.alpha.toFixed(2)}%p 앞섰어요` : `시장(${state._benchId})보다 ${(-r.alpha).toFixed(2)}%p 뒤졌어요`;
-  lines.push(`${sign(r.returnPct)}로 마쳤고, ${vsMkt}. ${mover.c < 0 ? '가장 크게 깎은 건' : '가장 크게 벌어 준 건'} ${ROLE_META[mover.role].char}${jo(ROLE_META[mover.role].char, '이', '가')} 든 ${mover.skill.name}(비중 ${mover.w}%)였어요.`);
+  lines.push(`${sign(r.returnPct)}로 마쳤고, ${vsMkt}. ${mover.c < 0 ? '가장 크게 깎은 건' : '가장 크게 벌어 준 건'} ${ROLE_META[mover.role].char} 자리의 ${mover.skill.name}(비중 ${mover.w}%)였어요.`);
   const eq = state.actions?.find(a => a.type === 'equip');
   const maxW = Math.max(...ROLES.map(x => state.party.weights[x]));
   if (eq) { const s = state.party._bySkill[eq.to]; lines.push(`체크포인트에서 ${s.name}${jo(s.name, '으로', '로')} 바꾼 선택은 ${afterCheckpointRet(state, eq.at) >= 0 ? '맞아떨어졌어요' : '이번엔 통하지 않았어요'}.`); }

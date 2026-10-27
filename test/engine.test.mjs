@@ -179,7 +179,7 @@ test('coach text is produced and mentions the worst role', () => {
   const s = runToEnd(createBattle(fomc, defaultParty(fomc)));
   const lines = coachText(s);
   assert.ok(lines.length >= 2);
-  assert.ok(lines.join(' ').includes('전사'));
+  assert.ok(lines.join(' ').includes('성장주'));
 });
 
 test('KR tape: semiconductor concentration is punished by the profit-taking leg', () => {
