@@ -60,7 +60,7 @@ const heroUnit = role => ({ tank: 'hero_tank', dealer: 'hero_dealer', healer: 'h
 const bossUnit = species => ({ minotaur: 'boss_minotaur', wyvern: 'boss_wyvern', fireant: 'boss_fireant', skeleton: 'boss_skeleton', lich: 'boss_lich' })[species] || 'boss_minotaur';
 const ROLE_COLOR = { tank: 'var(--tank)', dealer: 'var(--dealer)', healer: 'var(--healer)', support: 'var(--support)' };
 const ROLE_HEX = { tank: 0x5B7693, dealer: 0x2F6BD0, healer: 0xC8921A, support: 0x2E9A58 };
-const UNLOCKS = { 5: '폭주 돌진 (레버리지 ETF)', 10: '수호의 계약 (풋옵션)' };
+const UNLOCKS = { 5: '폭주 돌진 (레버리지 ETF)', 10: 'QQQ 풋옵션 (풋옵션)' };
 const BOSS_MOVES = { minotaur: ['금리 동결 발표', '매파 발언', '점도표 충격'], wyvern: ['기대치 상향 부담', '설비투자 발표', '차익실현 매물'], fireant: ['물가 서프라이즈', '구매력 하락', '금리 인하 지연'], skeleton: ['고용 쇼크', '실업률 상승'], lich: ['금리 인상', '긴축 장기화 발언', '인하 기대 후퇴'] };
 // a plain one-line description shown with the boss name
 const BOSS_DESC = { minotaur: '금리 결정이 보스가 됐어요. 동결 발표와 강경한 발언으로 공격해요.', wyvern: '실적 발표가 보스가 됐어요. 높은 기대와 투자 계획 뉴스로 공격해요.', fireant: '물가 발표가 보스가 됐어요. 예상보다 높은 숫자로 공격해요.', skeleton: '고용 발표가 보스가 됐어요.', lich: '금리 인상이 보스가 됐어요. 금리를 오래 높게 두겠다는 말로 공격해요.' };
@@ -155,7 +155,7 @@ const BADGES = [
   { id: 'srank', name: 'S 랭크', desc: 'S 등급을 받았어요.', test: ctx => ctx.r.grade === 'S' },
   { id: 'combo3', name: '3연속 반격', desc: '세 구간 연속으로 돈을 벌었어요.', test: ctx => ctx.drama.maxCombo >= 3 },
   { id: 'guard', name: '가드 마스터', desc: '한 판에 가드를 세 번 성공했어요.', test: ctx => ctx.drama.guards >= 3 },
-  { id: 'insurer', name: '보험 설계사', desc: '옵션이나 인버스를 들고 돈을 벌었어요.', test: ctx => ROLES.some(r => { const k = ctx.s.party._bySkill[ctx.s.party.skills[r]]; return (k.blend || currentTape.instruments[k.instrument].kind === 'option'); }) && ctx.r.returnPct > 0 },
+  { id: 'insurer', name: '하락장 수익', desc: '옵션이나 인버스를 들고 돈을 벌었어요.', test: ctx => ROLES.some(r => { const k = ctx.s.party._bySkill[ctx.s.party.skills[r]]; return (k.blend || currentTape.instruments[k.instrument].kind === 'option'); }) && ctx.r.returnPct > 0 },
   { id: 'lever', name: '레버리지 조련사', desc: '레버리지를 들고 A 이상을 받았어요.', test: ctx => ROLES.some(r => currentTape.instruments[ctx.s.party._bySkill[ctx.s.party.skills[r]].instrument].kind === 'lev') && 'SA'.includes(ctx.r.grade) },
   { id: 'real', name: '실전 모험가', desc: '실제 시장 데이터로 한 판을 끝냈어요.', test: ctx => !currentTape.example },
   { id: 'streak3', name: '3일 연속 출석', desc: '사흘 연속으로 레이드를 했어요.', test: ctx => profile.streak >= 3 },
@@ -421,7 +421,7 @@ async function openBrief(id) {
 
 /* ---------- 3. party setup ---------- */
 /** Four plain stats per instrument (0-5), read off its kind/name. 공격 = how much it moves with a rally,
- *  방어 = how little it loses in a sell-off, 안정 = day-to-day calm, 보험 = pays out when things go wrong. */
+ *  방어 = how little it loses in a sell-off, 안정 = day-to-day calm, 헤지 = gains when the market falls. */
 function instStats(ins) {
   const n = ins.name || '', k = ins.kind;
   if (k === 'cash') return { atk: 0, def: 5, stab: 5, ins: 1 };
@@ -446,12 +446,12 @@ function partyStats(p = party) {
   return out;
 }
 function partyType(st) {
-  if (st.ins >= 2.2) return ['헤지형', '보험을 두껍게 든 파티예요. 급락할 땐 빛나고, 오를 땐 비용이 들어요.'];
+  if (st.ins >= 2.2) return ['헤지형', '하락에 대비한 비중이 커요. 시장이 빠질 땐 덜 잃고, 오를 땐 덜 벌어요.'];
   if (st.atk >= 3.4) return ['공격형', '오를 때 크게 버는 대신, 빠질 때도 크게 맞는 파티예요.'];
   if (st.def >= 3.0 && st.atk < 2.4) return ['안정형', '덜 벌고 덜 잃는 파티예요. 보스를 쓰러뜨리긴 어려워요.'];
   return ['균형형', '공격과 방어를 고르게 나눈 파티예요. 중간 선택에서 방향을 정해요.'];
 }
-const STAT_LABEL = { atk: '공격', def: '방어', stab: '안정', ins: '보험' };
+const STAT_LABEL = { atk: '공격', def: '방어', stab: '안정', ins: '헤지' };
 const STAT_KEYS = ['atk', 'def', 'stab', 'ins'];
 const STAT_COLOR = { atk: '#D6453F', def: '#2F6BD0', stab: '#2E9A58', ins: '#7458C9' };
 // one icon per stat, used everywhere the stat appears (choices, party, status windows, pop-ups)
@@ -1336,7 +1336,7 @@ function heroLines(cp) {
   return [
     ['tank', hp('tank') <= 0 ? '…(기절)' : hp('tank') < 50 ? '방패가 무거워… 그래도 버틴다!' : ret('tank') < 0 ? '다음 공격은 내가 막을게.' : '이대로 가도 괜찮아 보여.'],
     ['dealer', hp('dealer') <= 0 ? '…(기절)' : ret('dealer') > 0 ? '기세 좋아! 더 밀어붙이자!' : ret('dealer') < 0 ? '한 방 맞았지만 역전 가능해.' : '시장이 조용하네. 다음은 크게 움직일걸?'],
-    ['healer', hp('healer') <= 0 ? '…(기절)' : lockedOpt ? `${lockedOpt.name}${josa(lockedOpt.name, '은', '는')} 내가 전직하면 쓸 수 있어.` : '보험을 들지 말지는 네 선택이야.'],
+    ['healer', hp('healer') <= 0 ? '…(기절)' : lockedOpt ? `${lockedOpt.name}${josa(lockedOpt.name, '은', '는')} 내가 전직하면 쓸 수 있어.` : '풋옵션을 살지 말지는 네 선택이야.'],
     ['support', `체크포인트는 딱 한 번. ${CP_SECONDS}초 안에 정하자.`],
   ];
 }
@@ -1380,7 +1380,7 @@ async function showCheckpoint(cp) {
     renderTicker($('#cpTicker'), cp.bar - 1);
     const mv = moveSize(cp.bar - 1), mainId = mainInstrument(currentTape);
     $('#cpBull').textContent = cp.bull || '좋은 쪽으로 가면 공격적인 상품이 크게 벌어요.';
-    $('#cpBear').textContent = cp.bear || '나쁜 쪽으로 가면 현금, 채권, 보험이 막아 줘요.';
+    $('#cpBear').textContent = cp.bear || '나쁜 쪽으로 가면 현금, 채권, 풋옵션이 덜 빠져요.';
     $('#cpScenNote').textContent = `${mainId}가 ±${mv}% 움직인다고 가정한 대략의 예상치예요. 상품별 민감도(레버리지 3배, 풋옵션 역방향 등)로 계산합니다.`;
     $('#cpHoldPay').innerHTML = payoffHTML(battle.party.weights, battle.party.skills, mv);
     $('#cpEvent').innerHTML = eventCardHTML(currentTape, cp.bar, { source: false, newAt: cp.bar });

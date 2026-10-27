@@ -343,7 +343,7 @@ const derivIns = tag => ({
 const derivSkills = [
   { id: 'dealer_nqf', role: 'dealer', instrument: 'NQF', name: '나스닥100 선물 매수', chartOnly: true, lesson: '선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요.' },
   { id: 'dealer_call', role: 'dealer', instrument: 'QQQC', blend: { QQQC: 0.2, BIL: 0.8 }, name: 'QQQ 콜옵션 + 현금', chartOnly: true, lesson: '이 자리의 20%로 콜옵션을 사고 나머지는 현금으로 둬요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요.' },
-  { id: 'healer_put', role: 'healer', instrument: 'QQQP', blend: { QQQP: 0.2, BIL: 0.8 }, name: 'QQQ 풋옵션 + 현금', chartOnly: true, lesson: '이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요.' },
+  { id: 'healer_put', role: 'healer', instrument: 'QQQP', blend: { QQQP: 0.2, BIL: 0.8 }, name: 'QQQ 풋옵션 + 현금', chartOnly: true, lesson: '이 자리의 20%로 풋옵션을 사요. QQQ가 행사가 아래로 크게 빠지면 값이 오르고, 그렇지 않으면 시간이 갈수록 가치가 줄어요.' },
   { id: 'healer_nqfs', role: 'healer', instrument: 'NQFS', blend: { NQFS: 0.2, BIL: 0.8 }, name: '나스닥100 선물 매도 + 현금', chartOnly: true, lesson: '선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요.' },
 ];
 
@@ -377,7 +377,7 @@ const fomc = buildTape({
     { name: '이미 가격에 반영된 뉴스', text: '발표 전 일주일 동안 지수가 먼저 밀렸어요. 발표 당일엔 거의 움직이지 않았고, 그다음부터 올랐어요.' },
     { name: '금리와 성장주', text: '성장주는 금리 전망에 민감하지만, 전망이 바뀌지 않으면 결정 자체에는 둔감해요.' },
     { name: '레버리지의 양면', text: '3배 레버리지는 이 주에 +17%를 벌었지만, 발표 전 사흘은 -4%를 먼저 맞았어요. 버틸 수 있어야 벌어요.' },
-    { name: '인버스 ETF의 비용', text: '하락에 베팅하는 인버스 ETF는 방향이 틀리면 매일 깎여요. 보험이 아니라 베팅에 가까워요.' },
+    { name: '인버스 ETF의 비용', text: '하락에 베팅하는 인버스 ETF는 방향이 틀리면 매일 깎여요. 하락을 막는 수단이라기보다 하락에 거는 거래예요.' },
   ],
   cuts: [cut('2026-09-10', '발표 4거래일 전'), cut('2026-09-11', '주말 전 관망'), cut('2026-09-14', 'FOMC 주간 시작'), cut('2026-09-15', '회의 1일차'),
     cut('2026-09-16', '금리 결정 발표'), cut('2026-09-17', '결정 소화'), cut('2026-09-18', '주말 전 반등'), cut('2026-09-21', '랠리'), cut('2026-09-22', '랠리 지속')],
@@ -396,7 +396,7 @@ const fomc = buildTape({
     { id: 'dealer_tqqq', role: 'dealer', instrument: 'TQQQ', name: '폭주 돌진', unlockLevel: 5, lesson: '3배 레버리지는 같은 방향이면 3배, 반대면 반동도 3배예요.' },
     { id: 'healer_gld', role: 'healer', instrument: 'GLD', name: '황금 가호', default: true, lesson: '금은 이 주에 큰 역할이 없었어요. 늘 버텨주는 건 아니에요.' },
     { id: 'healer_cash', role: 'healer', instrument: 'BIL', name: '현금 대기', lesson: '현금은 안 다치지만 보스도 못 때려요.' },
-    { id: 'healer_psq', role: 'healer', instrument: 'PSQ', blend: { PSQ: 0.5, BIL: 0.5 }, name: '역방향 부적', unlockLevel: 10, lesson: '슬롯의 절반을 인버스 ETF에 뒀어요. 시장이 오르면 매일 깎여요. 하락 보험은 타이밍이 전부예요.' },
+    { id: 'healer_psq', role: 'healer', instrument: 'PSQ', blend: { PSQ: 0.5, BIL: 0.5 }, name: '나스닥100 인버스', unlockLevel: 10, lesson: '슬롯의 절반을 인버스 ETF에 뒀어요. 시장이 오르면 매일 깎여요. 들고 있는 기간이 길수록 불리해요.' },
     { id: 'support_schd', role: 'support', instrument: 'SCHD', name: '배당의 축복', default: true, lesson: '배당주는 성장주 랠리 땐 뒤처지고, 급락 땐 덜 빠져요.' },
     ...derivSkills.map(k => ({ ...k })),
   ],
@@ -451,7 +451,7 @@ const capex = buildTape({
     { id: 'dealer_tqqq', role: 'dealer', instrument: 'TQQQ', name: '폭주 돌진', unlockLevel: 5, lesson: '3배 레버리지는 하루 -2.9%를 -8.5%로 맞아요.' },
     { id: 'healer_gld', role: 'healer', instrument: 'GLD', name: '황금 가호', default: true, lesson: '금도 이 주엔 같이 빠졌어요. 안전자산이 늘 반대로 가는 건 아니에요.' },
     { id: 'healer_cash', role: 'healer', instrument: 'BIL', name: '현금 대기', lesson: '현금은 안 다치지만 보스도 못 때려요.' },
-    { id: 'healer_sqqq', role: 'healer', instrument: 'SQQQ', blend: { SQQQ: 0.25, BIL: 0.75 }, name: '역방향 부적', unlockLevel: 10, lesson: '슬롯의 25%만 3배 인버스에 뒀어요. 쇼크 당일엔 파티를 구했지만, 반등 날엔 거꾸로 맞아요.' },
+    { id: 'healer_sqqq', role: 'healer', instrument: 'SQQQ', blend: { SQQQ: 0.25, BIL: 0.75 }, name: '나스닥100 인버스', unlockLevel: 10, lesson: '슬롯의 25%만 3배 인버스에 뒀어요. 쇼크 당일엔 파티를 구했지만, 반등 날엔 거꾸로 맞아요.' },
     { id: 'support_schd', role: 'support', instrument: 'SCHD', name: '배당의 축복', default: true, lesson: '배당주는 이 주에 오히려 올랐어요. 성장주에서 빠진 돈이 옮겨간 자리예요.' },
     ...derivSkills.map(k => ({ ...k })),
   ],

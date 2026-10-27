@@ -41,11 +41,11 @@ const SKILLS = () => [
   { id: 'dealer_tqqq', role: 'dealer', instrument: 'TQQQ', name: '폭주 돌진', unlockLevel: 5, lesson: '3배 레버리지는 하루 움직임을 세 배로 키워요. 급락장에선 순식간에 크게 잃어요.' },
   { id: 'healer_gld', role: 'healer', instrument: 'GLD', name: '황금 가호', default: true, lesson: '금은 불안할 때 오르는 경우가 많지만, 현금이 급할 땐 같이 팔리기도 해요.' },
   { id: 'healer_cash', role: 'healer', instrument: 'BIL', name: '현금 대기', lesson: '현금은 안 다치지만 반등도 못 타요.' },
-  { id: 'healer_sqqq', role: 'healer', instrument: 'SQQQ', blend: { SQQQ: 0.25, BIL: 0.75 }, name: '역방향 부적', unlockLevel: 10, lesson: '이 자리의 25%만 3배 인버스에 뒀어요. 급락하면 크게 벌고, 반등하면 크게 잃어요.' },
+  { id: 'healer_sqqq', role: 'healer', instrument: 'SQQQ', blend: { SQQQ: 0.25, BIL: 0.75 }, name: '나스닥100 인버스', unlockLevel: 10, lesson: '이 자리의 25%만 3배 인버스에 뒀어요. 급락하면 크게 벌고, 반등하면 크게 잃어요.' },
   { id: 'support_schd', role: 'support', instrument: 'SCHD', name: '배당의 축복', default: true, lesson: '배당주는 급락 때 덜 빠지는 편이지만, 금융주 비중이 있어 은행 위기엔 흔들려요.' },
   { id: 'dealer_nqf', role: 'dealer', instrument: 'NQF', name: '나스닥100 선물 매수', chartOnly: true, lesson: '선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요.' },
   { id: 'dealer_call', role: 'dealer', instrument: 'QQQC', blend: { QQQC: 0.2, BIL: 0.8 }, name: 'QQQ 콜옵션 + 현금', chartOnly: true, lesson: '이 자리의 20%로 콜옵션을 사요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요.' },
-  { id: 'healer_put', role: 'healer', instrument: 'QQQP', blend: { QQQP: 0.2, BIL: 0.8 }, name: 'QQQ 풋옵션 + 현금', chartOnly: true, lesson: '이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요.' },
+  { id: 'healer_put', role: 'healer', instrument: 'QQQP', blend: { QQQP: 0.2, BIL: 0.8 }, name: 'QQQ 풋옵션 + 현금', chartOnly: true, lesson: '이 자리의 20%로 풋옵션을 사요. QQQ가 행사가 아래로 크게 빠지면 값이 오르고, 그렇지 않으면 시간이 갈수록 가치가 줄어요.' },
   { id: 'healer_nqfs', role: 'healer', instrument: 'NQFS', blend: { NQFS: 0.2, BIL: 0.8 }, name: '나스닥100 선물 매도 + 현금', chartOnly: true, lesson: '선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요.' },
 ];
 

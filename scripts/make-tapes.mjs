@@ -35,7 +35,7 @@ const fomc = build({
     { name: '이미 가격에 반영된 뉴스', text: '90%가 예상한 동결은 발표 순간 거의 움직임이 없었어요. 시장은 "예상과 다른 것"에만 반응해요.' },
     { name: '금리와 성장주', text: '성장주는 먼 미래의 이익을 기대받는 자산이라, 금리 전망이 올라가면 가장 먼저 흔들려요.' },
     { name: '레버리지의 반동', text: '3배 레버리지는 같은 방향이면 3배 벌지만, 반대 방향이면 3배로 맞아요. 하루 안에서도요.' },
-    { name: '헤지와 보험료', text: '풋옵션은 평소에 보험료가 녹지만 급락 때 파티를 구해요. 그래서 소액으로, 타이밍이 중요해요.' },
+    { name: '헤지와 프리미엄', text: '풋옵션은 프리미엄을 내고 사요. 기초자산이 행사가 아래로 충분히 빠져야 이익이 나고, 그 전엔 시간이 지날수록 가치가 줄어요. 얼마나 빠져야 손익이 맞는지는 행사가와 프리미엄에 달려 있어요.' },
   ],
   start: ['02:00', '02:30', '03:00', '03:30', '04:00', '04:30', '05:00', '05:30', '06:00', '06:30'].map(h => kst(D1, h)),
   labels: ['장중 대기', '발표 1시간 전', '발표 30분 전', '금리 결정 발표', '결정 소화', '기자회견 시작', '매파 발언', '발언 확산', '진정 국면', '마감'],
@@ -57,7 +57,7 @@ const fomc = build({
     { id: 'dealer_tqqq',role: 'dealer',  instrument: 'TQQQ',  name: '폭주 돌진',    unlockLevel: 5, lesson: '3배 레버리지는 같은 방향이면 3배, 반대면 반동도 3배예요.' },
     { id: 'healer_gld', role: 'healer',  instrument: 'GLD',   name: '황금 가호',    default: true,  lesson: '금은 금리가 오를 땐 이자를 못 줘서 약해지기도 해요.' },
     { id: 'healer_cash',role: 'healer',  instrument: 'BIL',   name: '현금 대기',                   lesson: '현금은 안 다치지만 보스도 못 때려요.' },
-    { id: 'healer_put', role: 'healer',  instrument: 'QQQ_P', blend: { QQQ_P: 0.25, BIL: 0.75 }, name: '수호의 계약',  unlockLevel: 10, lesson: '보험은 소액이 원칙이에요. 슬롯의 25%만 풋옵션에 쓰고 나머지는 현금으로 뒀어요. 평소엔 보험료가 녹지만 급락 땐 파티를 구해요.' },
+    { id: 'healer_put', role: 'healer',  instrument: 'QQQ_P', blend: { QQQ_P: 0.25, BIL: 0.75 }, name: 'QQQ 풋옵션',  unlockLevel: 10, lesson: '슬롯의 25%만 풋옵션에 쓰고 나머지는 현금으로 뒀어요. 시장이 크게 빠지면 풋옵션 값이 오르고, 그대로면 시간이 갈수록 가치가 줄어요.' },
     { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '배당의 축복',    default: true,  lesson: '배당주도 주식이라 하락장에선 같이 밀려요. 대신 덜 밀려요.' },
   ],
   checkpoints: [
@@ -102,7 +102,7 @@ const semi = build({
     { id: 'dealer_k200l',role: 'dealer',  instrument: 'K200L', name: '폭주 돌진',    unlockLevel: 5, lesson: '레버리지는 하루 안에서도 반동이 두 배예요.' },
     { id: 'healer_kgold',role: 'healer',  instrument: 'KGOLD', name: '황금 가호',    default: true,  lesson: '금은 주식이 흔들릴 때 조용히 버텨줘요.' },
     { id: 'healer_kcash',role: 'healer',  instrument: 'KCASH', name: '현금 대기',                   lesson: '현금은 안 다치지만 보스도 못 때려요.' },
-    { id: 'healer_kput', role: 'healer',  instrument: 'K200_P', blend: { K200_P: 0.25, KCASH: 0.75 }, name: '수호의 계약',  unlockLevel: 10, lesson: '슬롯의 25%만 풋옵션, 나머지는 현금이에요. 급등 땐 보험료가 빠르게 녹아요. 타이밍이 전부예요.' },
+    { id: 'healer_kput', role: 'healer',  instrument: 'K200_P', blend: { K200_P: 0.25, KCASH: 0.75 }, name: 'QQQ 풋옵션',  unlockLevel: 10, lesson: '슬롯의 25%만 풋옵션, 나머지는 현금이에요. 시장이 오르면 풋옵션 가치가 빠르게 줄어요.' },
     { id: 'support_kdiv',role: 'support', instrument: 'KDIV',  name: '배당의 축복',    default: true,  lesson: '고배당주는 성장주보다 덜 흔들려요.' },
   ],
   checkpoints: [
@@ -121,7 +121,7 @@ const pce = build({
     facts: [{ at: 0, label: '발표 일정', value: '10/29(목) 21:30 한국시간' }, { at: 0, label: '예상치(예시)', value: '전년 대비 3.7%' }, { at: 1, label: '발표(예시)', value: '3.9% · 예상 상회', good: false }] },
   bossSpecies: 'fireant', market: 'US', example: true,
   briefing: '9월 PCE 물가가 미국 장 시작 한 시간 전에 나와요. 예상은 3.7%예요. 예상보다 높으면 불개미가 불어나요. 이때는 현금보다 금이 잘 버텨요.',
-  lesson: '현금은 그대로여도 물가가 오르면 살 수 있는 게 줄어요. 그래서 금 같은 실물자산이 보험 역할을 해요.',
+  lesson: '현금은 그대로여도 물가가 오르면 살 수 있는 게 줄어요. 그래서 물가가 오를 때 금 같은 실물자산을 함께 보기도 해요.',
   concepts: [
     { name: '인플레이션과 구매력', text: '물가가 오르면 현금의 실질 가치는 줄어요. 금융이해력 조사에서 가장 크게 떨어진 바로 그 문항이에요.' },
     { name: '물가와 금리 기대', text: '물가가 예상보다 높으면 "금리를 더 올리겠구나"로 이어져서 채권과 성장주가 같이 흔들려요.' },
@@ -147,11 +147,11 @@ const pce = build({
     { id: 'dealer_tqqq',role: 'dealer',  instrument: 'TQQQ',  name: '폭주 돌진',    unlockLevel: 5, lesson: '3배 레버리지는 반등 구간에선 영웅, 급락 구간에선 반동이에요.' },
     { id: 'healer_gld', role: 'healer',  instrument: 'GLD',   name: '황금 가호',    default: true,  lesson: '금은 물가가 오를 때 가치를 지키는 자산으로 여겨져 왔어요. 불개미 떼 앞에서 버틴 이유예요.' },
     { id: 'healer_cash',role: 'healer',  instrument: 'BIL',   name: '현금 대기',                   lesson: '현금은 숫자는 안 변하지만, 물가가 오르면 살 수 있는 게 줄어요. 불개미 떼의 진짜 공격이에요.' },
-    { id: 'healer_put', role: 'healer',  instrument: 'QQQ_P', blend: { QQQ_P: 0.25, BIL: 0.75 }, name: '수호의 계약',  unlockLevel: 10, lesson: '발표 전에 든 보험은 비쌌지만 분열 구간에서 값을 했어요. 반등이 오면 보험료는 다시 녹아요.' },
+    { id: 'healer_put', role: 'healer',  instrument: 'QQQ_P', blend: { QQQ_P: 0.25, BIL: 0.75 }, name: 'QQQ 풋옵션',  unlockLevel: 10, lesson: '발표 전엔 변동성이 높아 풋옵션 프리미엄이 비쌌지만, 하락 구간에서 값이 올랐어요. 반등하면 다시 가치가 줄어요.' },
     { id: 'support_schd',role:'support', instrument: 'SCHD',  name: '배당의 축복',    default: true,  lesson: '배당주는 성장주보다 덜 밀리고 덜 올라요. 꾸준함이 무기예요.' },
   ],
   checkpoints: [
-    { bar: 1, title: 'PCE 발표 직전', hint: '예상치는 3.7%로, 지난달보다 높아요. 보험을 들까요, 금을 믿을까요?', bull: '예상보다 낮게 나오면 물가가 잡힌다는 안도감에 성장주가 올라요.', bear: '예상보다 높으면 금리 인하가 늦어진다고 보고 나스닥과 장기채가 함께 빠져요. 풋옵션과 현금이 보험이 돼요.', allow: ['hold', 'equip', 'rebalance'] },
+    { bar: 1, title: 'PCE 발표 직전', hint: '예상치는 3.7%로, 지난달보다 높아요. 풋옵션을 살까요, 금을 늘릴까요?', bull: '예상보다 낮게 나오면 물가가 잡힌다는 안도감에 성장주가 올라요.', bear: '예상보다 높으면 금리 인하가 늦어진다고 보고 나스닥과 장기채가 함께 빠져요. 이때는 풋옵션과 현금이 덜 빠져요.', allow: ['hold', 'equip', 'rebalance'] },
     { bar: 3, title: '장 시작 직전', hint: '장 전에 이미 많이 빠졌어요. 더 막을까요, 반등을 노릴까요?', bull: '나쁜 소식이 다 반영됐다고 보면 장이 열리고 싸게 사려는 사람이 들어와요. 레버리지가 반등을 크게 타요.', bear: '장 전보다 장중에 더 빠지는 날도 많아요. 금과 현금을 넉넉히 두면 버틸 수 있어요.', allow: ['hold', 'equip', 'rebalance'] },
   ],
 });
