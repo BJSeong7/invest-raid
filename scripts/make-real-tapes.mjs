@@ -312,6 +312,41 @@ const CLOSES = {
 2026-10-23,39.68`),
 };
 
+/* ------------------------------------------------------------------ */
+/* Derivatives for chart mode. No live futures/options feed here, so they are computed from real QQQ closes:
+   - 나스닥100 선물: QQQ daily return x5 (as if margin were 20% of notional), long or short
+   - QQQ 옵션: at-the-money 30-day put/call priced with Black-Scholes, IV 22%, rate 4%, strike = QQQ close on day one
+   Every product card says these are approximations. */
+const FUT_X = 5, IV = 0.22, RATE = 0.04, DTE = 30;
+const ncdf = x => { const t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989423 * Math.exp(-x * x / 2), p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return x > 0 ? 1 - p : p; };
+function bs(S, K, T, call) {
+  if (T <= 0) return Math.max(0, call ? S - K : K - S);
+  const d1 = (Math.log(S / K) + (RATE + IV * IV / 2) * T) / (IV * Math.sqrt(T)), d2 = d1 - IV * Math.sqrt(T);
+  return call ? S * ncdf(d1) - K * Math.exp(-RATE * T) * ncdf(d2) : K * Math.exp(-RATE * T) * ncdf(-d2) - S * ncdf(-d1);
+}
+function addDerivs(tag, startDay) {
+  const q = CLOSES.QQQ.filter(b => b.t >= Date.parse(`${startDay}T16:00:00-04:00`));
+  const K = q[0].c, t0 = q[0].t;
+  let fl = 100, fs = 100; const L = [{ t: q[0].t, c: 100 }], Sx = [{ t: q[0].t, c: 100 }];
+  for (let i = 1; i < q.length; i++) { const r = q[i].c / q[i - 1].c - 1; fl *= 1 + FUT_X * r; fs *= 1 - FUT_X * r; L.push({ t: q[i].t, c: +fl.toFixed(4) }); Sx.push({ t: q[i].t, c: +fs.toFixed(4) }); }
+  const T = b => Math.max(0, DTE - (b.t - t0) / 86400000) / 365;
+  CLOSES[`NQF_${tag}`] = L; CLOSES[`NQFS_${tag}`] = Sx;
+  CLOSES[`QQQP_${tag}`] = q.map(b => ({ t: b.t, c: +bs(b.c, K, T(b), false).toFixed(3) }));
+  CLOSES[`QQQC_${tag}`] = q.map(b => ({ t: b.t, c: +bs(b.c, K, T(b), true).toFixed(3) }));
+}
+const derivIns = tag => ({
+  NQF: { name: '나스닥100 선물 매수 (근사치)', kind: 'future', bars: `NQF_${tag}` },
+  NQFS: { name: '나스닥100 선물 매도 (근사치)', kind: 'future', bars: `NQFS_${tag}` },
+  QQQP: { name: 'QQQ 풋옵션 (모델 가격)', kind: 'option', bars: `QQQP_${tag}` },
+  QQQC: { name: 'QQQ 콜옵션 (모델 가격)', kind: 'option', bars: `QQQC_${tag}` },
+});
+const derivSkills = [
+  { id: 'dealer_nqf', role: 'dealer', instrument: 'NQF', name: '나스닥100 선물 매수', chartOnly: true, lesson: '선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요.' },
+  { id: 'dealer_call', role: 'dealer', instrument: 'QQQC', blend: { QQQC: 0.2, BIL: 0.8 }, name: 'QQQ 콜옵션 + 현금', chartOnly: true, lesson: '이 자리의 20%로 콜옵션을 사고 나머지는 현금으로 둬요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요.' },
+  { id: 'healer_put', role: 'healer', instrument: 'QQQP', blend: { QQQP: 0.2, BIL: 0.8 }, name: 'QQQ 풋옵션 + 현금', chartOnly: true, lesson: '이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요.' },
+  { id: 'healer_nqfs', role: 'healer', instrument: 'NQFS', blend: { NQFS: 0.2, BIL: 0.8 }, name: '나스닥100 선물 매도 + 현금', chartOnly: true, lesson: '선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요.' },
+];
+
 const cut = (d, label) => ({ t: `${d}T16:00:00-04:00`, label });
 const common = {
   market: 'US', daily: true, source: SOURCE,
@@ -321,6 +356,7 @@ const common = {
 /* ------------------------------------------------------------------ */
 /* Raid A: 9월 FOMC — 금리 인상 결정 주간 (2026-09-10 ~ 09-22)            */
 /* ------------------------------------------------------------------ */
+addDerivs('fomc', '2026-09-10');
 const fomc = buildTape({
   ...common,
   id: 'fomc-2026-09-16', title: '9월 FOMC 레이드', boss: '금리 마법사', bossSpecies: 'lich',
@@ -346,6 +382,7 @@ const fomc = buildTape({
   cuts: [cut('2026-09-10', '발표 4거래일 전'), cut('2026-09-11', '주말 전 관망'), cut('2026-09-14', 'FOMC 주간 시작'), cut('2026-09-15', '회의 1일차'),
     cut('2026-09-16', '금리 결정 발표'), cut('2026-09-17', '결정 소화'), cut('2026-09-18', '주말 전 반등'), cut('2026-09-21', '랠리'), cut('2026-09-22', '랠리 지속')],
   instruments: {
+    ...derivIns('fomc'),
     QQQ: { name: '나스닥100 ETF (QQQ)', kind: 'etf', bars: 'QQQ' }, TQQQ: { name: '나스닥100 3배 레버리지 (TQQQ)', kind: 'lev', bars: 'TQQQ' }, SOXX: { name: '미국 반도체 ETF (SOXX)', kind: 'etf', bars: 'SOXX' },
     TLT: { name: '미국 장기채 ETF (TLT)', kind: 'etf', bars: 'TLT' }, SHY: { name: '미국 단기채 ETF (SHY)', kind: 'etf', bars: 'SHY' },
     GLD: { name: '금 ETF (GLD)', kind: 'etf', bars: 'GLD' }, BIL: { name: '초단기 국채 ETF (BIL)', kind: 'cash', bars: 'BIL' }, PSQ: { name: '나스닥100 인버스 (PSQ)', kind: 'option', bars: 'PSQ' },
@@ -361,6 +398,7 @@ const fomc = buildTape({
     { id: 'healer_cash', role: 'healer', instrument: 'BIL', name: '현금 대기', lesson: '현금은 안 다치지만 보스도 못 때려요.' },
     { id: 'healer_psq', role: 'healer', instrument: 'PSQ', blend: { PSQ: 0.5, BIL: 0.5 }, name: '역방향 부적', unlockLevel: 10, lesson: '슬롯의 절반을 인버스 ETF에 뒀어요. 시장이 오르면 매일 깎여요. 하락 보험은 타이밍이 전부예요.' },
     { id: 'support_schd', role: 'support', instrument: 'SCHD', name: '배당의 축복', default: true, lesson: '배당주는 성장주 랠리 땐 뒤처지고, 급락 땐 덜 빠져요.' },
+    ...derivSkills.map(k => ({ ...k })),
   ],
   checkpoints: [
     { bar: 4, title: '금리 결정일 아침', hint: '오늘 밤 뉴욕에서 금리 결정이 나와요. 시장은 한 주 내내 밀렸어요. 막을까요, 반등을 노릴까요?', bull: '한 주 내내 밀렸으니 나쁜 소식은 이미 가격에 들어갔을 수 있어요. 결정이 나오면 반등할 수도 있어요.', bear: '금리를 올리고 기자회견까지 강경하면 더 빠질 수 있어요. 인버스나 단기채로 막아요.', allow: ['hold', 'equip', 'rebalance'] },
@@ -371,6 +409,7 @@ const fomc = buildTape({
 /* ------------------------------------------------------------------ */
 /* Raid B: AI 설비투자 쇼크 주간 (2026-10-14 ~ 10-23)                      */
 /* ------------------------------------------------------------------ */
+addDerivs('capex', '2026-10-14');
 const capex = buildTape({
   ...common,
   id: 'capex-2026-10-22', title: '빅테크 실적 레이드', boss: '불꽃이', bossSpecies: 'wyvern',
@@ -398,6 +437,7 @@ const capex = buildTape({
   cuts: [cut('2026-10-14', '실적 시즌 대기'), cut('2026-10-15', '관망'), cut('2026-10-16', '반도체 급락'), cut('2026-10-19', '반등 시도'), cut('2026-10-20', '관망'),
     cut('2026-10-21', '메타 실적 발표일'), cut('2026-10-22', 'AI 투자 비용 우려'), cut('2026-10-23', '주말 전')],
   instruments: {
+    ...derivIns('capex'),
     QQQ: { name: '나스닥100 ETF (QQQ)', kind: 'etf', bars: 'QQQ' }, TQQQ: { name: '나스닥100 3배 레버리지 (TQQQ)', kind: 'lev', bars: 'TQQQ' }, SOXX: { name: '미국 반도체 ETF (SOXX)', kind: 'etf', bars: 'SOXX' },
     TLT: { name: '미국 장기채 ETF (TLT)', kind: 'etf', bars: 'TLT' }, SHY: { name: '미국 단기채 ETF (SHY)', kind: 'etf', bars: 'SHY' },
     GLD: { name: '금 ETF (GLD)', kind: 'etf', bars: 'GLD' }, BIL: { name: '초단기 국채 ETF (BIL)', kind: 'cash', bars: 'BIL' }, SQQQ: { name: '나스닥100 3배 인버스 (SQQQ)', kind: 'option', bars: 'SQQQ' },
@@ -413,6 +453,7 @@ const capex = buildTape({
     { id: 'healer_cash', role: 'healer', instrument: 'BIL', name: '현금 대기', lesson: '현금은 안 다치지만 보스도 못 때려요.' },
     { id: 'healer_sqqq', role: 'healer', instrument: 'SQQQ', blend: { SQQQ: 0.25, BIL: 0.75 }, name: '역방향 부적', unlockLevel: 10, lesson: '슬롯의 25%만 3배 인버스에 뒀어요. 쇼크 당일엔 파티를 구했지만, 반등 날엔 거꾸로 맞아요.' },
     { id: 'support_schd', role: 'support', instrument: 'SCHD', name: '배당의 축복', default: true, lesson: '배당주는 이 주에 오히려 올랐어요. 성장주에서 빠진 돈이 옮겨간 자리예요.' },
+    ...derivSkills.map(k => ({ ...k })),
   ],
   checkpoints: [
     { bar: 5, title: '메타 실적 발표 전날', hint: '내일 장이 끝나면 메타 실적이 나와요. 시장은 매출보다 AI 투자를 얼마나 할지를 봐요. 많이 써도, 적게 써도 성장주엔 부담이에요.', bull: '광고 매출이 예상보다 좋고 투자가 잘 쓰이고 있다고 보이면 AI 관련주가 함께 올라요.', bear: '투자를 더 늘린다고 하면 비용이 너무 크다고 읽혀요. 반도체와 레버리지가 가장 크게 맞아요.', allow: ['hold', 'equip', 'rebalance'] },
@@ -423,6 +464,7 @@ const capex = buildTape({
 /* ------------------------------------------------------------------ */
 /* 오늘의 한 판: 어제까지 최근 사흘, 3턴. 매일 아침 전날 종가로 새로 만든다. */
 /* ------------------------------------------------------------------ */
+addDerivs('daily', '2026-10-21');
 const daily = buildTape({
   ...common,
   id: 'daily-2026-10-27', title: '오늘의 한 판', boss: '꼬마 뼈다귀', bossSpecies: 'skeleton', dailyRaid: true, playDate: '2026-10-27',
@@ -440,6 +482,7 @@ const daily = buildTape({
   ],
   cuts: [cut('2026-10-21', '메타 실적 발표일'), cut('2026-10-22', 'AI 투자 비용 우려'), cut('2026-10-23', '주말 전'), cut('2026-10-26', '어제')],
   instruments: {
+    ...derivIns('daily'),
     QQQ: { name: '나스닥100 ETF (QQQ)', kind: 'etf', bars: 'QQQ' }, TQQQ: { name: '나스닥100 3배 레버리지 (TQQQ)', kind: 'lev', bars: 'TQQQ' }, SOXX: { name: '미국 반도체 ETF (SOXX)', kind: 'etf', bars: 'SOXX' },
     TLT: { name: '미국 장기채 ETF (TLT)', kind: 'etf', bars: 'TLT' }, SHY: { name: '미국 단기채 ETF (SHY)', kind: 'etf', bars: 'SHY' },
     GLD: { name: '금 ETF (GLD)', kind: 'etf', bars: 'GLD' }, BIL: { name: '초단기 국채 ETF (BIL)', kind: 'cash', bars: 'BIL' },
@@ -454,6 +497,7 @@ const daily = buildTape({
     { id: 'healer_gld', role: 'healer', instrument: 'GLD', name: '황금 가호', default: true, lesson: '금은 사흘 동안 거의 제자리였어요.' },
     { id: 'healer_cash', role: 'healer', instrument: 'BIL', name: '현금 대기', lesson: '현금은 안 다치지만 반등도 못 타요.' },
     { id: 'support_schd', role: 'support', instrument: 'SCHD', name: '배당의 축복', default: true, lesson: '배당주는 급락 날에도 덜 빠졌어요.' },
+    ...derivSkills.map(k => ({ ...k })),
   ],
   checkpoints: [
     { bar: 2, title: '어제 장이 열리기 전', hint: '목요일에 크게 빠지고 금요일은 제자리였어요. 어제는 어떻게 됐을까요?', bull: '이틀 쉬었으니 싸다고 보는 사람이 들어올 수 있어요. 반도체가 가장 크게 튈 수 있어요.', bear: '불안이 이어지면 한 번 더 빠질 수 있어요. 현금이나 단기채로 막아요.', allow: ['hold', 'equip', 'rebalance'] },

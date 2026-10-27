@@ -12,7 +12,7 @@ export function plainNames(tape) {
 export function calibrate(tape) {
   plainNames(tape);
   const base = defaultParty(tape);
-  const alts = alternatives(tape, base);
+  const alts = alternatives({ ...tape, skills: tape.skills.filter(k => !k.chartOnly) }, base);   // derivatives (chart mode only) don't set the game's boss
   const best = Math.max(...alts.map(a => a.returnPct));
   const quick = !!tape.dailyRaid;   // a 3-turn daily raid moves less, so its boss is smaller
   const bossHpPerPct = Math.min(quick ? 500 : 80, Math.max(8, Math.round(100 / Math.max(quick ? 0.2 : 0.8, best * 0.7) * 10) / 10));   // a good (not perfect) decision breaks the boss

@@ -96,6 +96,13 @@ const PRODUCTS = {
 function productInfo(id, tape) {
   const ins = tape?.instruments[id] || {};
   if (PRODUCTS[id]) return { id, ...PRODUCTS[id], real: true };
+  const DERIV = {
+    NQF: { index: '나스닥100 지수 선물 · 근사치', role: '지수가 오르면 크게 벌고, 내리면 크게 잃어요. 여기서는 지수 등락의 5배로 계산했어요.', warn: '실제 선물은 증거금보다 큰 손실이 날 수 있고, 만기와 롤오버가 있어요. 이 화면의 값은 QQQ 종가로 계산한 근사치예요.' },
+    NQFS: { index: '나스닥100 지수 선물 매도 · 근사치', role: '지수가 내리면 벌고, 오르면 잃어요. 지수 등락의 5배로 계산했어요.', warn: '매도 포지션은 지수가 오르는 만큼 손실이 계속 커질 수 있어요. 이 화면의 값은 QQQ 종가로 계산한 근사치예요.' },
+    QQQP: { index: 'QQQ 등가격 풋옵션 · 30일 만기 · 모델 가격', role: '떨어질수록 값이 올라요. 아무 일 없으면 시간이 갈수록 값이 줄어요.', warn: '블랙숄즈 모델(내재변동성 22%, 금리 4% 가정)로 계산한 가격이에요. 실제 호가와 다를 수 있고, 프리미엄 전액을 잃을 수 있어요.' },
+    QQQC: { index: 'QQQ 등가격 콜옵션 · 30일 만기 · 모델 가격', role: '오를수록 값이 크게 올라요. 안 오르면 프리미엄만큼 잃어요.', warn: '블랙숄즈 모델(내재변동성 22%, 금리 4% 가정)로 계산한 가격이에요. 실제 호가와 다를 수 있고, 프리미엄 전액을 잃을 수 있어요.' },
+  };
+  if (DERIV[id]) return { id, name: ins.name || id, issuer: '', fee: '', cls: null, real: false, ...DERIV[id] };
   return { id, name: ins.name || id, issuer: '', index: ins.kind === 'option' ? '옵션 계약' : '예시 상품', fee: '', role: ins.kind === 'option' ? '시장이 떨어질수록 값이 올라요. 대신 아무 일 없으면 시간이 갈수록 값이 줄어요.' : '훈련 레이드용 예시 상품이에요. 실제 상품 정보는 연결 후 표시돼요.', warn: ins.kind === 'option' ? '옵션은 만기와 행사가가 있고 원금 전액 손실이 가능해요.' : '', cls: null, real: false };
 }
 function usedInstruments(state) {
@@ -266,6 +273,7 @@ let bChart = null;
 async function openBrief(id) {
   if ($('#bMore')) $('#bMore').open = chartMode();
   currentTape = await adapter.load(id);
+  if (!chartMode()) currentTape = { ...currentTape, skills: currentTape.skills.filter(k => !k.chartOnly) };   // futures and options live in chart mode
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
   $('#bArt').alt = t.boss;
@@ -1152,6 +1160,8 @@ function betaOf(id) {
   const ins = currentTape.instruments[id], n = ins.name || '', k = ins.kind;
   if (id === mainInstrument(currentTape)) return { up: 1, down: 1 };
   if (k === 'cash') return { up: 0, down: 0 };
+  if (k === 'future') return /매도/.test(n) ? { up: -5, down: -5 } : { up: 5, down: 5 };
+  if (k === 'option' && /콜/.test(n)) return { up: 8, down: 3 };
   if (k === 'lev') { const x = /2배/.test(n) ? 2 : 3; return /인버스/.test(n) ? { up: -x, down: -x } : { up: x, down: x }; }
   if (k === 'option') return /인버스/.test(n) ? { up: -(/3배/.test(n) ? 3 : 1), down: -(/3배/.test(n) ? 3 : 1) } : { up: -3, down: -8 };   // put: premium melts on the way up, pays big on the way down
   if (/반도체/.test(n)) return { up: 1.8, down: 1.8 };
@@ -1304,7 +1314,7 @@ async function showResult() {
   $('#rDecisions').innerHTML = acts.length ? acts.map(a => {
     const bar = currentTape.bars[a.at]; const after = s.log.filter(t => t.bar >= a.at).reduce((x, t) => x + t.boss.portfolioRet, 0);
     const what = a.type === 'hold' ? '그대로' : a.type === 'equip' ? `${charOf(ROLES.find(r => s.party._bySkill[a.to]?.role === r) || 'dealer').name} → ${s.party._bySkill[a.to].name}` : '비중 조정 ' + ROLES.map(r => a.to[r]).join('/');
-    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">· 이후 파티 ${fmtPct(after)}</span></div>`;
+    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">· 이후 ${chartMode() ? "포트폴리오" : "파티"} ${fmtPct(after)}</span></div>`;
   }).join('') : '<span class="muted">체크포인트 없음</span>';
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
@@ -1422,5 +1432,5 @@ $('#bmenuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $
 document.addEventListener('click', e => { if (!e.target.closest('#bmenu')) { $('#bmenu').classList.remove('open'); $('#bmenuBtn').setAttribute('aria-expanded', 'false'); } else if (e.target.closest('button')) setTimeout(() => $('#bmenu').classList.remove('open'), 0); });
 
 // mode switch (게임 / 차트)
-$$('.mode-seg [data-mode]').forEach(b => b.addEventListener('click', () => { profile.mode = b.dataset.mode; saveProfile(); applyMode(); sfx.select(); if (!$('#screen-battle').hidden) { aborted = true; nextWaiter?.(); stopBgm(); } if (!$('#screen-select').hidden || !$('#screen-battle').hidden || !$('#screen-result').hidden) { renderSelect(); showScreen('select'); } }));
+$$('.mode-seg [data-mode]').forEach(b => b.addEventListener('click', () => { profile.mode = b.dataset.mode; saveProfile(); applyMode(); sfx.select(); if (!$('#screen-battle').hidden) { aborted = true; nextWaiter?.(); stopBgm(); } party = null; renderSelect(); showScreen('select'); }));
 applyMode();

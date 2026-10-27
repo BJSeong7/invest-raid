@@ -630,6 +630,49 @@ body.mode-chart #cpSay,body.mode-chart .cp-role>.pf{display:none!important}
 body.mode-chart .stamp-wrap,body.mode-chart #rGrowthText,body.mode-chart #rGrowth,body.mode-chart .coach .av,body.mode-chart .stats .stat:nth-child(n+2){display:none!important}
 body.mode-chart .stats{grid-template-columns:1fr}
 body.mode-chart .event-card .eh>img{display:none}
+
+/* ---- chart mode, plain tone: white surfaces, thin lines, one accent, no shadows or bounces ---- */
+body.mode-chart{--bg:#F7F8FA;--panel:#fff;--panel2:#F2F4F6;--line:#E5E8EB;--edge:transparent;--navy:#191F28;--ink:#191F28;--muted:#6B7684;--dim:#8B95A1;--gold:#3182F6;--gold-dark:#1B64DA;--gold-ink:#fff;
+  background:#F7F8FA;color:#191F28}
+body.mode-chart::after{display:none}
+body.mode-chart *{box-shadow:none!important;text-shadow:none!important;-webkit-text-stroke:0!important}
+body.mode-chart .card,body.mode-chart .raid,body.mode-chart .role,body.mode-chart .chartbox,body.mode-chart .week-card,body.mode-chart .today-card,body.mode-chart .account,body.mode-chart .preset,body.mode-chart .radar-card,body.mode-chart .event-card,body.mode-chart .modal .box,body.mode-chart .stat,body.mode-chart .money-result,body.mode-chart .whatif div,body.mode-chart .concepts details,body.mode-chart .cp-role,body.mode-chart .skill,body.mode-chart .choices button,body.mode-chart .cp-money,body.mode-chart .cp-hint,body.mode-chart .coach .bubble,body.mode-chart .timer i{
+  background:#fff;border:1px solid #E5E8EB;border-radius:12px}
+body.mode-chart .role{border-top:1px solid #E5E8EB}
+body.mode-chart .btn{background:#191F28;color:#fff;border:0;border-radius:10px;font-weight:700;font-size:16px;min-height:48px}
+body.mode-chart .btn.secondary{background:#fff;color:#191F28;border:1px solid #D1D6DB}
+body.mode-chart .btn:active{transform:none}
+body.mode-chart .iconbtn{background:#fff;border:1px solid #D1D6DB;font-family:var(--body);font-weight:500;color:#191F28}
+body.mode-chart .seg{background:#F2F4F6;border:0}
+body.mode-chart .seg button{font-family:var(--body);font-weight:600}
+body.mode-chart .seg button[aria-pressed="true"]{background:#191F28;color:#fff}
+body.mode-chart .section-h h3{background:none;border:0;padding:0;font-family:var(--body);font-weight:700;font-size:17px;color:#191F28}
+body.mode-chart .chip{background:#F2F4F6;border:0;color:#6B7684;font-family:var(--body);font-weight:500}
+body.mode-chart .raid h3,body.mode-chart .role h3,body.mode-chart .today-card b,body.mode-chart .week-card b,body.mode-chart .preset b,body.mode-chart .account b,body.mode-chart .choices button b,body.mode-chart .primary-choice b,body.mode-chart .modal h2,body.mode-chart .cp-role .hdr b{font-family:var(--body);font-weight:700;color:#191F28}
+body.mode-chart .raid h3{font-size:17px}
+body.mode-chart .today-card small,body.mode-chart .week-card small{color:#6B7684;font-family:var(--body);font-weight:600}
+body.mode-chart .today-card .go{background:#191F28;font-family:var(--body);font-weight:700;font-size:15px}
+body.mode-chart .week-card .dday b{color:#191F28;font-family:var(--body);font-weight:700}
+body.mode-chart .account b{color:#191F28}
+body.mode-chart .preset[aria-pressed="true"],body.mode-chart .account[aria-pressed="true"],body.mode-chart .skill[aria-pressed="true"],body.mode-chart .choices button[aria-selected="true"]{border-color:#191F28;background:#fff}
+body.mode-chart .primary-choice{background:#191F28;color:#fff;border:0;border-radius:12px}
+body.mode-chart .primary-choice b{color:#fff}
+body.mode-chart .cp-step{background:none;color:#6B7684;padding:0}
+body.mode-chart .modal h2 .pause{display:none}
+body.mode-chart .controls .next{animation:none}
+body.mode-chart .chartbox.flash-up,body.mode-chart .chartbox.flash-down{animation:none}
+body.mode-chart .timeline span{background:#F2F4F6;border:0;color:#4E5968;font-family:var(--body)}
+body.mode-chart .timeline span.cp{background:#E8F3FF;color:#1B64DA}
+body.mode-chart .concepts summary{font-family:var(--body);font-weight:600}
+body.mode-chart .concepts summary::before{background:#191F28;border:0;width:6px;height:6px}
+body.mode-chart .money-result b,body.mode-chart .money-top b,body.mode-chart .cp-money b,body.mode-chart .weight output,body.mode-chart .role .wctl output{font-family:var(--body);font-weight:700;color:#191F28}
+body.mode-chart .wbtn{background:#F2F4F6;border:0}
+body.mode-chart .toast{background:#191F28;font-family:var(--body);font-weight:600;font-size:15px;border-radius:10px}
+body.mode-chart .whatif .k,body.mode-chart .whatif .v{font-family:var(--body);font-weight:700}
+body.mode-chart .ret,body.mode-chart .delta{font-family:var(--body)}
+body.mode-chart .alloc,body.mode-chart .preset .mini-alloc,body.mode-chart .account .mini-alloc{border:0}
+body.mode-chart .enter{animation:none}
+body.mode-chart .money-result .ic{display:none}
 </style>
 
 <div class="wrap">
@@ -787,7 +830,7 @@ body.mode-chart .event-card .eh>img{display:none}
           <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">내가 든 상품들의 실제 흐름 (시작 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
-          <div><div class="small muted" style="margin-bottom:8px">역할별 기여도 (포트폴리오 %p)</div><div class="contribs" id="rContribs"></div></div>
+          <div><div class="small muted" style="margin-bottom:8px" data-chart="자산별 기여도 (포트폴리오 %p)">역할별 기여도 (포트폴리오 %p)</div><div class="contribs" id="rContribs"></div></div>
           <div><div class="small muted" style="margin-bottom:6px">체크포인트 선택</div><div class="decisions" id="rDecisions"></div></div>
           <div><div class="small muted" style="margin-bottom:6px">이번 레이드에서 배운 개념</div><div class="concepts" id="rConcepts"></div></div>
         </div>
