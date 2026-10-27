@@ -32,7 +32,7 @@ try {
   check(true, 'first-visit coach tip appears');
   await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
   check((await page.$$('#chapterMap .stage')).length === 13 && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'map shows 13 stages + 3 upcoming');
-  check((await page.$$('#minigames .mgcard')).length === 2, 'home lists 2 minigames');
+  check((await page.$$('#minigames .mgcard')).length === 3, 'home lists 3 minigames');
   await shot(page, '1-select');
 
   // brief
