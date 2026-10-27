@@ -1,0 +1,501 @@
+{
+ "id": "tariff-2025",
+ "title": "2025 관세 쇼크",
+ "boss": "관세 거인",
+ "bossSpecies": "minotaur",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "source": "Yahoo Finance 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 34.4,
+  "note": "best single-decision path 4.15% -> 격파선 2.91%"
+ },
+ "event": {
+  "kind": "crisis",
+  "company": "미국 상호 관세 발표",
+  "ticker": "TARIFF-2025",
+  "logo": null,
+  "source": "Yahoo Finance 일별 종가 (2026-10-27 수집) · 공개 발표 자료",
+  "facts": [
+   {
+    "at": 3,
+    "label": "상호 관세 발표",
+    "value": "4/2 장 마감 후, 대부분의 나라에 추가 관세",
+    "good": false
+   },
+   {
+    "at": 5,
+    "label": "이틀 동안 QQQ",
+    "value": "−11.2%",
+    "good": false
+   },
+   {
+    "at": 5,
+    "label": "중국",
+    "value": "미국산 제품에 34% 보복 관세",
+    "good": false
+   },
+   {
+    "at": 8,
+    "label": "관세 유예",
+    "value": "중국 외 국가 90일 유예",
+    "good": true
+   },
+   {
+    "at": 8,
+    "label": "그날 QQQ",
+    "value": "+12.0%",
+    "good": true
+   },
+   {
+    "at": 10,
+    "label": "이 구간 장기채(TLT)",
+    "value": "−5.0%",
+    "good": false
+   }
+  ]
+ },
+ "briefing": "2025년 4월 2일, 미국이 대부분의 나라에 높은 관세를 발표했어요. 이틀 만에 나스닥이 10% 넘게 빠졌고, 일주일 뒤 유예 발표에 하루 만에 12% 올랐어요.",
+ "lesson": "정책 하나에 시장이 양쪽으로 크게 움직였어요. 폭락 중에 판 사람은 하루 만의 반등을 놓쳤고, 이번엔 장기채도 함께 빠졌어요.",
+ "concepts": [
+  {
+   "name": "정책 리스크",
+   "text": "정부 발표 하나로 시장이 며칠 만에 크게 오르내릴 수 있어요. 방향보다 크기에 대비해야 해요."
+  },
+  {
+   "name": "채권이 같이 빠질 때",
+   "text": "보통 주식이 빠지면 장기채가 오르지만, 이번엔 장기채도 함께 빠졌어요. 방패가 늘 통하는 건 아니에요."
+  },
+  {
+   "name": "금의 역할",
+   "text": "이 구간 끝에는 금이 사상 최고치 근처까지 올랐어요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SQQQ": {
+   "name": "나스닥100 3배 인버스 (SQQQ)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "NQF": {
+   "name": "나스닥100 선물 매수 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "NQFS": {
+   "name": "나스닥100 선물 매도 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "QQQP": {
+   "name": "QQQ 풋옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "QQQC": {
+   "name": "QQQ 콜옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "미국 장기채",
+   "default": true,
+   "lesson": "장기채는 금리가 내릴 것 같을 때 오르고, 오를 것 같을 때 떨어져요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "미국 단기채",
+   "lesson": "단기채는 거의 안 흔들리지만 크게 벌지도 않아요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "나스닥100",
+   "default": true,
+   "lesson": "나스닥100은 금리와 경기 소식에 가장 크게 반응해요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "미국 반도체",
+   "lesson": "반도체는 지수보다 두 배쯤 크게 움직여요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "나스닥100 3배",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 하루 움직임을 세 배로 키워요. 급락장에선 순식간에 크게 잃어요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "금",
+   "default": true,
+   "lesson": "금은 불안할 때 오르는 경우가 많지만, 현금이 급할 땐 같이 팔리기도 해요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금",
+   "lesson": "현금은 안 다치지만 반등도 못 타요."
+  },
+  {
+   "id": "healer_sqqq",
+   "role": "healer",
+   "instrument": "SQQQ",
+   "blend": {
+    "SQQQ": 0.25,
+    "BIL": 0.75
+   },
+   "name": "나스닥 인버스 3배",
+   "unlockLevel": 10,
+   "lesson": "이 자리의 25%만 3배 인버스에 뒀어요. 급락하면 크게 벌고, 반등하면 크게 잃어요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "미국 배당주",
+   "default": true,
+   "lesson": "배당주는 급락 때 덜 빠지는 편이지만, 금융주 비중이 있어 은행 위기엔 흔들려요."
+  },
+  {
+   "id": "dealer_nqf",
+   "role": "dealer",
+   "instrument": "NQF",
+   "name": "나스닥100 선물 매수",
+   "chartOnly": true,
+   "lesson": "선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요."
+  },
+  {
+   "id": "dealer_call",
+   "role": "dealer",
+   "instrument": "QQQC",
+   "blend": {
+    "QQQC": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 콜옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 콜옵션을 사요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요."
+  },
+  {
+   "id": "healer_put",
+   "role": "healer",
+   "instrument": "QQQP",
+   "blend": {
+    "QQQP": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 풋옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요."
+  },
+  {
+   "id": "healer_nqfs",
+   "role": "healer",
+   "instrument": "NQFS",
+   "blend": {
+    "NQFS": 0.2,
+    "BIL": 0.8
+   },
+   "name": "나스닥100 선물 매도 + 현금",
+   "chartOnly": true,
+   "lesson": "선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 4,
+   "title": "관세 발표 다음 날 아침",
+   "hint": "어젯밤 예상보다 훨씬 높은 관세가 발표됐어요. 선물 시장이 크게 빠져 있어요.",
+   "bull": "나쁜 소식이 다 나왔다고 보면 싸게 사려는 사람이 들어올 수 있어요.",
+   "bear": "무역 전쟁으로 번지면 며칠 더 빠질 수 있어요. 금과 현금이 막아 줘요."
+  },
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 8,
+   "title": "폭락 일주일째",
+   "hint": "일주일 새 나스닥100이 12% 넘게 빠졌어요. 여기서 피할까요, 버틸까요?",
+   "bull": "정책이 바뀌면 하루에 크게 되돌릴 수 있어요.",
+   "bear": "협상 소식이 없으면 바닥이 더 낮을 수 있어요."
+  }
+ ],
+ "bars": [
+  {
+   "t": "2025-03-28T16:00:00-04:00",
+   "label": "주말 전",
+   "prices": {
+    "QQQ": 468.94,
+    "TQQQ": 28.67,
+    "SOXX": 188.68,
+    "TLT": 90.14,
+    "SHY": 82.67,
+    "GLD": 284.06,
+    "BIL": 91.73,
+    "SQQQ": 191.5,
+    "SCHD": 27.58,
+    "NQF": 100,
+    "NQFS": 100,
+    "QQQP": 17.974,
+    "QQQC": 19.513
+   }
+  },
+  {
+   "t": "2025-03-31T16:00:00-04:00",
+   "label": "분기 마지막 날",
+   "prices": {
+    "QQQ": 468.92,
+    "TQQQ": 28.65,
+    "SOXX": 188.17,
+    "TLT": 91.03,
+    "SHY": 82.73,
+    "GLD": 288.14,
+    "BIL": 91.73,
+    "SQQQ": 191.7,
+    "SCHD": 27.96,
+    "NQF": 99.9787,
+    "NQFS": 100.0213,
+    "QQQP": 17.101,
+    "QQQC": 18.467
+   }
+  },
+  {
+   "t": "2025-04-01T16:00:00-04:00",
+   "label": "발표 대기",
+   "prices": {
+    "QQQ": 472.7,
+    "TQQQ": 29.31,
+    "SOXX": 188.27,
+    "TLT": 91.49,
+    "SHY": 82.48,
+    "GLD": 287.57,
+    "BIL": 91.43,
+    "SQQQ": 187.2,
+    "SCHD": 27.87,
+    "NQF": 104.0084,
+    "NQFS": 95.9899,
+    "QQQP": 15.085,
+    "QQQC": 20.179
+   }
+  },
+  {
+   "t": "2025-04-02T16:00:00-04:00",
+   "label": "관세 발표일",
+   "prices": {
+    "QQQ": 476.15,
+    "TQQQ": 29.965,
+    "SOXX": 189.48,
+    "TLT": 91.43,
+    "SHY": 82.42,
+    "GLD": 288.16,
+    "BIL": 91.44,
+    "SQQQ": 183,
+    "SCHD": 27.87,
+    "NQF": 107.8039,
+    "NQFS": 92.487,
+    "QQQP": 13.324,
+    "QQQC": 21.817
+   }
+  },
+  {
+   "t": "2025-04-03T16:00:00-04:00",
+   "label": "발표 다음 날",
+   "prices": {
+    "QQQ": 450.66,
+    "TQQQ": 25.15,
+    "SOXX": 170.36,
+    "TLT": 91.85,
+    "SHY": 82.73,
+    "GLD": 286.42,
+    "BIL": 91.45,
+    "SQQQ": 212.65,
+    "SCHD": 26.73,
+    "NQF": 78.9483,
+    "NQFS": 117.2428,
+    "QQQP": 26.345,
+    "QQQC": 9.297
+   }
+  },
+  {
+   "t": "2025-04-04T16:00:00-04:00",
+   "label": "중국 보복 관세",
+   "prices": {
+    "QQQ": 422.67,
+    "TQQQ": 20.545,
+    "SOXX": 157.63,
+    "TLT": 92.85,
+    "SHY": 82.68,
+    "GLD": 279.72,
+    "BIL": 91.48,
+    "SQQQ": 251.8,
+    "SCHD": 25.28,
+    "NQF": 54.4313,
+    "NQFS": 153.6519,
+    "QQQP": 47.496,
+    "QQQC": 2.407
+   }
+  },
+  {
+   "t": "2025-04-07T16:00:00-04:00",
+   "label": "변동성 폭발",
+   "prices": {
+    "QQQ": 423.69,
+    "TQQQ": 20.625,
+    "SOXX": 161.27,
+    "TLT": 90.05,
+    "SHY": 82.69,
+    "GLD": 273.71,
+    "BIL": 91.49,
+    "SQQQ": 250.85,
+    "SCHD": 24.94,
+    "NQF": 55.0881,
+    "NQFS": 151.7979,
+    "QQQP": 46.22,
+    "QQQC": 1.996
+   }
+  },
+  {
+   "t": "2025-04-08T16:00:00-04:00",
+   "label": "반등 실패",
+   "prices": {
+    "QQQ": 416.06,
+    "TQQQ": 19.45,
+    "SOXX": 154.86,
+    "TLT": 88.35,
+    "SHY": 82.64,
+    "GLD": 275.2,
+    "BIL": 91.51,
+    "SQQQ": 264.85,
+    "SCHD": 24.32,
+    "NQF": 50.1278,
+    "NQFS": 165.4662,
+    "QQQP": 53.004,
+    "QQQC": 1.099
+   }
+  },
+  {
+   "t": "2025-04-09T16:00:00-04:00",
+   "label": "90일 유예 발표",
+   "prices": {
+    "QQQ": 466,
+    "TQQQ": 26.305,
+    "SOXX": 183.62,
+    "TLT": 88.87,
+    "SHY": 82.59,
+    "GLD": 285.38,
+    "BIL": 91.51,
+    "SQQQ": 171.4,
+    "SCHD": 25.87,
+    "NQF": 80.2122,
+    "NQFS": 66.161,
+    "QQQP": 15.507,
+    "QQQC": 13.492
+   }
+  },
+  {
+   "t": "2025-04-10T16:00:00-04:00",
+   "label": "되돌림",
+   "prices": {
+    "QQQ": 446.18,
+    "TQQQ": 23.07,
+    "SOXX": 168.61,
+    "TLT": 86.42,
+    "SHY": 82.58,
+    "GLD": 292.35,
+    "BIL": 91.52,
+    "SQQQ": 191.05,
+    "SCHD": 24.97,
+    "NQF": 63.1542,
+    "NQFS": 80.2309,
+    "QQQP": 27.392,
+    "QQQC": 5.505
+   }
+  },
+  {
+   "t": "2025-04-11T16:00:00-04:00",
+   "label": "주말 전",
+   "prices": {
+    "QQQ": 454.4,
+    "TQQQ": 24.29,
+    "SOXX": 172.26,
+    "TLT": 86.89,
+    "SHY": 82.43,
+    "GLD": 297.93,
+    "BIL": 91.56,
+    "SQQQ": 181.1,
+    "SCHD": 25.3,
+    "NQF": 68.9717,
+    "NQFS": 72.8404,
+    "QQQP": 21.436,
+    "QQQC": 7.717
+   }
+  }
+ ],
+ "history": true
+}

@@ -204,40 +204,54 @@ function toast(msg, ms = 1800) {
 }
 
 /* ---------- scenario map: chapters of real events, cleared one by one ---------- */
-const CHAPTERS = [{
-  id: 'c1', no: 1, name: '금리와 실적', desc: '금리 결정과 실적 발표를 버티며 나눠 담는 법을 배워요.',
-  stages: ['fomc-2026-10-29', 'semi-earnings-2026-10-28', 'pce-2026-10-29', 'fomc-2026-09-16', 'capex-2026-10-22'],
-  pos: { wide: [[10, 78], [27, 56], [45, 36], [63, 62], [82, 38]], tall: [[22, 88], [72, 77], [26, 63], [72, 49], [36, 33]] },
-  reward: 5,
-}];
-const STAR_RULES = ['끝까지 완주', '시장보다 앞서기', '최대 손실 1.5% 안'];
+const POS4 = { wide: [[12, 72], [34, 46], [58, 66], [82, 40]], tall: [[24, 86], [72, 70], [30, 54], [58, 34]] };
+const CHAPTERS = [
+  { id: 'c1', no: 1, name: '금리와 실적', desc: '금리 결정과 실적 발표를 버티며 나눠 담는 법을 배워요.',
+    stages: ['fomc-2026-10-29', 'semi-earnings-2026-10-28', 'pce-2026-10-29', 'fomc-2026-09-16', 'capex-2026-10-22'],
+    pos: { wide: [[10, 78], [27, 56], [45, 36], [63, 62], [82, 38]], tall: [[22, 88], [72, 77], [26, 63], [72, 49], [36, 33]] }, reward: 5 },
+  { id: 'c2', no: 2, name: '위기의 순간들', desc: '실제로 있었던 시장 위기를 버텨 봐요. 안전자산이 언제 통하고 언제 안 통하는지 배워요.',
+    stages: ['svb-2023', 'carry-2024', 'tariff-2025', 'covid-2020'], pos: POS4, reward: 8 },
+  { id: 'c3', no: 3, name: '물가와의 전쟁 2022', desc: '물가와 금리가 시장을 흔든 2022년을 다시 겪어 봐요. 기대와 실망이 어떻게 가격이 되는지 배워요.',
+    stages: ['cpi-2022-06', 'jackson-2022', 'cpi-2022-09', 'cpi-2022-11'], pos: POS4, reward: 8 },
+];
+/** 별 3 기준: 이 판에서 가장 많이 빠졌을 때의 한도 (위기 판은 넉넉하게) */
+const STAR_LOSS = { 'covid-2020': 12, 'tariff-2025': 6, 'carry-2024': 4, 'jackson-2022': 4, 'cpi-2022-06': 4, 'cpi-2022-09': 3, 'svb-2023': 2.5 };
+const starLoss = id => STAR_LOSS[id] ?? 1.5;
+const starRules = id => ['끝까지 완주', '시장보다 앞서기', `최대 손실 ${starLoss(id)}% 안`];
 const starsOf = id => profile.stars?.[id] || 0;
-function stageOpen(ch, i) { return profile.unlockAll || i === 0 || starsOf(ch.stages[i - 1]) >= 1; }
+const chapterCleared = ch => ch.stages.every(id => starsOf(id) >= 1);
+const chapterOpen = ch => profile.unlockAll || ch.no === 1 || chapterCleared(CHAPTERS[ch.no - 2]);
+function stageOpen(ch, i) { return profile.unlockAll || (chapterOpen(ch) && (i === 0 || starsOf(ch.stages[i - 1]) >= 1)); }
 function renderChapter() {
-  const ch = CHAPTERS[0], el = $('#chapterMap'); if (!el) return;
-  const tall = matchMedia('(max-width:760px)').matches, P = tall ? ch.pos.tall : ch.pos.wide;
-  const got = ch.stages.reduce((a, id) => a + starsOf(id), 0), cleared = ch.stages.every(id => starsOf(id) >= 1);
-  const nextI = ch.stages.findIndex((id, i) => stageOpen(ch, i) && !starsOf(id));
-  const pts = P.map(([x, y]) => `${x},${y}`).join(' ');
-  el.innerHTML = `<svg class="road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <polyline points="${pts}" fill="none" stroke="#7A6A55" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="stroke-width:22px"/>
-      <polyline points="${pts}" fill="none" stroke="#C9B48E" stroke-width="16px" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
-      <polyline points="${pts}" fill="none" stroke="#fff" stroke-width="3px" stroke-dasharray="10 10" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
-    <div class="ch-title"><small>CHAPTER ${ch.no}</small><b>${ch.name}</b><span>${ch.desc}</span><em>★ ${got} / ${ch.stages.length * 3}${cleared ? ' · 챕터 완료' : ''}</em></div>
-    ${ch.stages.map((id, i) => { const t = TAPES.find(x => x.id === id); if (!t) return ''; const open = stageOpen(ch, i), st = starsOf(id), boss = i === ch.stages.length - 1;
-      return `<button type="button" class="stage ${boss ? 'boss' : ''} ${open ? '' : 'locked'} ${i === nextI ? 'next' : ''}" data-tape="${id}" style="left:${P[i][0]}%;top:${P[i][1]}%" aria-label="${t.title}${open ? '' : ' (잠김)'}">
-        <span class="node"><img src="${portrait(bossUnit(t.bossSpecies))}" alt=""></span>${st ? '<span class="clear">CLEAR</span>' : ''}
-        <span class="lbl">${i + 1}. ${t.title.replace(/ 레이드$/, '')}</span>
-        <span class="stars">${[1, 2, 3].map(n => `<i class="${n <= st ? '' : 'off'}">★</i>`).join('')}</span></button>`; }).join('')}
-    <div class="next-ch" style="left:${tall ? 80 : 92}%;top:${tall ? 94 : 84}%">CHAPTER 2<br>곧 열려요</div>`;
+  const host = $('#chapterMap'); if (!host) return;
+  const tall = matchMedia('(max-width:760px)').matches;
+  host.innerHTML = CHAPTERS.map((ch, ci) => {
+    const P = tall ? ch.pos.tall : ch.pos.wide, open = chapterOpen(ch);
+    const got = ch.stages.reduce((a, id) => a + starsOf(id), 0), cleared = chapterCleared(ch);
+    const nextI = open ? ch.stages.findIndex((id, i) => stageOpen(ch, i) && !starsOf(id)) : -1;
+    const pts = P.map(([x, y]) => `${x},${y}`).join(' '), last = ci === CHAPTERS.length - 1;
+    return `<section class="chapter ${open ? '' : 'ch-locked'}" aria-label="챕터 ${ch.no}">
+      <svg class="road" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <polyline points="${pts}" fill="none" stroke="#7A6A55" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" style="stroke-width:22px"/>
+        <polyline points="${pts}" fill="none" stroke="#C9B48E" stroke-width="16px" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+        <polyline points="${pts}" fill="none" stroke="#fff" stroke-width="3px" stroke-dasharray="10 10" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+      <div class="ch-title"><small>CHAPTER ${ch.no}</small><b>${ch.name}</b><span>${ch.desc}</span><em>★ ${got} / ${ch.stages.length * 3}${cleared ? ' · 챕터 완료' : ''}</em></div>
+      ${ch.stages.map((id, i) => { const t = TAPES.find(x => x.id === id); if (!t) return ''; const so = stageOpen(ch, i), st = starsOf(id), boss = i === ch.stages.length - 1;
+        return `<button type="button" class="stage ${boss ? 'boss' : ''} ${so ? '' : 'locked'} ${i === nextI ? 'next' : ''}" data-tape="${id}" style="left:${P[i][0]}%;top:${P[i][1]}%" aria-label="${t.title}${so ? '' : ' (잠김)'}">
+          <span class="node"><img src="${portrait(bossUnit(t.bossSpecies))}" alt=""></span>${st ? '<span class="clear">CLEAR</span>' : ''}
+          <span class="lbl">${i + 1}. ${t.title.replace(/ 레이드$/, '')}</span>
+          <span class="stars">${[1, 2, 3].map(n => `<i class="${n <= st ? '' : 'off'}">★</i>`).join('')}</span></button>`; }).join('')}
+      ${open ? '' : `<div class="ch-lock"><b>CHAPTER ${ch.no - 1}을 모두 깨면 열려요</b></div>`}
+      ${last ? `<div class="next-ch" style="left:${tall ? 80 : 92}%;top:${tall ? 94 : 84}%">다음 챕터<br>곧 열려요</div>` : ''}
+    </section>`; }).join('');
   $$('#chapterMap .stage').forEach(b => b.onclick = () => {
-    if (b.classList.contains('locked')) { sfx.back(); toast('앞 칸을 먼저 깨면 열려요'); return; }
+    if (b.classList.contains('locked')) { sfx.back(); toast(b.closest('.ch-locked') ? '앞 챕터를 먼저 깨면 열려요' : '앞 칸을 먼저 깨면 열려요'); return; }
     unlock(); sfx.select(); openBrief(b.dataset.tape); });
 }
 /** stars for this run: 1 finish alive, 2 beat the market, 3 worst point no lower than -1.5% */
 function earnStars(s, r) {
   const minEq = Math.min(...s.history.map(h => h.equity)) - 100;
-  return [r.alive > 0, r.alpha >= 0, minEq >= -1.5];
+  return [r.alive > 0, r.alpha >= 0, minEq >= -starLoss(currentTape.id)];
 }
 /** in-game reward: every new star adds a point to each hero's leading stat; finishing a chapter adds more */
 function grantStars(id, flags) {
@@ -251,7 +265,7 @@ function grantStars(id, flags) {
   return { before, now, gain, chapterDone };
 }
 /* scenario thumbnails (Unsplash, see assets/scenes/CREDITS.txt) — shown in chart mode */
-const SCENE = { 'fomc-2026-09-16': 'fed', 'capex-2026-10-22': 'datacenter', 'daily-2026-10-27': 'nyse', 'semi-earnings-2026-10-28': 'wafer', 'fomc-2026-10-29': 'chifed', 'pce-2026-10-29': 'grocery' };
+const SCENE = { 'fomc-2026-09-16': 'fed', 'capex-2026-10-22': 'datacenter', 'daily-2026-10-27': 'nyse', 'semi-earnings-2026-10-28': 'wafer', 'fomc-2026-10-29': 'chifed', 'pce-2026-10-29': 'grocery', 'svb-2023': 'chifed', 'carry-2024': 'nyse', 'tariff-2025': 'nyse', 'covid-2020': 'office', 'cpi-2022-06': 'grocery', 'jackson-2022': 'fed', 'cpi-2022-09': 'grocery', 'cpi-2022-11': 'grocery' };
 const sceneOf = x => `assets/scenes/${SCENE[x.id] || (/고용/.test(x.title || '') ? 'office' : /FOMC/.test(x.title || '') ? (/12월/.test(x.title) ? 'chifed' : 'fed') : 'nyse')}.jpg`;
 const thumbHTML = x => `<span class="thumb" style="background-image:url(${sceneOf(x)})"></span>`;
 /* ---------- 1. raid select ---------- */
@@ -307,7 +321,7 @@ function eventCardHTML(tape, nextBar, opts = {}) {
   const ev = tape.event; if (!ev) return '';
   const facts = visibleFacts(tape, nextBar);
   const logos = ev.logos?.length ? ev.logos : ev.logo ? [{ src: ev.logo, name: ev.company }] : [];
-  const head = `<div class="eh">${logos.length ? `<span class="logos">${logos.map(l => `<img src="${l.src}" alt="${l.name}" title="${l.name}">`).join('')}</span>` : `<img src="${portrait(bossUnit(tape.bossSpecies))}" alt="">`}<div><b>${ev.company}</b><small>${ev.kind === 'earnings' ? '실적 발표' : ev.kind === 'fomc' ? '금리 결정' : '경제 지표'}${ev.example ? ' · 예시' : ''}${facts.length < (ev.facts || []).length ? ' · 발표 전' : ''}</small></div></div>`;
+  const head = `<div class="eh">${logos.length ? `<span class="logos">${logos.map(l => `<img src="${l.src}" alt="${l.name}" title="${l.name}">`).join('')}</span>` : `<img src="${portrait(bossUnit(tape.bossSpecies))}" alt="">`}<div><b>${ev.company}</b><small>${ev.kind === 'earnings' ? '실적 발표' : ev.kind === 'fomc' ? '금리 결정' : ev.kind === 'crisis' ? '시장 위기' : '경제 지표'}${ev.example ? ' · 예시' : ''}${facts.length < (ev.facts || []).length ? ' · 발표 전' : ''}</small></div></div>`;
   const body = `<div class="facts">${facts.map(f => `<div class="fact ${f.good === true ? 'good' : f.good === false ? 'bad' : ''} ${opts.newAt !== undefined && f.at === opts.newAt ? 'new' : ''}"><small>${f.label}</small><b>${f.value}</b>${f.note ? `<em>${f.note}</em>` : ''}</div>`).join('')}</div>`;
   return head + body + (opts.source !== false && ev.source ? `<div class="src">출처 · ${ev.source}</div>` : '');
 }
@@ -1354,7 +1368,7 @@ async function showResult() {
   $('#rStars').hidden = !starRes;
   $('#rStamp').style.visibility = starRes ? 'hidden' : ''; $('#rWhy').hidden = !!starRes;   // on the map, stars are the only score
   if (starRes) {
-    $('#rStars').innerHTML = `<div class="row3">${STAR_RULES.map((t, i) => `<div class="st ${starFlags[i] ? 'on' : ''} ${starFlags[i] && i >= starRes.before ? 'new' : ''}" style="animation-delay:${i * .2}s"><b>★</b>${t}</div>`).join('')}</div>
+    $('#rStars').innerHTML = `<div class="row3">${starRules(currentTape.id).map((t, i) => `<div class="st ${starFlags[i] ? 'on' : ''} ${starFlags[i] && i >= starRes.before ? 'new' : ''}" style="animation-delay:${i * .2}s"><b>★</b>${t}</div>`).join('')}</div>
       <div class="rw">${starRes.gain ? `새 별 ${starRes.gain}개 · 모든 캐릭터가 ${starRes.gain}만큼 자랐어요` : starRes.now ? '이미 받은 별이에요. 더 많은 별에 도전해 보세요.' : '끝까지 완주하면 첫 별을 받아요.'}${starRes.chapterDone ? `<br>챕터 ${starRes.chapterDone.no} 완료! 모든 캐릭터가 ${starRes.chapterDone.reward}만큼 더 자랐어요.` : ''}</div>`;
     if (starRes.chapterDone) setTimeout(() => cutIn({ text: 'CLEAR!', sub: `CHAPTER ${starRes.chapterDone.no} · ${starRes.chapterDone.name}`, bg: '#D6453F', artL: cutArt('hero_dealer'), artR: null }, 1), 1400);
   }

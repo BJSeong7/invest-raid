@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test test/engine.test.mjs test/tape-from-bars.test.mjs",
-    "tapes": "node scripts/make-tapes.mjs && node scripts/make-real-tapes.mjs",
+    "tapes": "node scripts/make-tapes.mjs && node scripts/make-real-tapes.mjs && node scripts/make-history-tapes.mjs",
     "build": "node scripts/build.mjs",
     "play": "node test/play.mjs",
     "play:shots": "node test/play.mjs --shots",

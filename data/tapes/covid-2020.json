@@ -1,0 +1,488 @@
+{
+ "id": "covid-2020",
+ "title": "2020 코로나 폭락",
+ "boss": "공포의 해골",
+ "bossSpecies": "skeleton",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "source": "Yahoo Finance 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 80,
+  "note": "best single-decision path -9.49% -> 격파선 1.25%"
+ },
+ "event": {
+  "kind": "crisis",
+  "company": "코로나19 팬데믹",
+  "ticker": "COVID-2020",
+  "logo": null,
+  "source": "Yahoo Finance 일별 종가 (2026-10-27 수집) · 공개 발표 자료",
+  "facts": [
+   {
+    "at": 2,
+    "label": "고점 대비 QQQ",
+    "value": "−13.2%",
+    "good": false
+   },
+   {
+    "at": 3,
+    "label": "연준",
+    "value": "긴급 0.5%p 금리 인하",
+    "good": true
+   },
+   {
+    "at": 6,
+    "label": "WHO",
+    "value": "팬데믹 선언 (3/11)",
+    "good": false
+   },
+   {
+    "at": 7,
+    "label": "연준 (3/15 일요일)",
+    "value": "금리 0~0.25%로 인하",
+    "good": true
+   },
+   {
+    "at": 7,
+    "label": "고점 대비 QQQ",
+    "value": "−28.6%",
+    "good": false
+   },
+   {
+    "at": 8,
+    "label": "연준",
+    "value": "무제한 양적완화 발표",
+    "good": true
+   },
+   {
+    "at": 9,
+    "label": "이 구간 장기채(TLT)",
+    "value": "+11.9%",
+    "good": true
+   }
+  ]
+ },
+ "briefing": "2020년 2월, 코로나가 전 세계로 번지며 한 달 만에 나스닥이 30% 가까이 빠졌어요. 이 판은 그 한 달을 버티는 판이에요.",
+ "lesson": "이런 폭락에서는 금도 함께 빠졌고, 끝까지 버텨 준 건 장기채였어요. 그리고 반등은 정책이 쏟아진 뒤에 왔어요.",
+ "concepts": [
+  {
+   "name": "진짜 폭락의 모습",
+   "text": "한 달 동안 하루 5~10%씩 오르내렸어요. 계획 없이 들어가면 버티기 어려운 장이에요."
+  },
+  {
+   "name": "금도 팔릴 때",
+   "text": "현금이 급해지면 사람들은 금까지 팔아요. 3월 중순에 금도 함께 빠졌어요."
+  },
+  {
+   "name": "정책과 바닥",
+   "text": "금리 인하와 양적완화가 쏟아진 뒤에야 바닥이 나왔어요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SQQQ": {
+   "name": "나스닥100 3배 인버스 (SQQQ)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "NQF": {
+   "name": "나스닥100 선물 매수 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "NQFS": {
+   "name": "나스닥100 선물 매도 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "QQQP": {
+   "name": "QQQ 풋옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "QQQC": {
+   "name": "QQQ 콜옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "미국 장기채",
+   "default": true,
+   "lesson": "장기채는 금리가 내릴 것 같을 때 오르고, 오를 것 같을 때 떨어져요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "미국 단기채",
+   "lesson": "단기채는 거의 안 흔들리지만 크게 벌지도 않아요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "나스닥100",
+   "default": true,
+   "lesson": "나스닥100은 금리와 경기 소식에 가장 크게 반응해요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "미국 반도체",
+   "lesson": "반도체는 지수보다 두 배쯤 크게 움직여요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "나스닥100 3배",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 하루 움직임을 세 배로 키워요. 급락장에선 순식간에 크게 잃어요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "금",
+   "default": true,
+   "lesson": "금은 불안할 때 오르는 경우가 많지만, 현금이 급할 땐 같이 팔리기도 해요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금",
+   "lesson": "현금은 안 다치지만 반등도 못 타요."
+  },
+  {
+   "id": "healer_sqqq",
+   "role": "healer",
+   "instrument": "SQQQ",
+   "blend": {
+    "SQQQ": 0.25,
+    "BIL": 0.75
+   },
+   "name": "나스닥 인버스 3배",
+   "unlockLevel": 10,
+   "lesson": "이 자리의 25%만 3배 인버스에 뒀어요. 급락하면 크게 벌고, 반등하면 크게 잃어요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "미국 배당주",
+   "default": true,
+   "lesson": "배당주는 급락 때 덜 빠지는 편이지만, 금융주 비중이 있어 은행 위기엔 흔들려요."
+  },
+  {
+   "id": "dealer_nqf",
+   "role": "dealer",
+   "instrument": "NQF",
+   "name": "나스닥100 선물 매수",
+   "chartOnly": true,
+   "lesson": "선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요."
+  },
+  {
+   "id": "dealer_call",
+   "role": "dealer",
+   "instrument": "QQQC",
+   "blend": {
+    "QQQC": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 콜옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 콜옵션을 사요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요."
+  },
+  {
+   "id": "healer_put",
+   "role": "healer",
+   "instrument": "QQQP",
+   "blend": {
+    "QQQP": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 풋옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요."
+  },
+  {
+   "id": "healer_nqfs",
+   "role": "healer",
+   "instrument": "NQFS",
+   "blend": {
+    "NQFS": 0.2,
+    "BIL": 0.8
+   },
+   "name": "나스닥100 선물 매도 + 현금",
+   "chartOnly": true,
+   "lesson": "선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 3,
+   "title": "하락 일주일째",
+   "hint": "고점에서 일주일 만에 13% 빠졌어요. 여기가 바닥일까요?",
+   "bull": "각국이 돈을 풀면 반등할 수 있어요.",
+   "bear": "확산이 멈추지 않으면 더 빠져요. 장기채가 가장 든든한 방패예요."
+  },
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 7,
+   "title": "제로 금리 발표 다음 날 아침",
+   "hint": "어젯밤 연준이 금리를 0 가까이 내렸어요. 그런데 시장은 오히려 더 겁을 먹고 있어요.",
+   "bull": "정책이 쏟아지면 결국 반등해요.",
+   "bear": "오늘은 공포가 더 클 수 있어요. 금도 현금이 필요한 사람들에게 팔리고 있어요."
+  }
+ ],
+ "bars": [
+  {
+   "t": "2020-02-19T16:00:00-05:00",
+   "label": "사상 최고치",
+   "prices": {
+    "QQQ": 236.98,
+    "TQQQ": 14.757,
+    "SOXX": 89.567,
+    "TLT": 145.53,
+    "SHY": 84.94,
+    "GLD": 151.79,
+    "BIL": 91.5,
+    "SQQQ": 9993.75,
+    "SCHD": 19.583,
+    "NQF": 100,
+    "NQFS": 100,
+    "QQQP": 15.83,
+    "QQQC": 16.608
+   }
+  },
+  {
+   "t": "2020-02-24T16:00:00-05:00",
+   "label": "유럽 확산",
+   "prices": {
+    "QQQ": 221.39,
+    "TQQQ": 11.96,
+    "SOXX": 81.54,
+    "TLT": 150.25,
+    "SHY": 85.17,
+    "GLD": 156.09,
+    "BIL": 91.51,
+    "SQQQ": 12131.25,
+    "SCHD": 18.8,
+    "NQF": 67.1069,
+    "NQFS": 132.8931,
+    "QQQP": 23.011,
+    "QQQC": 8.07
+   }
+  },
+  {
+   "t": "2020-02-27T16:00:00-05:00",
+   "label": "하락 가속",
+   "prices": {
+    "QQQ": 205.64,
+    "TQQQ": 9.477,
+    "SOXX": 75.56,
+    "TLT": 151.88,
+    "SHY": 85.42,
+    "GLD": 154,
+    "BIL": 91.55,
+    "SQQQ": 14850,
+    "SCHD": 17.397,
+    "NQF": 43.2365,
+    "NQFS": 180.1641,
+    "QQQP": 33.757,
+    "QQQC": 2.988
+   }
+  },
+  {
+   "t": "2020-03-03T16:00:00-05:00",
+   "label": "긴급 금리 인하",
+   "prices": {
+    "QQQ": 209.48,
+    "TQQQ": 9.909,
+    "SOXX": 77.183,
+    "TLT": 156.33,
+    "SHY": 85.91,
+    "GLD": 153.89,
+    "BIL": 91.49,
+    "SQQQ": 13800,
+    "SCHD": 17.487,
+    "NQF": 47.2734,
+    "NQFS": 163.3427,
+    "QQQP": 29.753,
+    "QQQC": 2.694
+   }
+  },
+  {
+   "t": "2020-03-06T16:00:00-05:00",
+   "label": "주말 전",
+   "prices": {
+    "QQQ": 208.02,
+    "TQQQ": 9.605,
+    "SOXX": 76.963,
+    "TLT": 166.77,
+    "SHY": 86.2,
+    "GLD": 157.55,
+    "BIL": 91.55,
+    "SQQQ": 13806.25,
+    "SCHD": 17.407,
+    "NQF": 45.626,
+    "NQFS": 169.0349,
+    "QQQP": 30.397,
+    "QQQC": 1.801
+   }
+  },
+  {
+   "t": "2020-03-09T16:00:00-04:00",
+   "label": "유가 폭락",
+   "prices": {
+    "QQQ": 193.57,
+    "TQQQ": 7.654,
+    "SOXX": 70.39,
+    "TLT": 171.29,
+    "SHY": 86.67,
+    "GLD": 157.81,
+    "BIL": 91.59,
+    "SQQQ": 16662.5,
+    "SCHD": 16.153,
+    "NQF": 29.7791,
+    "NQFS": 227.7445,
+    "QQQP": 43.353,
+    "QQQC": 0.23
+   }
+  },
+  {
+   "t": "2020-03-12T16:00:00-04:00",
+   "label": "팬데믹 선언 다음 날",
+   "prices": {
+    "QQQ": 177.32,
+    "TQQQ": 5.595,
+    "SOXX": 63.043,
+    "TLT": 157.5,
+    "SHY": 86.17,
+    "GLD": 147.79,
+    "BIL": 91.6,
+    "SQQQ": 20168.75,
+    "SCHD": 14.517,
+    "NQF": 17.2795,
+    "NQFS": 323.3391,
+    "QQQP": 59.454,
+    "QQQC": 0.01
+   }
+  },
+  {
+   "t": "2020-03-16T16:00:00-04:00",
+   "label": "제로 금리 다음 날",
+   "prices": {
+    "QQQ": 169.3,
+    "TQQQ": 4.656,
+    "SOXX": 59.177,
+    "TLT": 163.91,
+    "SHY": 86.42,
+    "GLD": 141.64,
+    "BIL": 91.63,
+    "SQQQ": 19181.25,
+    "SCHD": 14.223,
+    "NQF": 13.3718,
+    "NQFS": 396.4605,
+    "QQQP": 67.575,
+    "QQQC": 0.01
+   }
+  },
+  {
+   "t": "2020-03-23T16:00:00-04:00",
+   "label": "무제한 양적완화",
+   "prices": {
+    "QQQ": 170.46,
+    "TQQQ": 4.452,
+    "SOXX": 60.99,
+    "TLT": 166,
+    "SHY": 86.59,
+    "GLD": 146.3,
+    "BIL": 91.64,
+    "SQQQ": 18425,
+    "SCHD": 13.167,
+    "NQF": 13.8299,
+    "NQFS": 382.8783,
+    "QQQP": 66.52,
+    "QQQC": 0.01
+   }
+  },
+  {
+   "t": "2020-03-24T16:00:00-04:00",
+   "label": "반등",
+   "prices": {
+    "QQQ": 183.66,
+    "TQQQ": 5.445,
+    "SOXX": 67.587,
+    "TLT": 162.91,
+    "SHY": 86.47,
+    "GLD": 153.4,
+    "BIL": 91.64,
+    "SQQQ": 14275,
+    "SCHD": 14.223,
+    "NQF": 19.1847,
+    "NQFS": 234.6326,
+    "QQQP": 53.32,
+    "QQQC": 0.01
+   }
+  }
+ ],
+ "history": true
+}

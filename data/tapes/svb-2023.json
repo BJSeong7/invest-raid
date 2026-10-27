@@ -1,0 +1,483 @@
+{
+ "id": "svb-2023",
+ "title": "2023 SVB 은행 위기",
+ "boss": "뱅크런 소",
+ "bossSpecies": "minotaur",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "source": "Yahoo Finance 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 20.9,
+  "note": "best single-decision path 6.85% -> 격파선 4.78%"
+ },
+ "event": {
+  "kind": "crisis",
+  "company": "실리콘밸리은행(SVB) 파산",
+  "ticker": "SVB-2023",
+  "logo": null,
+  "source": "Yahoo Finance 일별 종가 (2026-10-27 수집) · 공개 발표 자료",
+  "facts": [
+   {
+    "at": 2,
+    "label": "파월 의회 증언",
+    "value": "금리를 예상보다 더 올릴 수 있다",
+    "good": false
+   },
+   {
+    "at": 4,
+    "label": "SVB 주가",
+    "value": "하루 약 −60%",
+    "note": "채권 손실과 증자 발표",
+    "good": false
+   },
+   {
+    "at": 5,
+    "label": "미국 예금보험공사",
+    "value": "SVB 폐쇄, 관리 시작",
+    "good": false
+   },
+   {
+    "at": 6,
+    "label": "정부 발표 (3/12 일요일)",
+    "value": "예금 전액 보호 + 은행 긴급 대출",
+    "good": true
+   },
+   {
+    "at": 9,
+    "label": "이 구간 장기채(TLT)",
+    "value": "+4.9%",
+    "good": true
+   },
+   {
+    "at": 9,
+    "label": "이 구간 금(GLD)",
+    "value": "+6.5%",
+    "good": true
+   }
+  ]
+ },
+ "briefing": "2023년 3월, 미국 실리콘밸리은행이 이틀 만에 무너졌어요. 금리가 빠르게 오르면서 은행이 들고 있던 채권 값이 떨어진 게 시작이었어요.",
+ "lesson": "위기 때 안전자산이 제 역할을 했어요. 장기채와 금이 오르고, 금리 인상이 멈출 거라는 기대에 나스닥도 반등했어요.",
+ "concepts": [
+  {
+   "name": "안전자산으로의 이동",
+   "text": "불안이 커지면 돈이 국채와 금으로 몰려요. 이 주에 장기채와 금이 함께 올랐어요."
+  },
+  {
+   "name": "금리와 채권 가격",
+   "text": "금리가 오르면 이미 발행된 채권 값은 떨어져요. SVB가 무너진 이유가 바로 이거였어요."
+  },
+  {
+   "name": "업종 쏠림",
+   "text": "배당주 ETF에는 금융주가 들어 있어요. 은행 위기 때는 배당주도 흔들려요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SQQQ": {
+   "name": "나스닥100 3배 인버스 (SQQQ)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "NQF": {
+   "name": "나스닥100 선물 매수 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "NQFS": {
+   "name": "나스닥100 선물 매도 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "QQQP": {
+   "name": "QQQ 풋옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "QQQC": {
+   "name": "QQQ 콜옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "미국 장기채",
+   "default": true,
+   "lesson": "장기채는 금리가 내릴 것 같을 때 오르고, 오를 것 같을 때 떨어져요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "미국 단기채",
+   "lesson": "단기채는 거의 안 흔들리지만 크게 벌지도 않아요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "나스닥100",
+   "default": true,
+   "lesson": "나스닥100은 금리와 경기 소식에 가장 크게 반응해요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "미국 반도체",
+   "lesson": "반도체는 지수보다 두 배쯤 크게 움직여요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "나스닥100 3배",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 하루 움직임을 세 배로 키워요. 급락장에선 순식간에 크게 잃어요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "금",
+   "default": true,
+   "lesson": "금은 불안할 때 오르는 경우가 많지만, 현금이 급할 땐 같이 팔리기도 해요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금",
+   "lesson": "현금은 안 다치지만 반등도 못 타요."
+  },
+  {
+   "id": "healer_sqqq",
+   "role": "healer",
+   "instrument": "SQQQ",
+   "blend": {
+    "SQQQ": 0.25,
+    "BIL": 0.75
+   },
+   "name": "나스닥 인버스 3배",
+   "unlockLevel": 10,
+   "lesson": "이 자리의 25%만 3배 인버스에 뒀어요. 급락하면 크게 벌고, 반등하면 크게 잃어요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "미국 배당주",
+   "default": true,
+   "lesson": "배당주는 급락 때 덜 빠지는 편이지만, 금융주 비중이 있어 은행 위기엔 흔들려요."
+  },
+  {
+   "id": "dealer_nqf",
+   "role": "dealer",
+   "instrument": "NQF",
+   "name": "나스닥100 선물 매수",
+   "chartOnly": true,
+   "lesson": "선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요."
+  },
+  {
+   "id": "dealer_call",
+   "role": "dealer",
+   "instrument": "QQQC",
+   "blend": {
+    "QQQC": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 콜옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 콜옵션을 사요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요."
+  },
+  {
+   "id": "healer_put",
+   "role": "healer",
+   "instrument": "QQQP",
+   "blend": {
+    "QQQP": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 풋옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요."
+  },
+  {
+   "id": "healer_nqfs",
+   "role": "healer",
+   "instrument": "NQFS",
+   "blend": {
+    "NQFS": 0.2,
+    "BIL": 0.8
+   },
+   "name": "나스닥100 선물 매도 + 현금",
+   "chartOnly": true,
+   "lesson": "선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 5,
+   "title": "SVB 주가가 무너진 다음 날",
+   "hint": "어제 실리콘밸리은행 주가가 60% 가까이 빠졌어요. 위기가 다른 은행으로 번질까요?",
+   "bull": "은행 한 곳에서 멈추면, 금리 인상이 끝날 거라는 기대에 성장주가 오를 수 있어요.",
+   "bear": "다른 은행으로 번지면 시장 전체가 흔들려요. 장기채와 금이 피난처가 돼요."
+  },
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 6,
+   "title": "예금 보호 발표 다음 날 아침",
+   "hint": "일요일 밤 정부가 예금을 전액 보호하겠다고 했어요. 월요일 시장은 어떻게 반응할까요?",
+   "bull": "공포가 줄면 반등해요.",
+   "bear": "은행 불안이 남으면 금융주가 많은 배당주가 계속 흔들려요."
+  }
+ ],
+ "bars": [
+  {
+   "t": "2023-03-03T16:00:00-05:00",
+   "label": "평온한 금요일",
+   "prices": {
+    "QQQ": 299.68,
+    "TQQQ": 11.73,
+    "SOXX": 139.863,
+    "TLT": 101.89,
+    "SHY": 80.76,
+    "GLD": 172.49,
+    "BIL": 91.51,
+    "SQQQ": 918.25,
+    "SCHD": 25.19,
+    "NQF": 100,
+    "NQFS": 100,
+    "QQQP": 8.07,
+    "QQQC": 9.054
+   }
+  },
+  {
+   "t": "2023-03-06T16:00:00-05:00",
+   "label": "관망",
+   "prices": {
+    "QQQ": 300.02,
+    "TQQQ": 11.78,
+    "SOXX": 138.237,
+    "TLT": 101.1,
+    "SHY": 80.72,
+    "GLD": 171.62,
+    "BIL": 91.52,
+    "SQQQ": 915,
+    "SCHD": 25.18,
+    "NQF": 100.5673,
+    "NQFS": 99.4327,
+    "QQQP": 7.522,
+    "QQQC": 8.748
+   }
+  },
+  {
+   "t": "2023-03-07T16:00:00-05:00",
+   "label": "파월 의회 증언",
+   "prices": {
+    "QQQ": 296.34,
+    "TQQQ": 11.34,
+    "SOXX": 136.78,
+    "TLT": 101.72,
+    "SHY": 80.55,
+    "GLD": 168.62,
+    "BIL": 91.52,
+    "SQQQ": 949,
+    "SCHD": 24.78,
+    "NQF": 94.3996,
+    "NQFS": 105.5309,
+    "QQQP": 9.226,
+    "QQQC": 6.738
+   }
+  },
+  {
+   "t": "2023-03-08T16:00:00-05:00",
+   "label": "은행 한 곳 청산",
+   "prices": {
+    "QQQ": 297.82,
+    "TQQQ": 11.495,
+    "SOXX": 140.417,
+    "TLT": 101.82,
+    "SHY": 80.51,
+    "GLD": 168.54,
+    "BIL": 91.54,
+    "SQQQ": 935.25,
+    "SCHD": 24.747,
+    "NQF": 96.7568,
+    "NQFS": 102.8956,
+    "QQQP": 8.317,
+    "QQQC": 7.277
+   }
+  },
+  {
+   "t": "2023-03-09T16:00:00-05:00",
+   "label": "SVB 주가 폭락",
+   "prices": {
+    "QQQ": 292.66,
+    "TQQQ": 10.89,
+    "SOXX": 137.627,
+    "TLT": 102.07,
+    "SHY": 80.77,
+    "GLD": 170.2,
+    "BIL": 91.56,
+    "SQQQ": 986.25,
+    "SCHD": 24.28,
+    "NQF": 88.3748,
+    "NQFS": 111.8094,
+    "QQQP": 11.084,
+    "QQQC": 4.852
+   }
+  },
+  {
+   "t": "2023-03-10T16:00:00-05:00",
+   "label": "SVB 파산",
+   "prices": {
+    "QQQ": 288.55,
+    "TQQQ": 10.44,
+    "SOXX": 134.967,
+    "TLT": 105.59,
+    "SHY": 81.21,
+    "GLD": 173.87,
+    "BIL": 91.58,
+    "SQQQ": 1027,
+    "SCHD": 23.987,
+    "NQF": 82.1693,
+    "NQFS": 119.6604,
+    "QQQP": 13.675,
+    "QQQC": 3.3
+   }
+  },
+  {
+   "t": "2023-03-13T16:00:00-04:00",
+   "label": "예금 보호 발표 다음 날",
+   "prices": {
+    "QQQ": 290.69,
+    "TQQQ": 10.665,
+    "SOXX": 135.007,
+    "TLT": 105.83,
+    "SHY": 82.02,
+    "GLD": 177.86,
+    "BIL": 91.6,
+    "SQQQ": 1004.75,
+    "SCHD": 23.643,
+    "NQF": 85.2163,
+    "NQFS": 115.2232,
+    "QQQP": 11.843,
+    "QQQC": 3.51
+   }
+  },
+  {
+   "t": "2023-03-14T16:00:00-04:00",
+   "label": "은행주 반등",
+   "prices": {
+    "QQQ": 297.37,
+    "TQQQ": 11.39,
+    "SOXX": 138.953,
+    "TLT": 104.09,
+    "SHY": 81.71,
+    "GLD": 176.83,
+    "BIL": 91.61,
+    "SQQQ": 936.5,
+    "SCHD": 23.853,
+    "NQF": 95.0076,
+    "NQFS": 101.9842,
+    "QQQP": 7.668,
+    "QQQC": 5.983
+   }
+  },
+  {
+   "t": "2023-03-16T16:00:00-04:00",
+   "label": "대형 은행 공동 지원",
+   "prices": {
+    "QQQ": 306.81,
+    "TQQQ": 12.47,
+    "SOXX": 142.697,
+    "TLT": 105.27,
+    "SHY": 81.86,
+    "GLD": 178.57,
+    "BIL": 91.7,
+    "SQQQ": 850.5,
+    "SCHD": 23.883,
+    "NQF": 110.0877,
+    "NQFS": 85.7968,
+    "QQQP": 3.391,
+    "QQQC": 11.08
+   }
+  },
+  {
+   "t": "2023-03-17T16:00:00-04:00",
+   "label": "주말 전",
+   "prices": {
+    "QQQ": 305.36,
+    "TQQQ": 12.285,
+    "SOXX": 141.813,
+    "TLT": 106.85,
+    "SHY": 82.27,
+    "GLD": 183.77,
+    "BIL": 91.72,
+    "SQQQ": 862.25,
+    "SCHD": 23.503,
+    "NQF": 107.4863,
+    "NQFS": 87.8241,
+    "QQQP": 3.695,
+    "QQQC": 9.901
+   }
+  }
+ ],
+ "history": true
+}

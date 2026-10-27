@@ -1,0 +1,410 @@
+{
+ "id": "cpi-2022-09",
+ "title": "2022 9월 물가 쇼크",
+ "boss": "불개미 여왕",
+ "bossSpecies": "fireant",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "source": "Yahoo Finance 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 80,
+  "note": "best single-decision path -0.92% -> 격파선 1.25%"
+ },
+ "event": {
+  "kind": "macro",
+  "company": "미국 8월 소비자물가",
+  "ticker": "CPI-2022-09",
+  "logo": null,
+  "source": "Yahoo Finance 일별 종가 (2026-10-27 수집) · 공개 발표 자료",
+  "facts": [
+   {
+    "at": 3,
+    "label": "나흘 동안 QQQ",
+    "value": "+3.9%",
+    "good": true
+   },
+   {
+    "at": 4,
+    "label": "8월 소비자물가",
+    "value": "+8.3% (예상 8.1%)",
+    "good": false
+   },
+   {
+    "at": 4,
+    "label": "그날 QQQ",
+    "value": "−5.5%",
+    "good": false
+   }
+  ]
+ },
+ "briefing": "2022년 9월, 시장은 물가가 꺾였다고 믿고 나흘 연속 올랐어요. 발표 하루에 그 기대가 무너졌어요.",
+ "lesson": "기대가 크게 쌓인 날은 예상과 조금만 달라도 크게 움직여요. 이날 나스닥100은 하루에 5% 넘게 빠졌어요.",
+ "concepts": [
+  {
+   "name": "예상과의 차이",
+   "text": "물가가 8.1%든 8.3%든 높기는 마찬가지지만, 시장은 예상과의 차이 0.2%p에 크게 반응했어요."
+  },
+  {
+   "name": "하루의 무게",
+   "text": "나흘 동안 번 걸 하루에 다 잃을 수 있어요. 발표 날에는 비중을 미리 생각해 둬야 해요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SQQQ": {
+   "name": "나스닥100 3배 인버스 (SQQQ)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "NQF": {
+   "name": "나스닥100 선물 매수 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "NQFS": {
+   "name": "나스닥100 선물 매도 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "QQQP": {
+   "name": "QQQ 풋옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "QQQC": {
+   "name": "QQQ 콜옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "미국 장기채",
+   "default": true,
+   "lesson": "장기채는 금리가 내릴 것 같을 때 오르고, 오를 것 같을 때 떨어져요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "미국 단기채",
+   "lesson": "단기채는 거의 안 흔들리지만 크게 벌지도 않아요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "나스닥100",
+   "default": true,
+   "lesson": "나스닥100은 금리와 경기 소식에 가장 크게 반응해요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "미국 반도체",
+   "lesson": "반도체는 지수보다 두 배쯤 크게 움직여요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "나스닥100 3배",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 하루 움직임을 세 배로 키워요. 급락장에선 순식간에 크게 잃어요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "금",
+   "default": true,
+   "lesson": "금은 불안할 때 오르는 경우가 많지만, 현금이 급할 땐 같이 팔리기도 해요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금",
+   "lesson": "현금은 안 다치지만 반등도 못 타요."
+  },
+  {
+   "id": "healer_sqqq",
+   "role": "healer",
+   "instrument": "SQQQ",
+   "blend": {
+    "SQQQ": 0.25,
+    "BIL": 0.75
+   },
+   "name": "나스닥 인버스 3배",
+   "unlockLevel": 10,
+   "lesson": "이 자리의 25%만 3배 인버스에 뒀어요. 급락하면 크게 벌고, 반등하면 크게 잃어요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "미국 배당주",
+   "default": true,
+   "lesson": "배당주는 급락 때 덜 빠지는 편이지만, 금융주 비중이 있어 은행 위기엔 흔들려요."
+  },
+  {
+   "id": "dealer_nqf",
+   "role": "dealer",
+   "instrument": "NQF",
+   "name": "나스닥100 선물 매수",
+   "chartOnly": true,
+   "lesson": "선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요."
+  },
+  {
+   "id": "dealer_call",
+   "role": "dealer",
+   "instrument": "QQQC",
+   "blend": {
+    "QQQC": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 콜옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 콜옵션을 사요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요."
+  },
+  {
+   "id": "healer_put",
+   "role": "healer",
+   "instrument": "QQQP",
+   "blend": {
+    "QQQP": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 풋옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요."
+  },
+  {
+   "id": "healer_nqfs",
+   "role": "healer",
+   "instrument": "NQFS",
+   "blend": {
+    "NQFS": 0.2,
+    "BIL": 0.8
+   },
+   "name": "나스닥100 선물 매도 + 현금",
+   "chartOnly": true,
+   "lesson": "선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 4,
+   "title": "물가 발표일 아침",
+   "hint": "나흘 연속 올랐어요. 시장은 물가가 내려왔기를 기대하고 있어요.",
+   "bull": "물가가 예상보다 낮으면 랠리가 이어져요.",
+   "bear": "예상보다 높으면 크게 빠져요. 기대가 클수록 실망도 커요."
+  }
+ ],
+ "bars": [
+  {
+   "t": "2022-09-07T16:00:00-04:00",
+   "label": "반등 시작",
+   "prices": {
+    "QQQ": 298.97,
+    "TQQQ": 13.805,
+    "SOXX": 120.237,
+    "TLT": 109.19,
+    "SHY": 82.25,
+    "GLD": 159.94,
+    "BIL": 91.45,
+    "SQQQ": 1135.5,
+    "SCHD": 24.277,
+    "NQF": 100,
+    "NQFS": 100,
+    "QQQP": 9.755,
+    "QQQC": 10.736
+   }
+  },
+  {
+   "t": "2022-09-08T16:00:00-04:00",
+   "label": "반등 이틀째",
+   "prices": {
+    "QQQ": 300.52,
+    "TQQQ": 14.03,
+    "SOXX": 122.263,
+    "TLT": 108.07,
+    "SHY": 82.15,
+    "GLD": 158.98,
+    "BIL": 91.47,
+    "SQQQ": 1117.25,
+    "SCHD": 24.47,
+    "NQF": 102.5922,
+    "NQFS": 97.4078,
+    "QQQP": 8.893,
+    "QQQC": 11.391
+   }
+  },
+  {
+   "t": "2022-09-09T16:00:00-04:00",
+   "label": "반등 사흘째",
+   "prices": {
+    "QQQ": 307.09,
+    "TQQQ": 14.92,
+    "SOXX": 125.197,
+    "TLT": 108.31,
+    "SHY": 82.08,
+    "GLD": 159.82,
+    "BIL": 91.47,
+    "SQQQ": 1046,
+    "SCHD": 24.757,
+    "NQF": 113.8066,
+    "NQFS": 86.7601,
+    "QQQP": 6.149,
+    "QQQC": 15.185
+   }
+  },
+  {
+   "t": "2022-09-12T16:00:00-04:00",
+   "label": "반등 나흘째",
+   "prices": {
+    "QQQ": 310.74,
+    "TQQQ": 15.465,
+    "SOXX": 125.807,
+    "TLT": 107.42,
+    "SHY": 82.07,
+    "GLD": 160.63,
+    "BIL": 91.46,
+    "SQQQ": 1007.75,
+    "SCHD": 24.857,
+    "NQF": 120.57,
+    "NQFS": 81.604,
+    "QQQP": 4.531,
+    "QQQC": 17.119
+   }
+  },
+  {
+   "t": "2022-09-13T16:00:00-04:00",
+   "label": "8월 물가 발표",
+   "prices": {
+    "QQQ": 293.7,
+    "TQQQ": 12.92,
+    "SOXX": 117.993,
+    "TLT": 107.67,
+    "SHY": 81.79,
+    "GLD": 158.54,
+    "BIL": 91.48,
+    "SQQQ": 1174,
+    "SCHD": 23.9,
+    "NQF": 87.5116,
+    "NQFS": 103.9786,
+    "QQQP": 11.498,
+    "QQQC": 7.013
+   }
+  },
+  {
+   "t": "2022-09-14T16:00:00-04:00",
+   "label": "다음 날",
+   "prices": {
+    "QQQ": 296.03,
+    "TQQQ": 13.21,
+    "SOXX": 119.333,
+    "TLT": 108.04,
+    "SHY": 81.72,
+    "GLD": 157.93,
+    "BIL": 91.48,
+    "SQQQ": 1146,
+    "SCHD": 23.92,
+    "NQF": 90.9829,
+    "NQFS": 99.8541,
+    "QQQP": 10.061,
+    "QQQC": 7.873
+   }
+  },
+  {
+   "t": "2022-09-15T16:00:00-04:00",
+   "label": "경기 걱정",
+   "prices": {
+    "QQQ": 291.1,
+    "TQQQ": 12.545,
+    "SOXX": 117.353,
+    "TLT": 107.97,
+    "SHY": 81.63,
+    "GLD": 154.98,
+    "BIL": 91.51,
+    "SQQQ": 1203.5,
+    "SCHD": 23.73,
+    "NQF": 83.4069,
+    "NQFS": 108.1688,
+    "QQQP": 12.697,
+    "QQQC": 5.547
+   }
+  },
+  {
+   "t": "2022-09-16T16:00:00-04:00",
+   "label": "주말 전",
+   "prices": {
+    "QQQ": 289.32,
+    "TQQQ": 12.3,
+    "SOXX": 118.057,
+    "TLT": 107.07,
+    "SHY": 81.67,
+    "GLD": 155.84,
+    "BIL": 91.51,
+    "SQQQ": 1228,
+    "SCHD": 23.73,
+    "NQF": 80.8568,
+    "NQFS": 111.4759,
+    "QQQP": 13.66,
+    "QQQC": 4.697
+   }
+  }
+ ],
+ "history": true
+}

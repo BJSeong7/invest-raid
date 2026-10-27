@@ -1,0 +1,410 @@
+{
+ "id": "cpi-2022-11",
+ "title": "2022 11월 물가 반전",
+ "boss": "반전 마법사",
+ "bossSpecies": "lich",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "source": "Yahoo Finance 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 8.8,
+  "note": "best single-decision path 16.15% -> 격파선 11.36%"
+ },
+ "event": {
+  "kind": "macro",
+  "company": "미국 10월 소비자물가",
+  "ticker": "CPI-2022-11",
+  "logo": null,
+  "source": "Yahoo Finance 일별 종가 (2026-10-27 수집) · 공개 발표 자료",
+  "facts": [
+   {
+    "at": 5,
+    "label": "10월 소비자물가",
+    "value": "+7.7% (예상 7.9%)",
+    "good": true
+   },
+   {
+    "at": 5,
+    "label": "그날 QQQ",
+    "value": "+7.4%",
+    "good": true
+   },
+   {
+    "at": 5,
+    "label": "그날 3배 인버스(SQQQ)",
+    "value": "−22.0%",
+    "good": false
+   }
+  ]
+ },
+ "briefing": "2022년 11월, 1년 내내 시장을 괴롭힌 물가가 처음으로 예상보다 낮게 나왔어요.",
+ "lesson": "반전은 예고 없이 하루에 와요. 이날 나스닥100이 7% 넘게 올랐고, 하락에 베팅한 사람은 크게 잃었어요.",
+ "concepts": [
+  {
+   "name": "숏 스퀴즈",
+   "text": "하락에 베팅한 사람이 많을 때 좋은 소식이 나오면, 손실을 막으려는 매수가 몰려 더 크게 올라요."
+  },
+  {
+   "name": "인버스의 위험",
+   "text": "3배 인버스는 반등 하루에 20% 넘게 잃을 수 있어요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SQQQ": {
+   "name": "나스닥100 3배 인버스 (SQQQ)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "NQF": {
+   "name": "나스닥100 선물 매수 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "NQFS": {
+   "name": "나스닥100 선물 매도 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "QQQP": {
+   "name": "QQQ 풋옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "QQQC": {
+   "name": "QQQ 콜옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "미국 장기채",
+   "default": true,
+   "lesson": "장기채는 금리가 내릴 것 같을 때 오르고, 오를 것 같을 때 떨어져요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "미국 단기채",
+   "lesson": "단기채는 거의 안 흔들리지만 크게 벌지도 않아요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "나스닥100",
+   "default": true,
+   "lesson": "나스닥100은 금리와 경기 소식에 가장 크게 반응해요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "미국 반도체",
+   "lesson": "반도체는 지수보다 두 배쯤 크게 움직여요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "나스닥100 3배",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 하루 움직임을 세 배로 키워요. 급락장에선 순식간에 크게 잃어요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "금",
+   "default": true,
+   "lesson": "금은 불안할 때 오르는 경우가 많지만, 현금이 급할 땐 같이 팔리기도 해요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금",
+   "lesson": "현금은 안 다치지만 반등도 못 타요."
+  },
+  {
+   "id": "healer_sqqq",
+   "role": "healer",
+   "instrument": "SQQQ",
+   "blend": {
+    "SQQQ": 0.25,
+    "BIL": 0.75
+   },
+   "name": "나스닥 인버스 3배",
+   "unlockLevel": 10,
+   "lesson": "이 자리의 25%만 3배 인버스에 뒀어요. 급락하면 크게 벌고, 반등하면 크게 잃어요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "미국 배당주",
+   "default": true,
+   "lesson": "배당주는 급락 때 덜 빠지는 편이지만, 금융주 비중이 있어 은행 위기엔 흔들려요."
+  },
+  {
+   "id": "dealer_nqf",
+   "role": "dealer",
+   "instrument": "NQF",
+   "name": "나스닥100 선물 매수",
+   "chartOnly": true,
+   "lesson": "선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요."
+  },
+  {
+   "id": "dealer_call",
+   "role": "dealer",
+   "instrument": "QQQC",
+   "blend": {
+    "QQQC": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 콜옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 콜옵션을 사요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요."
+  },
+  {
+   "id": "healer_put",
+   "role": "healer",
+   "instrument": "QQQP",
+   "blend": {
+    "QQQP": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 풋옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요."
+  },
+  {
+   "id": "healer_nqfs",
+   "role": "healer",
+   "instrument": "NQFS",
+   "blend": {
+    "NQFS": 0.2,
+    "BIL": 0.8
+   },
+   "name": "나스닥100 선물 매도 + 현금",
+   "chartOnly": true,
+   "lesson": "선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 5,
+   "title": "물가 발표일 아침",
+   "hint": "1년 내내 물가에 맞아 온 시장이에요. 이번에도 높으면 바닥을 새로 쓸 수 있어요.",
+   "bull": "물가가 꺾이면 하루에 크게 튀어요. 인버스는 큰 손실이 나요.",
+   "bear": "또 높게 나오면 다시 빠져요."
+  }
+ ],
+ "bars": [
+  {
+   "t": "2022-11-03T16:00:00-04:00",
+   "label": "금리 인상 다음 날",
+   "prices": {
+    "QQQ": 260.49,
+    "TQQQ": 8.575,
+    "SOXX": 104.817,
+    "TLT": 95.83,
+    "SHY": 80.59,
+    "GLD": 151.81,
+    "BIL": 91.45,
+    "SQQQ": 1561.25,
+    "SCHD": 24.047,
+    "NQF": 100,
+    "NQFS": 100,
+    "QQQP": 9.094,
+    "QQQC": 9.949
+   }
+  },
+  {
+   "t": "2022-11-04T16:00:00-04:00",
+   "label": "고용 발표",
+   "prices": {
+    "QQQ": 264.68,
+    "TQQQ": 8.975,
+    "SOXX": 109.667,
+    "TLT": 94.22,
+    "SHY": 80.68,
+    "GLD": 156.47,
+    "BIL": 91.47,
+    "SQQQ": 1488.75,
+    "SCHD": 24.49,
+    "NQF": 108.0425,
+    "NQFS": 91.9575,
+    "QQQP": 7.134,
+    "QQQC": 12.15
+   }
+  },
+  {
+   "t": "2022-11-07T16:00:00-05:00",
+   "label": "선거 주간",
+   "prices": {
+    "QQQ": 267.59,
+    "TQQQ": 9.26,
+    "SOXX": 112.037,
+    "TLT": 93.28,
+    "SHY": 80.61,
+    "GLD": 155.85,
+    "BIL": 91.46,
+    "SQQQ": 1441.5,
+    "SCHD": 24.747,
+    "NQF": 113.9819,
+    "NQFS": 86.9024,
+    "QQQP": 5.593,
+    "QQQC": 13.433
+   }
+  },
+  {
+   "t": "2022-11-08T16:00:00-05:00",
+   "label": "중간선거",
+   "prices": {
+    "QQQ": 269.54,
+    "TQQQ": 9.46,
+    "SOXX": 114.503,
+    "TLT": 94.3,
+    "SHY": 80.69,
+    "GLD": 159.45,
+    "BIL": 91.47,
+    "SQQQ": 1410,
+    "SCHD": 25.017,
+    "NQF": 118.1349,
+    "NQFS": 83.736,
+    "QQQP": 4.796,
+    "QQQC": 14.557
+   }
+  },
+  {
+   "t": "2022-11-09T16:00:00-05:00",
+   "label": "선거 다음 날",
+   "prices": {
+    "QQQ": 263.32,
+    "TQQQ": 8.8,
+    "SOXX": 110.843,
+    "TLT": 94.61,
+    "SHY": 80.82,
+    "GLD": 158.65,
+    "BIL": 91.52,
+    "SQQQ": 1509.25,
+    "SCHD": 24.59,
+    "NQF": 104.5043,
+    "NQFS": 93.3976,
+    "QQQP": 6.91,
+    "QQQC": 10.424
+   }
+  },
+  {
+   "t": "2022-11-10T16:00:00-05:00",
+   "label": "10월 물가 발표",
+   "prices": {
+    "QQQ": 282.75,
+    "TQQQ": 10.725,
+    "SOXX": 122.313,
+    "TLT": 98.25,
+    "SHY": 81.26,
+    "GLD": 163.48,
+    "BIL": 91.53,
+    "SQQQ": 1177,
+    "SCHD": 25.573,
+    "NQF": 143.0604,
+    "NQFS": 58.9392,
+    "QQQP": 1.636,
+    "QQQC": 24.55
+   }
+  },
+  {
+   "t": "2022-11-11T16:00:00-05:00",
+   "label": "다음 날",
+   "prices": {
+    "QQQ": 287.96,
+    "TQQQ": 11.335,
+    "SOXX": 126.057,
+    "TLT": 97.89,
+    "SHY": 81.24,
+    "GLD": 164.56,
+    "BIL": 91.52,
+    "SQQQ": 1109.25,
+    "SCHD": 25.64,
+    "NQF": 156.2407,
+    "NQFS": 53.5091,
+    "QQQP": 0.96,
+    "QQQC": 29.057
+   }
+  },
+  {
+   "t": "2022-11-15T16:00:00-05:00",
+   "label": "랠리 이어짐",
+   "prices": {
+    "QQQ": 289.39,
+    "TQQQ": 11.48,
+    "SOXX": 128.29,
+    "TLT": 99.23,
+    "SHY": 81.25,
+    "GLD": 165.5,
+    "BIL": 91.54,
+    "SQQQ": 1091.75,
+    "SCHD": 25.577,
+    "NQF": 160.1201,
+    "NQFS": 52.1805,
+    "QQQP": 0.557,
+    "QQQC": 29.97
+   }
+  }
+ ],
+ "history": true
+}

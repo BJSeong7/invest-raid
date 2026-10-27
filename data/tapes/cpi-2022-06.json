@@ -1,0 +1,443 @@
+{
+ "id": "cpi-2022-06",
+ "title": "2022 자이언트 스텝",
+ "boss": "물가 불개미",
+ "bossSpecies": "fireant",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "source": "Yahoo Finance 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 61.3,
+  "note": "best single-decision path 2.33% -> 격파선 1.63%"
+ },
+ "event": {
+  "kind": "fomc",
+  "company": "미국 물가와 FOMC",
+  "ticker": "CPI-2022-06",
+  "logo": null,
+  "source": "Yahoo Finance 일별 종가 (2026-10-27 수집) · 공개 발표 자료",
+  "facts": [
+   {
+    "at": 2,
+    "label": "5월 소비자물가",
+    "value": "+8.6%",
+    "note": "41년 만에 가장 높음",
+    "good": false
+   },
+   {
+    "at": 5,
+    "label": "연준",
+    "value": "0.75%p 인상 → 1.50~1.75%",
+    "note": "1994년 이후 가장 큰 폭",
+    "good": false
+   },
+   {
+    "at": 6,
+    "label": "다음 날 QQQ",
+    "value": "−4.0%",
+    "good": false
+   }
+  ]
+ },
+ "briefing": "2022년 6월, 물가가 41년 만에 가장 높게 나오자 연준이 28년 만에 가장 큰 폭으로 금리를 올렸어요.",
+ "lesson": "금리 인상이 확정된 날은 오히려 올랐지만, 다음 날 경기 걱정에 더 크게 빠졌어요. 2022년엔 채권도 함께 약했어요.",
+ "concepts": [
+  {
+   "name": "자이언트 스텝",
+   "text": "보통 0.25%p씩 올리던 금리를 한 번에 0.75%p 올리는 걸 말해요."
+  },
+  {
+   "name": "주식과 채권이 같이 빠질 때",
+   "text": "물가 때문에 금리가 오르면 주식과 채권이 함께 약해져요. 2022년이 그랬어요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SQQQ": {
+   "name": "나스닥100 3배 인버스 (SQQQ)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "NQF": {
+   "name": "나스닥100 선물 매수 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "NQFS": {
+   "name": "나스닥100 선물 매도 (근사치)",
+   "kind": "future",
+   "currency": "USD"
+  },
+  "QQQP": {
+   "name": "QQQ 풋옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  },
+  "QQQC": {
+   "name": "QQQ 콜옵션 (모델 가격)",
+   "kind": "option",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "미국 장기채",
+   "default": true,
+   "lesson": "장기채는 금리가 내릴 것 같을 때 오르고, 오를 것 같을 때 떨어져요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "미국 단기채",
+   "lesson": "단기채는 거의 안 흔들리지만 크게 벌지도 않아요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "나스닥100",
+   "default": true,
+   "lesson": "나스닥100은 금리와 경기 소식에 가장 크게 반응해요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "미국 반도체",
+   "lesson": "반도체는 지수보다 두 배쯤 크게 움직여요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "나스닥100 3배",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 하루 움직임을 세 배로 키워요. 급락장에선 순식간에 크게 잃어요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "금",
+   "default": true,
+   "lesson": "금은 불안할 때 오르는 경우가 많지만, 현금이 급할 땐 같이 팔리기도 해요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금",
+   "lesson": "현금은 안 다치지만 반등도 못 타요."
+  },
+  {
+   "id": "healer_sqqq",
+   "role": "healer",
+   "instrument": "SQQQ",
+   "blend": {
+    "SQQQ": 0.25,
+    "BIL": 0.75
+   },
+   "name": "나스닥 인버스 3배",
+   "unlockLevel": 10,
+   "lesson": "이 자리의 25%만 3배 인버스에 뒀어요. 급락하면 크게 벌고, 반등하면 크게 잃어요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "미국 배당주",
+   "default": true,
+   "lesson": "배당주는 급락 때 덜 빠지는 편이지만, 금융주 비중이 있어 은행 위기엔 흔들려요."
+  },
+  {
+   "id": "dealer_nqf",
+   "role": "dealer",
+   "instrument": "NQF",
+   "name": "나스닥100 선물 매수",
+   "chartOnly": true,
+   "lesson": "선물은 증거금보다 훨씬 큰 금액이 움직여요. 여기서는 지수 등락의 5배로 계산했어요."
+  },
+  {
+   "id": "dealer_call",
+   "role": "dealer",
+   "instrument": "QQQC",
+   "blend": {
+    "QQQC": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 콜옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 콜옵션을 사요. 오르면 크게 벌고, 안 오르면 프리미엄만큼 잃어요."
+  },
+  {
+   "id": "healer_put",
+   "role": "healer",
+   "instrument": "QQQP",
+   "blend": {
+    "QQQP": 0.2,
+    "BIL": 0.8
+   },
+   "name": "QQQ 풋옵션 + 현금",
+   "chartOnly": true,
+   "lesson": "이 자리의 20%로 풋옵션을 사요. 떨어질 때 보험이 되고, 아무 일 없으면 프리미엄이 줄어요."
+  },
+  {
+   "id": "healer_nqfs",
+   "role": "healer",
+   "instrument": "NQFS",
+   "blend": {
+    "NQFS": 0.2,
+    "BIL": 0.8
+   },
+   "name": "나스닥100 선물 매도 + 현금",
+   "chartOnly": true,
+   "lesson": "선물 매도는 지수가 내리면 벌고 오르면 잃어요. 이 자리의 20%만 썼어요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 2,
+   "title": "물가 발표일 아침",
+   "hint": "오늘 5월 물가가 나와요. 시장은 물가가 정점을 찍었기를 바라고 있어요.",
+   "bull": "물가가 꺾이면 안도하며 올라요.",
+   "bear": "또 높게 나오면 금리를 더 크게 올릴 거라는 걱정에 크게 빠져요."
+  },
+  {
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ],
+   "bar": 5,
+   "title": "금리 결정일",
+   "hint": "이번 주 들어 0.75%p 인상 전망이 퍼졌어요. 이미 가격에 들어갔을까요?",
+   "bull": "다 알려진 결정이면 발표 날은 안도하며 오를 수 있어요.",
+   "bear": "경기 침체 걱정이 커지면 며칠 더 빠져요."
+  }
+ ],
+ "bars": [
+  {
+   "t": "2022-06-08T16:00:00-04:00",
+   "label": "물가 발표 이틀 전",
+   "prices": {
+    "QQQ": 307.64,
+    "TQQQ": 16.325,
+    "SOXX": 138.687,
+    "TLT": 114.1,
+    "SHY": 82.96,
+    "GLD": 172.78,
+    "BIL": 91.43,
+    "SQQQ": 1180,
+    "SCHD": 25.897,
+    "NQF": 100,
+    "NQFS": 100,
+    "QQQP": 10.739,
+    "QQQC": 11.749
+   }
+  },
+  {
+   "t": "2022-06-09T16:00:00-04:00",
+   "label": "유럽 긴축 예고",
+   "prices": {
+    "QQQ": 299.4,
+    "TQQQ": 14.995,
+    "SOXX": 134.547,
+    "TLT": 114.48,
+    "SHY": 82.9,
+    "GLD": 172.23,
+    "BIL": 91.44,
+    "SQQQ": 1275.75,
+    "SCHD": 25.423,
+    "NQF": 86.6077,
+    "NQFS": 113.3923,
+    "QQQP": 14.915,
+    "QQQC": 7.651
+   }
+  },
+  {
+   "t": "2022-06-10T16:00:00-04:00",
+   "label": "5월 물가 발표",
+   "prices": {
+    "QQQ": 288.84,
+    "TQQQ": 13.395,
+    "SOXX": 129.767,
+    "TLT": 113.77,
+    "SHY": 82.55,
+    "GLD": 174.54,
+    "BIL": 91.42,
+    "SQQQ": 1413,
+    "SCHD": 24.9,
+    "NQF": 71.3342,
+    "NQFS": 133.3893,
+    "QQQP": 21.774,
+    "QQQC": 3.917
+   }
+  },
+  {
+   "t": "2022-06-13T16:00:00-04:00",
+   "label": "약세장 진입",
+   "prices": {
+    "QQQ": 275.41,
+    "TQQQ": 11.54,
+    "SOXX": 122.28,
+    "TLT": 110.2,
+    "SHY": 82.13,
+    "GLD": 169.93,
+    "BIL": 91.43,
+    "SQQQ": 1605.25,
+    "SCHD": 24.193,
+    "NQF": 54.7503,
+    "NQFS": 164.3999,
+    "QQQP": 32.523,
+    "QQQC": 1.134
+   }
+  },
+  {
+   "t": "2022-06-14T16:00:00-04:00",
+   "label": "FOMC 1일차",
+   "prices": {
+    "QQQ": 275.91,
+    "TQQQ": 11.615,
+    "SOXX": 122.96,
+    "TLT": 108.81,
+    "SHY": 81.97,
+    "GLD": 168.57,
+    "BIL": 91.42,
+    "SQQQ": 1595.75,
+    "SCHD": 24.05,
+    "NQF": 55.2473,
+    "NQFS": 162.9076,
+    "QQQP": 32.021,
+    "QQQC": 1.099
+   }
+  },
+  {
+   "t": "2022-06-15T16:00:00-04:00",
+   "label": "자이언트 스텝",
+   "prices": {
+    "QQQ": 282.8,
+    "TQQQ": 12.45,
+    "SOXX": 125.073,
+    "TLT": 110.84,
+    "SHY": 82.29,
+    "GLD": 170.77,
+    "BIL": 91.43,
+    "SQQQ": 1479.25,
+    "SCHD": 24.13,
+    "NQF": 62.1455,
+    "NQFS": 142.567,
+    "QQQP": 25.974,
+    "QQQC": 1.909
+   }
+  },
+  {
+   "t": "2022-06-16T16:00:00-04:00",
+   "label": "다음 날 급락",
+   "prices": {
+    "QQQ": 271.39,
+    "TQQQ": 10.93,
+    "SOXX": 117.537,
+    "TLT": 111.72,
+    "SHY": 82.4,
+    "GLD": 172.69,
+    "BIL": 91.45,
+    "SQQQ": 1652.25,
+    "SCHD": 23.53,
+    "NQF": 49.6087,
+    "NQFS": 171.3274,
+    "QQQP": 36.081,
+    "QQQC": 0.571
+   }
+  },
+  {
+   "t": "2022-06-17T16:00:00-04:00",
+   "label": "주말 전",
+   "prices": {
+    "QQQ": 274.69,
+    "TQQQ": 11.335,
+    "SOXX": 118.013,
+    "TLT": 112.08,
+    "SHY": 82.38,
+    "GLD": 171.27,
+    "BIL": 91.44,
+    "SQQQ": 1599,
+    "SCHD": 23.437,
+    "NQF": 52.6248,
+    "NQFS": 160.911,
+    "QQQP": 32.98,
+    "QQQC": 0.738
+   }
+  },
+  {
+   "t": "2022-06-24T16:00:00-04:00",
+   "label": "반등",
+   "prices": {
+    "QQQ": 294.61,
+    "TQQQ": 13.99,
+    "SOXX": 124.3,
+    "TLT": 112.56,
+    "SHY": 82.64,
+    "GLD": 170.09,
+    "BIL": 91.45,
+    "SQQQ": 1275.25,
+    "SCHD": 24.337,
+    "NQF": 71.7061,
+    "NQFS": 102.5662,
+    "QQQP": 15.409,
+    "QQQC": 2.851
+   }
+  }
+ ],
+ "history": true
+}
