@@ -113,10 +113,10 @@ const PER_EMP = (() => { const e = Object.fromEntries(EMP); return REV.filter(([
 const CATS = [
   { id: 'cap', name: '시가총액', q: n => `${n}의 시가총액은`, up: '더 높다', dn: '더 낮다', rows: CAPS.map(c => [c[0], c[1], c[2]]), fmt: capText, ratio: true },
   { id: 'rev', name: '1년 매출', q: n => `${n}의 1년 매출은`, up: '더 많다', dn: '더 적다', rows: REV, fmt: capText, ratio: true },
-  { id: 'emp', name: '임직원 수', q: n => `${n}의 임직원은`, up: '더 많다', dn: '더 적다', rows: EMP, fmt: v => `${v.toLocaleString('ko-KR')}명`, ratio: true },
-  { id: 'store', name: '매장 수', q: n => `${n}의 매장은`, up: '더 많다', dn: '더 적다', rows: STORES, fmt: v => `${v.toLocaleString('ko-KR')}곳`, ratio: true },
+  { id: 'emp', name: '임직원 수', q: n => `${n}의 임직원은`, up: '더 많다', dn: '더 적다', rows: EMP, fmt: v => `${Math.round(v).toLocaleString('ko-KR')}명`, ratio: true },
+  { id: 'store', name: '매장 수', q: n => `${n}의 매장은`, up: '더 많다', dn: '더 적다', rows: STORES, fmt: v => `${Math.round(v).toLocaleString('ko-KR')}곳`, ratio: true },
   { id: 'found', name: '창업 연도', q: n => `${n}${josa(n, '은', '는')} 창업이`, up: '더 최근', dn: '더 먼저', rows: FOUNDED, fmt: v => `${v}년`, ratio: false },
-  { id: 'peremp', name: '직원 1명당 매출', q: n => `${n}의 직원 1명당 매출은`, up: '더 많다', dn: '더 적다', rows: PER_EMP, fmt: v => v >= 1000 ? `${(v / 1000).toFixed(1)}백만 달러` : `${v}천 달러`, ratio: true },
+  { id: 'peremp', name: '직원 1명당 매출', q: n => `${n}의 직원 1명당 매출은`, up: '더 많다', dn: '더 적다', rows: PER_EMP, fmt: v => `${Math.round(v / 10).toLocaleString('ko-KR')}만 달러`, ratio: true },
 ];
 function runHiLo(host, onEnd) {
   const box = host.querySelector('.mg-pick');
@@ -160,17 +160,22 @@ function runSizeUp(host, onEnd) {
   // number questions from the same tables (log slider), plus chart questions from real tapes (linear slider)
   const numQ = () => { const cat = pick(CATS.filter(c => c.id !== 'found')), row = pick(cat.rows), vals = cat.rows.map(r => r[1]);
     const lo = Math.min(...vals) / 2, hi = Math.max(...vals) * 2;
-    return { kind: 'log', text: `${row[0]}의 ${cat.name}${josa(cat.name, '은', '는')} 얼마나 될까요?`, sub: row[2] || cat.name, actual: row[1], lo, hi, fmt: cat.fmt }; };
-  const chartQ = () => { const t = pick(TAPES.filter(x => x.daily)), ps = t.bars.map(b => b.prices.QQQ), i0 = 0, i1 = ps.length - 1;
-    const peak = Math.max(...ps), trough = Math.min(...ps.slice(ps.indexOf(peak))), dd = 100 * (1 - trough / peak), tot = 100 * (ps[i1] / ps[i0] - 1);
+    // a reference the player can reason from: another company in the same table, ideally within 1/4x to 4x, never the answer itself
+    const near = cat.rows.filter(r => r !== row && r[1] / row[1] >= 0.25 && r[1] / row[1] <= 4), ref = pick(near.length ? near : cat.rows.filter(r => r !== row));
+    return { kind: 'log', text: `${row[0]}의 ${cat.name}${josa(cat.name, '은', '는')} 얼마나 될까요?`, sub: row[2] || cat.name, hint: `참고로 ${ref[0]}${josa(ref[0], '은', '는')} ${cat.fmt(ref[1])}이에요.`, actual: row[1], lo, hi, fmt: cat.fmt }; };
+  const stats = t => { const ps = t.bars.map(b => b.prices.QQQ), peak = Math.max(...ps), trough = Math.min(...ps.slice(ps.indexOf(peak))); return { ps, dd: 100 * (1 - trough / peak), tot: 100 * (ps.at(-1) / ps[0] - 1) }; };
+  const chartQ = () => { const daily = TAPES.filter(x => x.daily), t = pick(daily), { ps, dd, tot } = stats(t), i0 = 0, i1 = ps.length - 1;
+    const other = pick(daily.filter(x => x !== t)), os = stats(other), oname = other.title.replace(/ 레이드$/, '');
     const which = Math.random() < 0.5 && dd >= 2 ? 'dd' : 'tot';
     const w = 320, h = 110, mn = Math.min(...ps), mx = Math.max(...ps), pts = ps.map((p, i) => `${(i / (ps.length - 1) * (w - 16) + 8).toFixed(1)},${(h - 10 - (p - mn) / (mx - mn || 1) * (h - 20)).toFixed(1)}`).join(' ');
     const svg = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#24405F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    return which === 'dd' ? { kind: 'pct', text: `${t.title.replace(/ 레이드$/, '')} 때 나스닥100은 고점에서 얼마나 빠졌을까요?`, sub: `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)} · 눈금은 숨겼어요`, svg, actual: -dd, lo: -40, hi: 0, fmt: v => `${v.toFixed(1)}%` }
-      : { kind: 'pct', text: `${t.title.replace(/ 레이드$/, '')} 구간 전체에서 나스닥100은 몇 % 움직였을까요?`, sub: `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)} · 눈금은 숨겼어요`, svg, actual: tot, lo: -30, hi: 30, fmt: v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` }; };
+    const span = `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)} · 눈금은 숨겼어요`;
+    return which === 'dd' ? { kind: 'pct', text: `${t.title.replace(/ 레이드$/, '')} 때 나스닥100은 고점에서 얼마나 빠졌을까요?`, sub: span, hint: `참고로 ${oname} 때는 고점에서 ${os.dd.toFixed(1)}% 빠졌어요. 하루에 3% 넘게 빠지면 큰 날이에요.`, svg, actual: -dd, lo: -40, hi: 0, fmt: v => `${v.toFixed(1)}%` }
+      : { kind: 'pct', text: `${t.title.replace(/ 레이드$/, '')} 구간 전체에서 나스닥100은 몇 % 움직였을까요?`, sub: span, hint: `참고로 ${oname} 구간은 ${os.tot >= 0 ? '+' : ''}${os.tot.toFixed(1)}%였어요. 이 구간은 ${t.bars.length - 1}거래일이에요.`, svg, actual: tot, lo: -30, hi: 30, fmt: v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` }; };
   const qs = Array.from({ length: 8 }, (_, i) => i % 2 ? chartQ() : numQ());
   let q = 0, total = 0, cancelled = false;
-  const toVal = (Q, x) => Q.kind === 'log' ? Math.exp(Math.log(Q.lo) + (Math.log(Q.hi) - Math.log(Q.lo)) * x) : Q.lo + (Q.hi - Q.lo) * x;
+  const sig2 = v => { const m = Math.pow(10, Math.floor(Math.log10(v)) - 1); return Math.round(v / m) * m; };
+  const toVal = (Q, x) => Q.kind === 'log' ? sig2(Math.exp(Math.log(Q.lo) + (Math.log(Q.hi) - Math.log(Q.lo)) * x)) : Math.round((Q.lo + (Q.hi - Q.lo) * x) * 10) / 10;
   const toX = (Q, v) => Q.kind === 'log' ? (Math.log(v) - Math.log(Q.lo)) / (Math.log(Q.hi) - Math.log(Q.lo)) : (v - Q.lo) / (Q.hi - Q.lo);
   const points = (Q, g) => Q.kind === 'log' ? Math.max(0, Math.round(100 * (1 - Math.abs(Math.log10(g / Q.actual))))) : Math.max(0, Math.round(100 - Math.abs(g - Q.actual) * 8));
   function show() {
@@ -179,6 +184,7 @@ function runSizeUp(host, onEnd) {
     const Q = qs[q];
     box.innerHTML = `<div class="mg-q"><small class="mg-cat">${q + 1} / ${qs.length}</small><b>${Q.text}</b><small>${Q.sub}</small></div>
       ${Q.svg ? `<div class="mg-one">${Q.svg}</div>` : ''}
+      <div class="su-hint">💡 ${Q.hint}</div>
       <div class="su-guess"><b id="suVal">${Q.fmt(toVal(Q, .5))}</b></div>
       <input type="range" class="su-range" id="suRange" min="0" max="1000" value="500" aria-label="추정값">
       <div class="su-ends"><span>${Q.fmt(Q.lo)}</span><span>${Q.fmt(Q.hi)}</span></div>
