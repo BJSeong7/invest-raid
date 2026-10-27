@@ -356,12 +356,12 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .concepts summary::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--gold);border:2px solid #B9841A;flex-shrink:0}
 .concepts summary::-webkit-details-marker{display:none}
 .concepts p{margin:0;padding:0 12px 12px 30px;font-size:13px;color:var(--muted);line-height:1.6}
-.whatif{display:flex;flex-direction:column;gap:6px}
-.whatif div{display:grid;grid-template-columns:64px 1fr 76px;gap:8px;align-items:center;background:var(--panel2);border:1.5px solid var(--line);border-radius:var(--r2);padding:8px 10px;font-size:13px}
-.whatif .k{font-family:var(--display);font-size:14px;color:var(--muted)}
-.whatif .k.best{color:var(--green)} .whatif .k.worst{color:var(--red)} .whatif .k.me{color:var(--gold-dark)}
-.whatif .v{text-align:right;font-family:var(--display);font-size:17px}
-.whatif .lock{color:var(--orange);font-size:11px;margin-left:6px;font-family:var(--display)}
+.whatif{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.whatif .wi{display:flex;flex-direction:column;gap:2px;background:var(--panel2);border:1.5px solid var(--line);border-radius:var(--r2);padding:10px 12px;min-width:0}
+.whatif .wi small{font-family:var(--display);font-size:13px;color:var(--muted)}
+.whatif .wi.best small{color:var(--green)} .whatif .wi.worst small{color:var(--red)}
+.whatif .wi b{font-family:var(--display);font-weight:400;font-size:24px;line-height:1.1}
+.whatif .wi span{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* 리더보드 */
 .board{background:var(--panel2);border:2px solid var(--line);border-radius:var(--r2);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .board .hd{display:flex;flex-direction:column;gap:2px}
@@ -654,7 +654,7 @@ body.mode-chart{--bg:#F7F8FA;--panel:#fff;--panel2:#F2F4F6;--line:#E5E8EB;--edge
   background:#F7F8FA;color:#191F28}
 body.mode-chart::after{display:none}
 body.mode-chart *{box-shadow:none!important;text-shadow:none!important;-webkit-text-stroke:0!important}
-body.mode-chart .card,body.mode-chart .raid,body.mode-chart .role,body.mode-chart .chartbox,body.mode-chart .week-card,body.mode-chart .today-card,body.mode-chart .account,body.mode-chart .preset,body.mode-chart .radar-card,body.mode-chart .event-card,body.mode-chart .modal .box,body.mode-chart .stat,body.mode-chart .money-result,body.mode-chart .whatif div,body.mode-chart .concepts details,body.mode-chart .cp-role,body.mode-chart .skill,body.mode-chart .choices button,body.mode-chart .cp-money,body.mode-chart .cp-hint,body.mode-chart .coach .bubble,body.mode-chart .timer i{
+body.mode-chart .card,body.mode-chart .raid,body.mode-chart .role,body.mode-chart .chartbox,body.mode-chart .week-card,body.mode-chart .today-card,body.mode-chart .account,body.mode-chart .preset,body.mode-chart .radar-card,body.mode-chart .event-card,body.mode-chart .modal .box,body.mode-chart .stat,body.mode-chart .money-result,body.mode-chart .whatif .wi,body.mode-chart .concepts details,body.mode-chart .cp-role,body.mode-chart .skill,body.mode-chart .choices button,body.mode-chart .cp-money,body.mode-chart .cp-hint,body.mode-chart .coach .bubble,body.mode-chart .timer i{
   background:#fff;border:1px solid #E5E8EB;border-radius:12px}
 body.mode-chart .role{border-top:1px solid #E5E8EB}
 body.mode-chart .btn{background:#191F28;color:#fff;border:0;border-radius:10px;font-weight:700;font-size:16px;min-height:48px}
@@ -686,7 +686,7 @@ body.mode-chart .concepts summary::before{background:#191F28;border:0;width:6px;
 body.mode-chart .money-result b,body.mode-chart .money-top b,body.mode-chart .cp-money b,body.mode-chart .weight output,body.mode-chart .role .wctl output{font-family:var(--body);font-weight:700;color:#191F28}
 body.mode-chart .wbtn{background:#F2F4F6;border:0}
 body.mode-chart .toast{background:#191F28;font-family:var(--body);font-weight:600;font-size:15px;border-radius:10px}
-body.mode-chart .whatif .k,body.mode-chart .whatif .v{font-family:var(--body);font-weight:700}
+body.mode-chart .whatif .wi b,body.mode-chart .whatif .wi small{font-family:var(--body);font-weight:700}
 body.mode-chart .ret,body.mode-chart .delta{font-family:var(--body)}
 body.mode-chart .alloc,body.mode-chart .preset .mini-alloc,body.mode-chart .account .mini-alloc{border:0}
 body.mode-chart .enter{animation:none}
@@ -1024,7 +1024,7 @@ body.mode-chart .mg-sec{display:none}
         <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
         <div class="etf-card" id="rEtfCard" hidden></div>
         <div>
-          <div class="section-h" style="margin:0 0 8px"><h3 style="font-size:17px">같은 시장, 다른 선택이었다면</h3></div>
+          <div class="section-h" style="margin:0 0 8px"><h3 style="font-size:17px">다른 선택이었다면</h3></div>
           <div class="whatif" id="rWhatIf"></div>
         </div>
         <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
@@ -3193,13 +3193,9 @@ async function showResult() {
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
   const best = alts[0], worst = alts.at(-1), lvl = effectiveLevel();
-  const row = (k, cls, a, v) => `<div><span class="k ${cls}">${k}</span><span>${a}</span><span class="v" style="color:${v >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(v)}</span></div>`;
-  const lockNote = a => a.detail.unlockLevel && !skillOpen(a.detail) ? `<span class="lock">${lockLabel(a.detail)}</span>` : '';
-  $('#rWhatIf').innerHTML = [
-    row('내 선택', 'me', acts.some(a => a.type !== 'hold') ? '체크포인트 선택대로' : '끝까지 그대로', r.returnPct),
-    row('최고', 'best', best.label + lockNote(best), best.returnPct),
-    row('최악', 'worst', worst.label + lockNote(worst), worst.returnPct),
-  ].join('');
+  const short = a => { const m = a.label.split('에 '); return (m.length > 1 ? m.at(-1) : a.label).replace(/^.*?→\s*/, '') + (a.detail.unlockLevel && !skillOpen(a.detail) ? ' 🔒' : ''); };
+  const tile = (k, cls, a) => `<div class="wi ${cls}"><small>${k}</small><b style="color:${a.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(a.returnPct)}</b><span>${short(a)}</span></div>`;
+  $('#rWhatIf').innerHTML = tile('최고', 'best', best) + tile('최악', 'worst', worst);
   $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
   rChart?.remove(); rChart = new BattleChart($('#rChart'), currentTape, 'equity', { state: s, upto: currentTape.bars.length - 1 });
   $('#rChartLegend').innerHTML = rChart.legend();
@@ -3286,7 +3282,7 @@ const TIPS = {
   party: ['비중 = 포트폴리오, 상품 = 실제 ETF·채권·옵션. 처음엔 <b>프리셋 하나</b>만 고르고 출발해도 돼요.', 'startBattle'],
   battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
   cp: ['여기가 핵심. 선택지마다 <b>▲ 오르면 / ▼ 내리면 걸린 돈</b>이 적혀 있어요. 30초 안에 하나를 고르세요.', 'cpHoldBtn'],
-  result: ['<b>같은 시장, 다른 선택이었다면</b>이 복기예요. 최고 선택과 내 선택의 차이가 곧 배울 점이에요.', 'rWhatIf'],
+  result: ['<b>다른 선택이었다면</b> 이렇게 됐어요. 최고와 내 결과의 차이가 곧 배울 점이에요.', 'rWhatIf'],
 };
 function showTip(key) {
   if (profile.seenTutorial || profile.tips?.[key]) return;

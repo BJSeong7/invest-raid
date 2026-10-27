@@ -1483,13 +1483,9 @@ async function showResult() {
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
   const best = alts[0], worst = alts.at(-1), lvl = effectiveLevel();
-  const row = (k, cls, a, v) => `<div><span class="k ${cls}">${k}</span><span>${a}</span><span class="v" style="color:${v >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(v)}</span></div>`;
-  const lockNote = a => a.detail.unlockLevel && !skillOpen(a.detail) ? `<span class="lock">${lockLabel(a.detail)}</span>` : '';
-  $('#rWhatIf').innerHTML = [
-    row('내 선택', 'me', acts.some(a => a.type !== 'hold') ? '체크포인트 선택대로' : '끝까지 그대로', r.returnPct),
-    row('최고', 'best', best.label + lockNote(best), best.returnPct),
-    row('최악', 'worst', worst.label + lockNote(worst), worst.returnPct),
-  ].join('');
+  const short = a => { const m = a.label.split('에 '); return (m.length > 1 ? m.at(-1) : a.label).replace(/^.*?→\s*/, '') + (a.detail.unlockLevel && !skillOpen(a.detail) ? ' 🔒' : ''); };
+  const tile = (k, cls, a) => `<div class="wi ${cls}"><small>${k}</small><b style="color:${a.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(a.returnPct)}</b><span>${short(a)}</span></div>`;
+  $('#rWhatIf').innerHTML = tile('최고', 'best', best) + tile('최악', 'worst', worst);
   $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
   rChart?.remove(); rChart = new BattleChart($('#rChart'), currentTape, 'equity', { state: s, upto: currentTape.bars.length - 1 });
   $('#rChartLegend').innerHTML = rChart.legend();
@@ -1576,7 +1572,7 @@ const TIPS = {
   party: ['비중 = 포트폴리오, 상품 = 실제 ETF·채권·옵션. 처음엔 <b>프리셋 하나</b>만 고르고 출발해도 돼요.', 'startBattle'],
   battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
   cp: ['여기가 핵심. 선택지마다 <b>▲ 오르면 / ▼ 내리면 걸린 돈</b>이 적혀 있어요. 30초 안에 하나를 고르세요.', 'cpHoldBtn'],
-  result: ['<b>같은 시장, 다른 선택이었다면</b>이 복기예요. 최고 선택과 내 선택의 차이가 곧 배울 점이에요.', 'rWhatIf'],
+  result: ['<b>다른 선택이었다면</b> 이렇게 됐어요. 최고와 내 결과의 차이가 곧 배울 점이에요.', 'rWhatIf'],
 };
 function showTip(key) {
   if (profile.seenTutorial || profile.tips?.[key]) return;
