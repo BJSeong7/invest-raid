@@ -1618,7 +1618,7 @@ function renderSkillList(box, role, lvl) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'skill'; if (s.lesson) b.title = s.lesson;
     b.setAttribute('aria-pressed', String(party.skills[role] === s.id));
     const ins = currentTape.instruments[s.instrument];
-    const tick = s.blend ? Object.entries(s.blend).map(([id, w]) => `${id === 'BIL' || id === 'KCASH' ? '현금' : id} ${Math.round(w * 100)}%`).join(' + ') : s.instrument;
+    const tick = s.blend ? Object.entries(s.blend).map(([id, w]) => `${id === 'BIL' || id === 'KCASH' ? '현금' : id.endsWith('_P') ? id.slice(0, -2) + ' 풋' : id} ${Math.round(w * 100)}%`).join(' + ') : s.instrument;
     b.innerHTML = `<span style="min-width:0"><span class="n">${s.name}</span><span class="i">${tick}</span></span>${locked ? `<span class="lock">Lv.${s.unlockLevel}</span>` : ''}`;
     b.addEventListener('click', () => {
       if (locked) { sfx.back(); toast(`Lv.${s.unlockLevel}에 열려요. 상단 '체험 모드'로 미리 써볼 수 있어요.`, 2600); return; }
