@@ -359,7 +359,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .whatif .wi small{font-family:var(--display);font-size:13px;color:var(--muted)}
 .whatif .wi.best small{color:var(--green)} .whatif .wi.worst small{color:var(--red)}
 .whatif .wi b{font-family:var(--display);font-weight:400;font-size:24px;line-height:1.1}
-.whatif .wi span{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.whatif .wi em{font-style:normal;font-size:12px;color:var(--muted)}
+.whatif .wi span{font-size:13.5px;color:var(--ink);line-height:1.4}
+.whatif .wi b{margin-top:auto;padding-top:4px}
 /* 리더보드 */
 .board{background:var(--panel2);border:2px solid var(--line);border-radius:var(--r2);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .board .hd{display:flex;flex-direction:column;gap:2px}
@@ -1028,9 +1030,9 @@ body.mode-chart .mg-sec{display:none}
         <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
           <button class="btn" id="nextRaidBtn" type="button">다음 레이드 ▶</button>
           <div class="row">
-            <button class="btn secondary" id="retryBtn" type="button">다시 도전</button>
-            <button class="btn secondary" id="otherBtn" type="button" data-chart="이벤트 목록">레이드 목록</button>
-            <button class="btn secondary" id="etfBtn" type="button">이번에 고른 상품</button>
+            <button class="btn secondary" id="retryBtn" type="button">↻ 파티 바꿔 다시</button>
+            <button class="btn secondary" id="otherBtn" type="button" data-chart="이벤트 목록">지도로</button>
+            <button class="btn secondary" id="etfBtn" type="button">내가 담은 상품</button>
           </div>
         </div>
       </div>

@@ -361,7 +361,9 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .whatif .wi small{font-family:var(--display);font-size:13px;color:var(--muted)}
 .whatif .wi.best small{color:var(--green)} .whatif .wi.worst small{color:var(--red)}
 .whatif .wi b{font-family:var(--display);font-weight:400;font-size:24px;line-height:1.1}
-.whatif .wi span{font-size:13px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.whatif .wi em{font-style:normal;font-size:12px;color:var(--muted)}
+.whatif .wi span{font-size:13.5px;color:var(--ink);line-height:1.4}
+.whatif .wi b{margin-top:auto;padding-top:4px}
 /* 리더보드 */
 .board{background:var(--panel2);border:2px solid var(--line);border-radius:var(--r2);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .board .hd{display:flex;flex-direction:column;gap:2px}
@@ -1030,9 +1032,9 @@ body.mode-chart .mg-sec{display:none}
         <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
           <button class="btn" id="nextRaidBtn" type="button">다음 레이드 ▶</button>
           <div class="row">
-            <button class="btn secondary" id="retryBtn" type="button">다시 도전</button>
-            <button class="btn secondary" id="otherBtn" type="button" data-chart="이벤트 목록">레이드 목록</button>
-            <button class="btn secondary" id="etfBtn" type="button">이번에 고른 상품</button>
+            <button class="btn secondary" id="retryBtn" type="button">↻ 파티 바꿔 다시</button>
+            <button class="btn secondary" id="otherBtn" type="button" data-chart="이벤트 목록">지도로</button>
+            <button class="btn secondary" id="etfBtn" type="button">내가 담은 상품</button>
           </div>
         </div>
       </div>
@@ -3193,9 +3195,15 @@ async function showResult() {
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
   const best = alts[0], worst = alts.at(-1), lvl = effectiveLevel();
-  const short = a => { const m = a.label.split('에 '); return (m.length > 1 ? m.at(-1) : a.label).replace(/^.*?→\s*/, '') + (a.detail.unlockLevel && !skillOpen(a.detail) ? ' 🔒' : ''); };
-  const tile = (k, cls, a) => `<div class="wi ${cls}"><small>${k}</small><b style="color:${a.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(a.returnPct)}</b><span>${short(a)}</span></div>`;
-  $('#rWhatIf').innerHTML = tile('최고', 'best', best) + tile('최악', 'worst', worst);
+  const ro = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 && c % 28 !== 8 ? '으로' : '로'; };
+  const moment = a => {
+    if (a.detail.type !== 'equip') return { when: '처음부터 끝까지', what: '아무것도 안 바꿨다면' };
+    const cp = (currentTape.checkpoints || []).find(c => c.bar === a.detail.bar), sk = currentTape.skills.find(k => k.id === a.detail.skill);
+    const who = charOf(a.detail.role).name, nm = sk?.name || '';
+    return { when: `${fmtBar(currentTape.bars[a.detail.bar].t)} ${cp?.title || ''}`.trim(), what: `${who}${josa(who, '을', '를')} ${nm}${ro(nm)} 바꿨다면${a.detail.unlockLevel > 1 && !skillOpen(sk || {}) ? ' 🔒' : ''}` };
+  };
+  const tile = (k, cls, a) => { const m = moment(a); return `<div class="wi ${cls}"><small>${k}</small><em>${m.when}</em><span>${m.what}</span><b style="color:${a.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(a.returnPct)}</b></div>`; };
+  $('#rWhatIf').innerHTML = tile('최고의 순간', 'best', best) + tile('최악의 순간', 'worst', worst);
   $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
   rChart?.remove(); rChart = new BattleChart($('#rChart'), currentTape, 'equity', { state: s, upto: currentTape.bars.length - 1 });
   $('#rChartLegend').innerHTML = rChart.legend();

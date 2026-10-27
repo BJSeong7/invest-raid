@@ -1483,9 +1483,15 @@ async function showResult() {
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
   const best = alts[0], worst = alts.at(-1), lvl = effectiveLevel();
-  const short = a => { const m = a.label.split('에 '); return (m.length > 1 ? m.at(-1) : a.label).replace(/^.*?→\s*/, '') + (a.detail.unlockLevel && !skillOpen(a.detail) ? ' 🔒' : ''); };
-  const tile = (k, cls, a) => `<div class="wi ${cls}"><small>${k}</small><b style="color:${a.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(a.returnPct)}</b><span>${short(a)}</span></div>`;
-  $('#rWhatIf').innerHTML = tile('최고', 'best', best) + tile('최악', 'worst', worst);
+  const ro = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 && c % 28 !== 8 ? '으로' : '로'; };
+  const moment = a => {
+    if (a.detail.type !== 'equip') return { when: '처음부터 끝까지', what: '아무것도 안 바꿨다면' };
+    const cp = (currentTape.checkpoints || []).find(c => c.bar === a.detail.bar), sk = currentTape.skills.find(k => k.id === a.detail.skill);
+    const who = charOf(a.detail.role).name, nm = sk?.name || '';
+    return { when: `${fmtBar(currentTape.bars[a.detail.bar].t)} ${cp?.title || ''}`.trim(), what: `${who}${josa(who, '을', '를')} ${nm}${ro(nm)} 바꿨다면${a.detail.unlockLevel > 1 && !skillOpen(sk || {}) ? ' 🔒' : ''}` };
+  };
+  const tile = (k, cls, a) => { const m = moment(a); return `<div class="wi ${cls}"><small>${k}</small><em>${m.when}</em><span>${m.what}</span><b style="color:${a.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(a.returnPct)}</b></div>`; };
+  $('#rWhatIf').innerHTML = tile('최고의 순간', 'best', best) + tile('최악의 순간', 'worst', worst);
   $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
   rChart?.remove(); rChart = new BattleChart($('#rChart'), currentTape, 'equity', { state: s, upto: currentTape.bars.length - 1 });
   $('#rChartLegend').innerHTML = rChart.legend();
