@@ -1483,15 +1483,18 @@ async function showResult() {
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
   const best = alts[0], worst = alts.at(-1), lvl = effectiveLevel();
-  const ro = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 && c % 28 !== 8 ? '으로' : '로'; };
-  const moment = a => {
-    if (a.detail.type !== 'equip') return { when: '처음부터 끝까지', what: '아무것도 안 바꿨다면' };
-    const cp = (currentTape.checkpoints || []).find(c => c.bar === a.detail.bar), sk = currentTape.skills.find(k => k.id === a.detail.skill);
-    const who = charOf(a.detail.role).name, nm = sk?.name || '';
-    return { when: `${fmtBar(currentTape.bars[a.detail.bar].t)} ${cp?.title || ''}`.trim(), what: `${who}${josa(who, '을', '를')} ${nm}${ro(nm)} 바꿨다면${a.detail.unlockLevel > 1 && !skillOpen(sk || {}) ? ' 🔒' : ''}` };
+  // my own battle: the single turn that added the most to my return, and the one that took the most
+  const turns = s.log.filter(t => t.boss && Number.isFinite(t.boss.portfolioRet));
+  const up = turns.reduce((m, t) => t.boss.portfolioRet > (m?.boss.portfolioRet ?? -Infinity) ? t : m, null);
+  const dn = turns.reduce((m, t) => t.boss.portfolioRet < (m?.boss.portfolioRet ?? Infinity) ? t : m, null);
+  const tile = (k, cls, t) => {
+    if (!t) return '';
+    const sign = t.boss.portfolioRet >= 0 ? 1 : -1;
+    const who = ROLES.filter(r => t.roles[r]).map(r => ({ r, c: t.roles[r].weight / 100 * t.roles[r].ret })).sort((x, y) => sign * (y.c - x.c))[0];
+    const by = who ? `${charOf(who.r).name} ${t.roles[who.r].skillName} ${fmtPct(t.roles[who.r].ret)}` : '';
+    return `<div class="wi ${cls}"><small>${k}</small><em>${fmtBar(t.t)}${t.label ? ' · ' + t.label : ''}</em><b style="color:${t.boss.portfolioRet >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(t.boss.portfolioRet)}</b><span>${by}</span></div>`;
   };
-  const tile = (k, cls, a) => { const m = moment(a); return `<div class="wi ${cls}"><small>${k}</small><em>${m.when}</em><span>${m.what}</span><b style="color:${a.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(a.returnPct)}</b></div>`; };
-  $('#rWhatIf').innerHTML = tile('최고의 순간', 'best', best) + tile('최악의 순간', 'worst', worst);
+  $('#rWhatIf').innerHTML = up && dn && up !== dn ? tile('가장 크게 번 순간', 'best', up) + tile('가장 크게 잃은 순간', 'worst', dn) : tile('가장 크게 움직인 순간', 'best', up || dn);
   $('#rConcepts').innerHTML = (currentTape.concepts || []).map((c, i) => `<details${i === 0 ? ' open' : ''}><summary>${c.name}</summary><p>${c.text}</p></details>`).join('');
   rChart?.remove(); rChart = new BattleChart($('#rChart'), currentTape, 'equity', { state: s, upto: currentTape.bars.length - 1 });
   $('#rChartLegend').innerHTML = rChart.legend();
@@ -1578,7 +1581,7 @@ const TIPS = {
   party: ['비중 = 포트폴리오, 상품 = 실제 ETF·채권·옵션. 처음엔 <b>프리셋 하나</b>만 고르고 출발해도 돼요.', 'startBattle'],
   battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
   cp: ['여기가 핵심. 선택지마다 <b>▲ 오르면 / ▼ 내리면 걸린 돈</b>이 적혀 있어요. 30초 안에 하나를 고르세요.', 'cpHoldBtn'],
-  result: ['<b>다른 선택이었다면</b> 이렇게 됐어요. 최고와 내 결과의 차이가 곧 배울 점이에요.', 'rWhatIf'],
+  result: ['<b>이번 판의 순간</b>은 내 수익률이 가장 크게 오르고 내린 때예요. 그때 누가 벌고 잃었는지 보세요.', 'rWhatIf'],
 };
 function showTip(key) {
   if (profile.seenTutorial || profile.tips?.[key]) return;
