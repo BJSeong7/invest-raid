@@ -14,7 +14,8 @@ export function calibrate(tape) {
   const base = defaultParty(tape);
   const alts = alternatives(tape, base);
   const best = Math.max(...alts.map(a => a.returnPct));
-  const bossHpPerPct = Math.min(80, Math.max(8, Math.round(100 / Math.max(0.8, best * 0.7) * 10) / 10));   // a good (not perfect) decision breaks the boss
+  const quick = !!tape.dailyRaid;   // a 3-turn daily raid moves less, so its boss is smaller
+  const bossHpPerPct = Math.min(quick ? 500 : 80, Math.max(8, Math.round(100 / Math.max(quick ? 0.2 : 0.8, best * 0.7) * 10) / 10));   // a good (not perfect) decision breaks the boss
   tape.scale = { ...(tape.scale || {}), bossHpPerPct, hpPerPct: tape.scale?.hpPerPct ?? (tape.daily ? 8 : 12) };
   tape.scale.note = `best single-decision path ${best.toFixed(2)}% -> 격파선 ${(100 / bossHpPerPct).toFixed(2)}%`;
   return tape;

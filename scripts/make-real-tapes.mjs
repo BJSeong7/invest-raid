@@ -41,7 +41,8 @@ const CLOSES = {
 2026-10-20,717.63
 2026-10-21,725.20
 2026-10-22,704.47
-2026-10-23,704.40`),
+2026-10-23,704.40
+2026-10-26,712.20`),
   TQQQ: D(`2026-09-08,72.16
 2026-09-09,71.55
 2026-09-10,69.21
@@ -75,7 +76,8 @@ const CLOSES = {
 2026-10-20,70.41
 2026-10-21,72.61
 2026-10-22,66.42
-2026-10-23,66.29`),
+2026-10-23,66.29
+2026-10-26,68.43`),
   TLT: D(`2026-09-08,82.20
 2026-09-09,81.73
 2026-09-10,80.78
@@ -109,7 +111,8 @@ const CLOSES = {
 2026-10-20,80.13
 2026-10-21,80.24
 2026-10-22,81.74
-2026-10-23,81.34`),
+2026-10-23,81.34
+2026-10-26,81.68`),
   SHY: D(`2026-09-08,81.66
 2026-09-09,81.63
 2026-09-10,81.42
@@ -143,7 +146,8 @@ const CLOSES = {
 2026-10-20,81.30
 2026-10-21,81.29
 2026-10-22,81.52
-2026-10-23,81.50`),
+2026-10-23,81.50
+2026-10-26,81.48`),
   GLD: D(`2026-09-08,399.72
 2026-09-09,403.35
 2026-09-10,396.36
@@ -177,7 +181,8 @@ const CLOSES = {
 2026-10-20,377.65
 2026-10-21,378.95
 2026-10-22,369.00
-2026-10-23,366.61`),
+2026-10-23,366.61
+2026-10-26,367.82`),
   BIL: D(`2026-09-08,91.46
 2026-09-09,91.46
 2026-09-10,91.47
@@ -211,7 +216,8 @@ const CLOSES = {
 2026-10-20,91.58
 2026-10-21,91.60
 2026-10-22,91.60
-2026-10-23,91.63`),
+2026-10-23,91.63
+2026-10-26,91.64`),
   SCHD: D(`2026-09-08,34.41
 2026-09-09,34.09
 2026-09-10,33.99
@@ -245,7 +251,8 @@ const CLOSES = {
 2026-10-20,34.69
 2026-10-21,34.66
 2026-10-22,35.40
-2026-10-23,35.27`),
+2026-10-23,35.27
+2026-10-26,35.30`),
   SOXX: D(`2026-09-08,528.40
 2026-09-09,532.00
 2026-09-10,517.43
@@ -279,7 +286,8 @@ const CLOSES = {
 2026-10-20,500.01
 2026-10-21,510.36
 2026-10-22,475.69
-2026-10-23,478.20`),
+2026-10-23,478.20
+2026-10-26,491.83`),
   PSQ: D(`2026-09-08,25.78
 2026-09-09,25.87
 2026-09-10,26.16
@@ -412,6 +420,46 @@ const capex = buildTape({
   ],
 }, key => CLOSES[key]);
 
+/* ------------------------------------------------------------------ */
+/* 오늘의 한 판: 어제까지 최근 사흘, 3턴. 매일 아침 전날 종가로 새로 만든다. */
+/* ------------------------------------------------------------------ */
+const daily = buildTape({
+  ...common,
+  id: 'daily-2026-10-27', title: '오늘의 한 판', boss: '꼬마 뼈다귀', bossSpecies: 'skeleton', dailyRaid: true, playDate: '2026-10-27',
+  event: { kind: 'daily', company: '어제까지 사흘', ticker: 'DAILY', logo: null, source: SOURCE,
+    facts: [
+      { at: 0, label: '출발', value: '10/21(수) 메타 실적 발표일 종가' },
+      { at: 1, label: '10/22(목) 나스닥100', value: '−2.86%', note: 'AI 투자 비용 우려', good: false },
+      { at: 3, label: '10/26(월) 반도체', value: '+2.85%', note: '이틀 만에 반등', good: true },
+    ] },
+  briefing: '어제까지 사흘을 1분 만에 다시 해 봐요. 메타 실적 충격으로 시작해서, 어제 반도체가 반등했어요.',
+  lesson: '급락 다음 날 바로 팔면 반등을 놓치기 쉬워요. 어제 반도체는 이틀 만에 낙폭의 절반을 되찾았어요.',
+  concepts: [
+    { name: '급락 뒤 반등', text: '크게 빠진 다음엔 싸다고 보는 사람이 들어와요. 다만 언제 올지는 아무도 몰라요.' },
+    { name: '나눠 담기', text: '급락 날 장기채와 배당주가 덜 빠져서 파티를 받쳐 줬어요.' },
+  ],
+  cuts: [cut('2026-10-21', '메타 실적 발표일'), cut('2026-10-22', 'AI 투자 비용 우려'), cut('2026-10-23', '주말 전'), cut('2026-10-26', '어제')],
+  instruments: {
+    QQQ: { name: '나스닥100 ETF (QQQ)', kind: 'etf', bars: 'QQQ' }, TQQQ: { name: '나스닥100 3배 레버리지 (TQQQ)', kind: 'lev', bars: 'TQQQ' }, SOXX: { name: '미국 반도체 ETF (SOXX)', kind: 'etf', bars: 'SOXX' },
+    TLT: { name: '미국 장기채 ETF (TLT)', kind: 'etf', bars: 'TLT' }, SHY: { name: '미국 단기채 ETF (SHY)', kind: 'etf', bars: 'SHY' },
+    GLD: { name: '금 ETF (GLD)', kind: 'etf', bars: 'GLD' }, BIL: { name: '초단기 국채 ETF (BIL)', kind: 'cash', bars: 'BIL' },
+    SCHD: { name: '미국 배당 ETF (SCHD)', kind: 'etf', bars: 'SCHD' },
+  },
+  skills: [
+    { id: 'tank_tlt', role: 'tank', instrument: 'TLT', name: '장기채 방패', default: true, lesson: '급락 날 장기채는 거의 안 빠졌어요.' },
+    { id: 'tank_shy', role: 'tank', instrument: 'SHY', name: '단기채 벽', lesson: '단기채는 거의 안 흔들려요.' },
+    { id: 'dealer_qqq', role: 'dealer', instrument: 'QQQ', name: '질주 베기', default: true, lesson: '나스닥100은 목요일에 크게 빠지고 어제 일부 되찾았어요.' },
+    { id: 'dealer_soxx', role: 'dealer', instrument: 'SOXX', name: '반도체 돌격', lesson: '반도체는 어제 하루 +2.85%로 가장 크게 반등했어요.' },
+    { id: 'dealer_tqqq', role: 'dealer', instrument: 'TQQQ', name: '폭주 돌진', unlockLevel: 5, lesson: '3배 레버리지는 반등 하루에 +3.2%를 벌었어요.' },
+    { id: 'healer_gld', role: 'healer', instrument: 'GLD', name: '황금 가호', default: true, lesson: '금은 사흘 동안 거의 제자리였어요.' },
+    { id: 'healer_cash', role: 'healer', instrument: 'BIL', name: '현금 대기', lesson: '현금은 안 다치지만 반등도 못 타요.' },
+    { id: 'support_schd', role: 'support', instrument: 'SCHD', name: '배당의 축복', default: true, lesson: '배당주는 급락 날에도 덜 빠졌어요.' },
+  ],
+  checkpoints: [
+    { bar: 2, title: '어제 장이 열리기 전', hint: '목요일에 크게 빠지고 금요일은 제자리였어요. 어제는 어떻게 됐을까요?', bull: '이틀 쉬었으니 싸다고 보는 사람이 들어올 수 있어요. 반도체가 가장 크게 튈 수 있어요.', bear: '불안이 이어지면 한 번 더 빠질 수 있어요. 현금이나 단기채로 막아요.', allow: ['hold', 'equip', 'rebalance'] },
+  ],
+}, key => CLOSES[key]);
+
 mkdirSync('data/tapes', { recursive: true });
-for (const t of [fomc, capex]) { calibrate(t); writeFileSync(`data/tapes/${t.id}.json`, JSON.stringify(t, null, 1)); console.log(t.id, t.scale.note); }
-console.log('wrote', [fomc, capex].map(t => `${t.id} (${t.bars.length - 1} turns)`).join(', '));
+for (const t of [fomc, capex, daily]) { calibrate(t); writeFileSync(`data/tapes/${t.id}.json`, JSON.stringify(t, null, 1)); console.log(t.id, t.scale.note); }
+console.log('wrote', [fomc, capex, daily].map(t => `${t.id} (${t.bars.length - 1} turns)`).join(', '));

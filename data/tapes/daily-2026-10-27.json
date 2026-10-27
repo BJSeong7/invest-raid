@@ -1,0 +1,235 @@
+{
+ "id": "daily-2026-10-27",
+ "title": "오늘의 한 판",
+ "boss": "꼬마 뼈다귀",
+ "bossSpecies": "skeleton",
+ "market": "US",
+ "example": false,
+ "settled": true,
+ "daily": true,
+ "dailyRaid": true,
+ "playDate": "2026-10-27",
+ "source": "stockanalysis.com 일별 종가 (2026-10-27 수집)",
+ "scale": {
+  "hpPerPct": 8,
+  "bossHpPerPct": 427.1,
+  "note": "best single-decision path 0.33% -> 격파선 0.23%"
+ },
+ "event": {
+  "kind": "daily",
+  "company": "어제까지 사흘",
+  "ticker": "DAILY",
+  "logo": null,
+  "source": "stockanalysis.com 일별 종가 (2026-10-27 수집)",
+  "facts": [
+   {
+    "at": 0,
+    "label": "출발",
+    "value": "10/21(수) 메타 실적 발표일 종가"
+   },
+   {
+    "at": 1,
+    "label": "10/22(목) 나스닥100",
+    "value": "−2.86%",
+    "note": "AI 투자 비용 우려",
+    "good": false
+   },
+   {
+    "at": 3,
+    "label": "10/26(월) 반도체",
+    "value": "+2.85%",
+    "note": "이틀 만에 반등",
+    "good": true
+   }
+  ]
+ },
+ "briefing": "어제까지 사흘을 1분 만에 다시 해 봐요. 메타 실적 충격으로 시작해서, 어제 반도체가 반등했어요.",
+ "lesson": "급락 다음 날 바로 팔면 반등을 놓치기 쉬워요. 어제 반도체는 이틀 만에 낙폭의 절반을 되찾았어요.",
+ "concepts": [
+  {
+   "name": "급락 뒤 반등",
+   "text": "크게 빠진 다음엔 싸다고 보는 사람이 들어와요. 다만 언제 올지는 아무도 몰라요."
+  },
+  {
+   "name": "나눠 담기",
+   "text": "급락 날 장기채와 배당주가 덜 빠져서 파티를 받쳐 줬어요."
+  }
+ ],
+ "instruments": {
+  "QQQ": {
+   "name": "나스닥100 ETF (QQQ)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TQQQ": {
+   "name": "나스닥100 3배 레버리지 (TQQQ)",
+   "kind": "lev",
+   "currency": "USD"
+  },
+  "SOXX": {
+   "name": "미국 반도체 ETF (SOXX)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "TLT": {
+   "name": "미국 장기채 ETF (TLT)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "SHY": {
+   "name": "미국 단기채 ETF (SHY)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "GLD": {
+   "name": "금 ETF (GLD)",
+   "kind": "etf",
+   "currency": "USD"
+  },
+  "BIL": {
+   "name": "초단기 국채 ETF (BIL)",
+   "kind": "cash",
+   "currency": "USD"
+  },
+  "SCHD": {
+   "name": "미국 배당 ETF (SCHD)",
+   "kind": "etf",
+   "currency": "USD"
+  }
+ },
+ "skills": [
+  {
+   "id": "tank_tlt",
+   "role": "tank",
+   "instrument": "TLT",
+   "name": "미국 장기채",
+   "default": true,
+   "lesson": "급락 날 장기채는 거의 안 빠졌어요."
+  },
+  {
+   "id": "tank_shy",
+   "role": "tank",
+   "instrument": "SHY",
+   "name": "미국 단기채",
+   "lesson": "단기채는 거의 안 흔들려요."
+  },
+  {
+   "id": "dealer_qqq",
+   "role": "dealer",
+   "instrument": "QQQ",
+   "name": "나스닥100",
+   "default": true,
+   "lesson": "나스닥100은 목요일에 크게 빠지고 어제 일부 되찾았어요."
+  },
+  {
+   "id": "dealer_soxx",
+   "role": "dealer",
+   "instrument": "SOXX",
+   "name": "미국 반도체",
+   "lesson": "반도체는 어제 하루 +2.85%로 가장 크게 반등했어요."
+  },
+  {
+   "id": "dealer_tqqq",
+   "role": "dealer",
+   "instrument": "TQQQ",
+   "name": "나스닥100 3배",
+   "unlockLevel": 5,
+   "lesson": "3배 레버리지는 반등 하루에 +3.2%를 벌었어요."
+  },
+  {
+   "id": "healer_gld",
+   "role": "healer",
+   "instrument": "GLD",
+   "name": "금",
+   "default": true,
+   "lesson": "금은 사흘 동안 거의 제자리였어요."
+  },
+  {
+   "id": "healer_cash",
+   "role": "healer",
+   "instrument": "BIL",
+   "name": "현금",
+   "lesson": "현금은 안 다치지만 반등도 못 타요."
+  },
+  {
+   "id": "support_schd",
+   "role": "support",
+   "instrument": "SCHD",
+   "name": "미국 배당주",
+   "default": true,
+   "lesson": "배당주는 급락 날에도 덜 빠졌어요."
+  }
+ ],
+ "checkpoints": [
+  {
+   "bar": 2,
+   "title": "어제 장이 열리기 전",
+   "hint": "목요일에 크게 빠지고 금요일은 제자리였어요. 어제는 어떻게 됐을까요?",
+   "bull": "이틀 쉬었으니 싸다고 보는 사람이 들어올 수 있어요. 반도체가 가장 크게 튈 수 있어요.",
+   "bear": "불안이 이어지면 한 번 더 빠질 수 있어요. 현금이나 단기채로 막아요.",
+   "allow": [
+    "hold",
+    "equip",
+    "rebalance"
+   ]
+  }
+ ],
+ "bars": [
+  {
+   "t": "2026-10-21T16:00:00-04:00",
+   "label": "메타 실적 발표일",
+   "prices": {
+    "QQQ": 725.2,
+    "TQQQ": 72.61,
+    "SOXX": 510.36,
+    "TLT": 80.24,
+    "SHY": 81.29,
+    "GLD": 378.95,
+    "BIL": 91.6,
+    "SCHD": 34.66
+   }
+  },
+  {
+   "t": "2026-10-22T16:00:00-04:00",
+   "label": "AI 투자 비용 우려",
+   "prices": {
+    "QQQ": 704.47,
+    "TQQQ": 66.42,
+    "SOXX": 475.69,
+    "TLT": 81.74,
+    "SHY": 81.52,
+    "GLD": 369,
+    "BIL": 91.6,
+    "SCHD": 35.4
+   }
+  },
+  {
+   "t": "2026-10-23T16:00:00-04:00",
+   "label": "주말 전",
+   "prices": {
+    "QQQ": 704.4,
+    "TQQQ": 66.29,
+    "SOXX": 478.2,
+    "TLT": 81.34,
+    "SHY": 81.5,
+    "GLD": 366.61,
+    "BIL": 91.63,
+    "SCHD": 35.27
+   }
+  },
+  {
+   "t": "2026-10-26T16:00:00-04:00",
+   "label": "어제",
+   "prices": {
+    "QQQ": 712.2,
+    "TQQQ": 68.43,
+    "SOXX": 491.83,
+    "TLT": 81.68,
+    "SHY": 81.48,
+    "GLD": 367.82,
+    "BIL": 91.64,
+    "SCHD": 35.3
+   }
+  }
+ ]
+}

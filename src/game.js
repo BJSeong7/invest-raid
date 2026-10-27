@@ -192,7 +192,8 @@ function renderSelect() {
   renderHome();
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
-  const real = TAPES.filter(t => !t.example).slice().reverse(), examples = TAPES.filter(t => t.example);
+  const real = TAPES.filter(t => !t.example && !t.dailyRaid).slice().reverse(), examples = TAPES.filter(t => t.example);
+  renderRhythm();
   [...real, ...examples].forEach(t => {
     const best = profile.plays[t.id]?.best;
     const b = document.createElement('button'); b.type = 'button'; b.className = 'raid';
@@ -210,6 +211,25 @@ function renderSelect() {
       <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)}</span></div><span class="small muted">보스 ${u.boss}</span></div>`;
     $('#raidsUpcoming').appendChild(d);
   });
+}
+
+/* ---------- rhythm: a short raid every day, a boss every week, a class change every few weeks ---------- */
+function renderRhythm() {
+  const t = TAPES.find(x => x.dailyRaid), done = t && profile.plays[t.id]?.count;
+  const tc = $('#todayCard');
+  if (t) {
+    tc.hidden = false; tc.classList.toggle('done', !!done);
+    tc.innerHTML = `<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
+      <div class="tx"><small>오늘의 한 판 · 3턴</small><b>${done ? '오늘 판을 끝냈어요' : '어제까지 사흘, 1분이면 끝나요'}</b><span>${done ? `내일 아침에 새 판이 열려요. 최고 ${profile.plays[t.id].best}` : `${t.boss}${josa(t.boss, '이', '가')} 기다리고 있어요`}</span></div>
+      <span class="go">${done ? '다시 하기' : '시작'}</span>`;
+    tc.onclick = async () => { unlock(); sfx.select(); await openBrief(t.id); openParty(); };
+  } else tc.hidden = true;
+  const now = Date.now(), up = UPCOMING.map(u => ({ ...u, t: Date.parse(u.date) })).filter(u => u.t > now).sort((a, b) => a.t - b.t)[0];
+  const wc = $('#weekCard');
+  if (up) { const days = Math.ceil((up.t - now) / 86400000), d = new Date(up.t + 9 * 3600000);
+    wc.innerHTML = `<img src="${portrait(bossUnit(up.species))}" alt="" class="pf">
+      <div class="tx"><small>이번 주 보스</small><b>${up.boss}</b><span>${up.title}</span></div>
+      <span class="dday"><b>${days <= 0 ? '오늘' : 'D-' + days}</b><small>${WD[d.getUTCDay()]}요일</small></span>`; }
 }
 
 /* ---------- event facts (what a brokerage user expects to see next to the chart) ---------- */
