@@ -445,8 +445,8 @@ function partyType(p = party) {
   return [`주식 ${stock}%`, `나머지 ${100 - stock}%는 채권, 금, 현금이에요.`];
 }
 function mixBarHTML(p = party) {
-  const mix = partyMix(p);
-  return `<div class="mixbar">${mix.map(([c, v]) => `<i style="width:${v}%;background:${MIX_COLOR[c]}"></i>`).join('')}</div><div class="mixleg">${mix.map(([c, v]) => `<span><i style="background:${MIX_COLOR[c]}"></i>${c} ${v}%</span>`).join('')}</div>`;
+  const mix = partyMix(p), pool = 100 - ROLES.reduce((a, r) => a + p.weights[r], 0);
+  return `<div class="mixbar">${mix.map(([c, v]) => `<i style="width:${v}%;background:${MIX_COLOR[c]}"></i>`).join('')}${pool > 0 ? `<i class="pool-seg" style="width:${pool}%"></i>` : ''}</div><div class="mixleg">${mix.map(([c, v]) => `<span><i style="background:${MIX_COLOR[c]}"></i>${c} ${v}%</span>`).join('')}</div>`;
 }
 /** a small tag only for products that work differently from plain holdings */
 function skillStatChips(sk) { const c = skillParts(sk).map(([id]) => assetClass(id)).find(c => ['레버리지', '하락 베팅', '콜옵션', '선물'].includes(c)); return c ? `<span class="stchip" style="--tc:${MIX_COLOR[c]}">${c}</span>` : ''; }
@@ -596,13 +596,11 @@ function matchPreset() {
 }
 function renderPresets() {
   const cur = matchPreset() || (presetKey === 'account' && (() => { const a = accountParty(); return ROLES.every(r => party.weights[r] === a.weights[r] && party.skills[r] === a.skills[r]); })() ? 'account' : null);
-  const acc = $('#accountBtn'); if (acc) { acc.setAttribute('aria-pressed', String(cur === 'account')); const a = accountParty(); acc.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${a.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); acc.querySelector('.hold').textContent = '샘플 계좌 · ' + SAMPLE_ACCOUNT.map(h => `${h.name.split(' ')[0]} ${h.pct}`).join(' · '); }
-  $$('.preset').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.preset === cur)); const pr = PRESETS[b.dataset.preset]; b.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${pr.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); });
+  const acc = $('#accountBtn'); if (acc) { acc.setAttribute('aria-pressed', String(cur === 'account')); const a = accountParty(); acc.querySelector('.hold').textContent = '샘플 계좌 · ' + SAMPLE_ACCOUNT.map(h => `${h.name.split(' ')[0]} ${h.pct}`).join(' · '); }
+  $$('.preset').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.preset === cur)); });
 }
 function renderPartyMeta() {
-  const [type, desc] = partyType();
   $('#partyRadar').innerHTML = mixBarHTML();
-  $('#partyType').textContent = type; $('#partyTypeDesc').textContent = desc;
   renderPresets();
 }
 function openParty() {
@@ -617,7 +615,7 @@ function renderPartyScreen() {
     const m = ROLE_META[role], c = charOf(role);
     const card = document.createElement('div'); card.className = 'role'; card.style.setProperty('--rc', ROLE_COLOR[role]);
     card.innerHTML = `<img src="${cutArt(heroUnit(role))}" alt="${c.name}">
-      <h3>${c.name} <small>${ROLE_DESC[role]}</small></h3>
+      <h3>${c.name}</h3>
       <div class="wctl"><button type="button" class="wbtn" data-w="${role}" data-d="-5" aria-label="${c.name} 비중 줄이기">−</button><output id="o-${role}">${party.weights[role]}%</output><button type="button" class="wbtn" data-w="${role}" data-d="5" aria-label="${c.name} 비중 늘리기">+</button></div>
       <div class="skills" id="sk-${role}"></div>`;
     $('#roles').appendChild(card);
@@ -655,17 +653,12 @@ function stepWeight(w, role, d) {
     if (!donor) return; w[donor] -= 5; w[role] += 5;
   } else if (w[role] >= 5) w[role] -= 5;
 }
-function allocHTML(w) {
-  const pool = 100 - ROLES.reduce((a, r) => a + w[r], 0);
-  return ROLES.map(r => `<i style="width:${w[r]}%;background:${ROLE_COLOR[r]}" title="${charOf(r).name} ${w[r]}%"></i>`).join('') + (pool > 0 ? `<i class="pool-seg" style="width:${pool}%" title="미배정 ${pool}%"></i>` : '');
-}
 function renderSum() {
   const sum = ROLES.reduce((a, r) => a + party.weights[r], 0), pool = 100 - sum;
   const el = $('#sumTxt'); el.innerHTML = pool > 0 ? `<span class="pool">남은 비중 ${pool}%</span>` : '비중 100%'; el.classList.toggle('bad', sum !== 100);
-  $('#alloc').innerHTML = allocHTML(party.weights);
   $('#startBattle').disabled = sum !== 100;
   $$('.wbtn[data-d="-5"]').forEach(b => { b.disabled = party.weights[b.dataset.w] <= 0; });
-  if (sum === 100 && $('#partyRadar')) renderPartyMeta();
+  if ($('#partyRadar')) renderPartyMeta();
 }
 
 /* ------------------------------------------------------------------ */

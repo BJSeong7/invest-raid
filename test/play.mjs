@@ -166,7 +166,7 @@ try {
   await phone.click('.stage[data-tape="fomc-2026-10-29"]'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; });
   const ov2 = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(ov2 <= 0, 'no horizontal overflow on party screen at 390px (' + ov2 + ')');
-  await shot(phone, '7-phone-party');
+  await phone.waitForTimeout(700); await shot(phone, '7-phone-party');
   await phone.evaluate(() => window.__rpg.setSpeed(4));
   await phone.click('[data-preset="balanced"]');
   const t0 = Date.now();

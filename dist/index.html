@@ -109,7 +109,7 @@ img.pf{border-radius:50%;object-fit:cover;border:2px solid var(--gold);backgroun
 /* ---- party setup ---- */
 .roles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 @media (max-width:820px){.roles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:560px){.roles{grid-template-columns:1fr}.role img{max-width:110px}}
+@media (max-width:560px){.roles{grid-template-columns:1fr}}
 .role{background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px;border-top:6px solid var(--rc);box-shadow:0 4px 0 var(--edge)}
 .role img{height:160px;width:auto;align-self:center;filter:drop-shadow(0 8px 8px rgba(20,30,10,.3))}
 .role h3{font-size:20px;display:flex;justify-content:space-between;align-items:baseline;color:var(--navy)}
@@ -125,11 +125,16 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .skill .i{color:var(--muted);font-size:12px;display:block}
 .skill .lock{font-size:11px;color:var(--orange);white-space:nowrap;flex-shrink:0;font-family:var(--display)}
 .skill:disabled{opacity:.55;cursor:not-allowed}
-.party-top{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:stretch}
+.party-top{display:block}
+.party-meta{display:flex;flex-direction:column;gap:10px}
+.mixrow{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:14px;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 14px}
+.mixrow .sum{font-family:var(--display);font-size:16px;color:var(--navy);white-space:nowrap}
+.mixrow .sum.bad{color:var(--red)}
+@media (max-width:520px){.mixrow{grid-template-columns:1fr}}
 .party-meta{display:flex;flex-direction:column;gap:8px;min-width:0}
 .presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 @media (max-width:620px){.presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.preset{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px;cursor:pointer;box-shadow:0 3px 0 var(--edge)}
+.preset{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 12px;cursor:pointer;box-shadow:0 3px 0 var(--edge)}
 .preset b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--navy)}
 .preset span{font-size:12px;color:var(--muted)}
 .preset .mini-alloc{display:flex;width:100%;height:8px;border-radius:4px;overflow:hidden;margin-top:4px;border:1px solid var(--line)}
@@ -148,8 +153,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .radar-card{display:flex;align-items:center;gap:10px;background:var(--panel2);border:2px solid var(--line);border-radius:var(--r);padding:8px 14px 8px 6px;min-width:300px}
 .radar-card .ptype{font-family:var(--display);font-size:24px;color:var(--navy);display:block}
 .radar-card p{margin:2px 0 0;max-width:180px;line-height:1.45}
-#partyRadar{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;padding-left:8px}
-.mixbar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:#EFE7D3}
+#partyRadar{min-width:0;display:flex;flex-direction:column;gap:6px}
+.mixbar{display:flex;height:12px;border-radius:7px;overflow:hidden;background:#EFE7D3}
 .mixbar i{display:block;height:100%}
 .mixleg{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted)}
 .mixleg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:0}
@@ -883,6 +888,7 @@ body.mode-chart .mg-sec{display:none}
 .ec-bar i{background:var(--blue)}.ec-bar em{background:#8EA0B8}
 .ec-bar.mine{height:16px;font-size:11px;margin-top:2px}.ec-bar.mine i{background:#6FA2FF}.ec-bar.mine em{background:#B9C4D4}
 .ec-face p{margin:4px 0 0;font-size:13px;color:var(--ink);line-height:1.55}
+@media (max-width:560px){.roles{grid-template-columns:1fr}.roles .role{display:grid;grid-template-columns:72px 1fr;column-gap:12px;row-gap:8px;align-items:center;text-align:left}.roles .role>img{grid-row:1/3;height:84px!important;max-width:72px;object-fit:contain}.roles .role>h3{grid-column:2}.roles .role>.wctl{grid-column:2}.roles .role>.skills{grid-column:1/-1;width:100%}.roles .role>h3,.roles .role>.wctl{justify-content:flex-start}}
 </style>
 
 <div class="wrap">
@@ -960,16 +966,15 @@ body.mode-chart .mg-sec{display:none}
     <div class="party-top">
       <div class="party-meta">
         <h2 style="font-size:28px;color:var(--navy)" data-chart="포트폴리오 정하기">파티 짜기</h2>
-        <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><span class="hold"></span></span><i class="mini-alloc"></i></button>
+        <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><span class="hold"></span></span></button>
         <div class="presets" role="group" aria-label="추천 편성">
-          <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>기본 배분</b><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>주식 적게</b><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="aggro" aria-pressed="false"><b>주식 많이</b><i class="mini-alloc"></i></button>
-          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>풋옵션·금 포함</b><i class="mini-alloc"></i></button>
+          <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>기본 배분</b></button>
+          <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>주식 적게</b></button>
+          <button type="button" class="preset" data-preset="aggro" aria-pressed="false"><b>주식 많이</b></button>
+          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>풋옵션·금 포함</b></button>
         </div>
-        <div class="sumrow"><div class="sum" id="sumTxt">100 / 100</div><div class="alloc" id="alloc"></div></div>
+        <div class="mixrow"><div class="sum" id="sumTxt">비중 100%</div><div id="partyRadar"></div></div>
       </div>
-      <div class="radar-card"><div id="partyRadar"></div><div><b id="partyType" class="ptype"></b><p id="partyTypeDesc" class="small muted"></p></div></div>
     </div>
     <details class="card more" id="partyDetail" open><summary>직접 조정</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
     <div class="row" style="justify-content:space-between">
@@ -2157,8 +2162,8 @@ function partyType(p = party) {
   return [`주식 ${stock}%`, `나머지 ${100 - stock}%는 채권, 금, 현금이에요.`];
 }
 function mixBarHTML(p = party) {
-  const mix = partyMix(p);
-  return `<div class="mixbar">${mix.map(([c, v]) => `<i style="width:${v}%;background:${MIX_COLOR[c]}"></i>`).join('')}</div><div class="mixleg">${mix.map(([c, v]) => `<span><i style="background:${MIX_COLOR[c]}"></i>${c} ${v}%</span>`).join('')}</div>`;
+  const mix = partyMix(p), pool = 100 - ROLES.reduce((a, r) => a + p.weights[r], 0);
+  return `<div class="mixbar">${mix.map(([c, v]) => `<i style="width:${v}%;background:${MIX_COLOR[c]}"></i>`).join('')}${pool > 0 ? `<i class="pool-seg" style="width:${pool}%"></i>` : ''}</div><div class="mixleg">${mix.map(([c, v]) => `<span><i style="background:${MIX_COLOR[c]}"></i>${c} ${v}%</span>`).join('')}</div>`;
 }
 /** a small tag only for products that work differently from plain holdings */
 function skillStatChips(sk) { const c = skillParts(sk).map(([id]) => assetClass(id)).find(c => ['레버리지', '하락 베팅', '콜옵션', '선물'].includes(c)); return c ? `<span class="stchip" style="--tc:${MIX_COLOR[c]}">${c}</span>` : ''; }
@@ -2308,13 +2313,11 @@ function matchPreset() {
 }
 function renderPresets() {
   const cur = matchPreset() || (presetKey === 'account' && (() => { const a = accountParty(); return ROLES.every(r => party.weights[r] === a.weights[r] && party.skills[r] === a.skills[r]); })() ? 'account' : null);
-  const acc = $('#accountBtn'); if (acc) { acc.setAttribute('aria-pressed', String(cur === 'account')); const a = accountParty(); acc.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${a.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); acc.querySelector('.hold').textContent = '샘플 계좌 · ' + SAMPLE_ACCOUNT.map(h => `${h.name.split(' ')[0]} ${h.pct}`).join(' · '); }
-  $$('.preset').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.preset === cur)); const pr = PRESETS[b.dataset.preset]; b.querySelector('.mini-alloc').innerHTML = ROLES.map(r => `<i style="width:${pr.weights[r]}%;background:${ROLE_COLOR[r]}"></i>`).join(''); });
+  const acc = $('#accountBtn'); if (acc) { acc.setAttribute('aria-pressed', String(cur === 'account')); const a = accountParty(); acc.querySelector('.hold').textContent = '샘플 계좌 · ' + SAMPLE_ACCOUNT.map(h => `${h.name.split(' ')[0]} ${h.pct}`).join(' · '); }
+  $$('.preset').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.preset === cur)); });
 }
 function renderPartyMeta() {
-  const [type, desc] = partyType();
   $('#partyRadar').innerHTML = mixBarHTML();
-  $('#partyType').textContent = type; $('#partyTypeDesc').textContent = desc;
   renderPresets();
 }
 function openParty() {
@@ -2329,7 +2332,7 @@ function renderPartyScreen() {
     const m = ROLE_META[role], c = charOf(role);
     const card = document.createElement('div'); card.className = 'role'; card.style.setProperty('--rc', ROLE_COLOR[role]);
     card.innerHTML = `<img src="${cutArt(heroUnit(role))}" alt="${c.name}">
-      <h3>${c.name} <small>${ROLE_DESC[role]}</small></h3>
+      <h3>${c.name}</h3>
       <div class="wctl"><button type="button" class="wbtn" data-w="${role}" data-d="-5" aria-label="${c.name} 비중 줄이기">−</button><output id="o-${role}">${party.weights[role]}%</output><button type="button" class="wbtn" data-w="${role}" data-d="5" aria-label="${c.name} 비중 늘리기">+</button></div>
       <div class="skills" id="sk-${role}"></div>`;
     $('#roles').appendChild(card);
@@ -2367,17 +2370,12 @@ function stepWeight(w, role, d) {
     if (!donor) return; w[donor] -= 5; w[role] += 5;
   } else if (w[role] >= 5) w[role] -= 5;
 }
-function allocHTML(w) {
-  const pool = 100 - ROLES.reduce((a, r) => a + w[r], 0);
-  return ROLES.map(r => `<i style="width:${w[r]}%;background:${ROLE_COLOR[r]}" title="${charOf(r).name} ${w[r]}%"></i>`).join('') + (pool > 0 ? `<i class="pool-seg" style="width:${pool}%" title="미배정 ${pool}%"></i>` : '');
-}
 function renderSum() {
   const sum = ROLES.reduce((a, r) => a + party.weights[r], 0), pool = 100 - sum;
   const el = $('#sumTxt'); el.innerHTML = pool > 0 ? `<span class="pool">남은 비중 ${pool}%</span>` : '비중 100%'; el.classList.toggle('bad', sum !== 100);
-  $('#alloc').innerHTML = allocHTML(party.weights);
   $('#startBattle').disabled = sum !== 100;
   $$('.wbtn[data-d="-5"]').forEach(b => { b.disabled = party.weights[b.dataset.w] <= 0; });
-  if (sum === 100 && $('#partyRadar')) renderPartyMeta();
+  if ($('#partyRadar')) renderPartyMeta();
 }
 
 /* ------------------------------------------------------------------ */
