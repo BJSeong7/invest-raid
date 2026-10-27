@@ -190,10 +190,7 @@ function toast(msg, ms = 1800) {
 /* ---------- 1. raid select ---------- */
 let currentTape = null, party = null;
 function renderSelect() {
-  $('#partyPreview').innerHTML = ROLES.map(r => { const h = hero(r); return `<div class="actor ${h.branch ? 'evo' : ''}" style="--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}"><img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span><b>${charOf(r).name}</b>${heroTitle(r)}</span></div>`; }).join('');
-  const tp = profile.totalPnl || 0, plays = Object.values(profile.plays || {}).reduce((a, p) => a + p.count, 0);
-  $('#homeMoney').innerHTML = plays ? `지금까지 <b class="ret ${tp >= 0 ? 'up' : 'down'} tabular">${fmtKRWd(tp)}</b>` : '첫 레이드를 기다리는 중';
-  $('#homeTeam').innerHTML = ROLES.map(r => statusWindowHTML(r)).join('');
+  renderHome();
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
   const real = TAPES.filter(t => !t.example).slice().reverse(), examples = TAPES.filter(t => t.example);
@@ -347,9 +344,39 @@ function statusWindowHTML(role, opts = {}) {
   const steps = Array.from({ length: STEPS }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('');
   return `<div class="stwin ${h.branch ? 'evo' : ''}" style="--rc:${ROLE_COLOR[role]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : 'transparent'}">
     <div class="sw-h"><img src="${portrait(heroUnit(role))}" alt=""><div><b>${charOf(role).name}</b><span>${heroTitle(role)}</span></div></div>
-    <div class="sw-st">${STAT_KEYS.map(k => `<span>${statIcon(k, 14)}<b class="tabular">${h.st[k]}</b>${opts.gains?.[k] ? `<em>+${opts.gains[k]}</em>` : ''}</span>`).join('')}</div>
+    <div class="sw-st">${STAT_KEYS.map(k => { const mx = Math.max(12, ...STAT_KEYS.map(x => h.st[x])); return `<div>${statIcon(k, 14)}<i><em style="width:${(h.st[k] / mx * 100).toFixed(1)}%;background:${STAT_COLOR[k]}"></em></i><b class="tabular">${h.st[k]}</b><u>${opts.gains?.[k] ? `+${opts.gains[k]}` : ''}</u></div>`; }).join('')}</div>
     <div class="sw-ev">${h.branch ? `<span class="done">전직 완료</span>` : `<span class="steps">${steps}</span><small>${!h.raids ? '레이드를 하면 자라요' : left ? `${KNUM(left)} 판 더 하면 전직` : '전직 준비 완료'}</small>`}</div></div>`;
 }
+/* ---------- home: the party on stage; tap one to see how it is growing ---------- */
+let homeSel = null;
+const LEAN = { atk: '공격 쪽으로', def: '단단한 쪽으로', ins: '신중한 쪽으로' };
+const BRANCH_ICON = { atk: 'atk', def: 'def', ins: 'ins' };
+function renderHome() {
+  if (!homeSel) homeSel = ROLES.filter(r => !hero(r).branch && hero(r).raids).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0] || 'dealer';
+  const plays = Object.values(profile.plays || {}).reduce((a, p) => a + p.count, 0), tp = profile.totalPnl || 0;
+  $('#homeChip').innerHTML = plays ? `레이드 ${plays}판 <i></i> 지금까지 <b class="${tp >= 0 ? 'up' : 'down'}">${tp >= 0 ? '+' : '−'}${wonWords(tp)}</b>` : '첫 레이드를 기다리고 있어요';
+  $('#homeCast').innerHTML = ROLES.map((r, i) => { const h = hero(r), sel = r === homeSel;
+    return `<button type="button" class="cast ${sel ? 'sel' : ''} ${h.branch ? 'evo' : ''}" data-role="${r}" style="--rc:${ROLE_COLOR[r]};--bc:${h.branch ? BRANCH_COLOR[h.branch] : ROLE_COLOR[r]};--d:${-i * .45}s" aria-pressed="${sel}">
+      <span class="tag"><b>${charOf(r).name}</b>${sel || h.branch ? `<small>${heroTitle(r)}</small>` : ''}</span>
+      <img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span class="ring"></span></button>`; }).join('');
+  $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); });
+  $('#heroSheet').innerHTML = heroSheetHTML(homeSel);
+}
+function heroSheetHTML(role) {
+  const h = hero(role), name = charOf(role).name, lead = h.branch || branchOf(h.st), started = h.raids > 0;
+  const max = Math.max(12, ...STAT_KEYS.map(k => h.st[k]));
+  const line = h.branch ? `${CLASSES[role][h.branch]}${josa(CLASSES[role][h.branch], '으로', '로')} 전직했어요.`
+    : !started ? '레이드에서 어떤 상품을 들었는지에 따라 성격이 달라져요.'
+    : `${LEAN[lead]} 자라고 있어요. 이대로면 <b style="color:${BRANCH_COLOR[lead]}">${CLASSES[role][lead]}</b>${josa(CLASSES[role][lead], '이', '가')} 돼요.`;
+  const left = raidsLeft(role), on = h.branch ? STEPS : Math.min(STEPS, Math.floor(heroPts(h) / EVO_PTS * STEPS));
+  return `<div class="hs-head" style="--rc:${ROLE_COLOR[role]}"><b>${name}</b><span>${heroTitle(role)}</span></div>
+    <p class="hs-line">${line}</p>
+    <div class="hs-stats">${STAT_KEYS.map(k => `<div class="hs-stat">${statIcon(k, 18)}<span>${STAT_LABEL[k]}</span><i><em style="width:${(h.st[k] / max * 100).toFixed(1)}%;background:${STAT_COLOR[k]}"></em></i><b class="tabular">${h.st[k]}</b></div>`).join('')}</div>
+    <div class="hs-path">${Object.keys(CLASSES[role]).map(br => { const known = h.branch === br || (started && lead === br);
+      return `<div class="${br === lead && started ? 'lead' : ''} ${h.branch && h.branch !== br ? 'off' : ''}" style="--bc:${BRANCH_COLOR[br]}">${statIcon(BRANCH_ICON[br], 16)}<span>${known ? CLASSES[role][br] : '???'}</span></div>`; }).join('')}</div>
+    <div class="hs-evo">${h.branch ? '<span class="done">전직 완료</span>' : `<span>전직까지</span><span class="feet">${Array.from({ length: STEPS }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('')}</span><small>${!started ? '' : left ? `${KNUM(left)} 판 더` : '다음 판에 전직'}</small>`}</div>`;
+}
+
 function nextBossSentence() {
   const now = Date.now(), up = UPCOMING.map(u => ({ ...u, t: Date.parse(u.date) })).filter(u => u.t > now).sort((a, b) => a.t - b.t)[0];
   if (!up) return '';
