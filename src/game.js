@@ -470,13 +470,13 @@ function skillStatChips(sk) { const st = skillStats(sk); return STAT_KEYS.filter
    checkpoint swap. At EVO_PTS total a hero changes class by its strongest stat group. */
 const EVO_PTS = 30, STEPS = 5;   // 전직 when a hero's four stats add up to EVO_PTS; heavier-weighted heroes get there first
 const CLASSES = {
-  tank: { def: '철벽 채권', atk: '돌격 채권', ins: '수호 채권' },
-  dealer: { def: '냉철한 성장주', atk: '폭주 성장주', ins: '신중한 성장주' },
-  healer: { def: '든든한 금고', atk: '연금술 금고', ins: '예언의 금고' },
-  support: { def: '뿌리 깊은 배당주', atk: '날쌘 배당주', ins: '파수꾼 배당주' },
+  tank: { def: '방어형 채권', atk: '공격형 채권', ins: '헤지형 채권' },
+  dealer: { def: '방어형 성장주', atk: '공격형 성장주', ins: '헤지형 성장주' },
+  healer: { def: '방어형 금·현금', atk: '공격형 금·현금', ins: '헤지형 금·현금' },
+  support: { def: '방어형 배당주', atk: '공격형 배당주', ins: '헤지형 배당주' },
 };
 const BRANCH_COLOR = { def: '#2F6BD0', atk: '#D6453F', ins: '#7458C9' };
-const STAT_GROW = { atk: '날카로워졌어요.', def: '단단해졌어요.', stab: '침착해졌어요.', ins: '신중해졌어요.' };
+const STAT_GROW = { atk: '공격이 올랐어요.', def: '방어가 올랐어요.', stab: '안정이 올랐어요.', ins: '헤지가 올랐어요.' };
 const josa = (word, a, b) => { const c = word.charCodeAt(word.length - 1) - 0xAC00; return c >= 0 && c <= 11171 && c % 28 ? a : b; };
 function hero(role) { profile.heroes = profile.heroes || {}; return profile.heroes[role] ||= { raids: 0, st: { atk: 0, def: 0, stab: 0, ins: 0 }, branch: null, last: 0 }; }
 const KNUM = n => ['', '한', '두', '세', '네', '다섯'][n] || String(n);
@@ -512,7 +512,7 @@ function statusWindowHTML(role, opts = {}) {
 }
 /* ---------- home: the party on stage; tap one to see how it is growing ---------- */
 let homeSel = null;
-const LEAN = { atk: '공격 쪽으로', def: '단단한 쪽으로', ins: '신중한 쪽으로' };
+const LEAN = { atk: '공격 쪽으로', def: '방어 쪽으로', ins: '헤지 쪽으로' };
 const BRANCH_ICON = { atk: 'atk', def: 'def', ins: 'ins' };
 function renderHome() {
   if (!homeSel) homeSel = ROLES.filter(r => !hero(r).branch && hero(r).raids).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0] || 'dealer';
