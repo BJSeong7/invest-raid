@@ -1310,8 +1310,11 @@ async function showCheckpoint(cp) {
     const moves = Object.keys(currentTape.instruments).filter(id => !/^(NQF|NQFS|QQQP|QQQC)$/.test(id) && bars[0].prices[id] > 0).map(id => ({ id, r: 100 * (bNow && bars[cp.bar - 1].prices[id] / bars[0].prices[id] - 1) })).sort((a, b) => b.r - a.r);
     const plain = id => ({ QQQ: '나스닥100', TQQQ: '나스닥 3배', SOXX: '반도체', TLT: '장기채', SHY: '단기채', GLD: '금', BIL: '현금', SQQQ: '인버스 3배', PSQ: '인버스', SCHD: '배당주', KBOND: '국고채', K200: '코스피200', K200L: '코스피 2배', KSEMI: '반도체', KGOLD: '금', KCASH: '현금', KDIV: '고배당', K200_P: '풋옵션', QQQ_P: '풋옵션' })[id] || id;
     const kindName = ev ? (ev.kind === 'earnings' ? '실적 발표' : ev.kind === 'fomc' ? '금리 결정' : ev.kind === 'crisis' ? '시장 상황' : '지표 발표') : '시장 상황';
-    $('#cpFacts').innerHTML = `<div class="cpf-h"><b>${shown.length ? `지금까지 나온 ${kindName}` : `${kindName}은 아직 안 나왔어요`}</b><small>${ev?.company || ''}</small></div>
-      ${shown.length ? `<div class="cpf-list">${shown.map(f => `<div class="cpf ${f.good === true ? 'good' : f.good === false ? 'bad' : ''}"><small>${f.label}</small><b>${f.value}</b>${f.note ? `<em>${f.note}</em>` : ''}</div>`).join('')}</div>`
+    const lead = shown[0], rest = shown.slice(1);
+    $('#cpFacts').innerHTML = `<div class="cpf-h"><b>${shown.length ? `${kindName} 결과` : `${kindName}은 아직 안 나왔어요`}</b><small>${ev?.company || ''}</small></div>
+      ${lead ? `<div class="cpf-lead ${lead.good === true ? 'good' : lead.good === false ? 'bad' : ''}"><small>${lead.label}</small><b>${lead.value}</b>${lead.note ? `<em>${lead.note}</em>` : ''}</div>` : ''}
+      ${rest.length ? `<div class="cpf-list">${rest.map(f => `<div class="cpf ${f.good === true ? 'good' : f.good === false ? 'bad' : ''}"><small>${f.label}</small><b>${f.value}</b>${f.note ? `<em>${f.note}</em>` : ''}</div>`).join('')}</div>`
+        : shown.length ? ''
         : `<div class="cpf-list">${known.slice(0, 2).map(f => `<div class="cpf"><small>${f.label}</small><b>${f.value}</b></div>`).join('')}</div>`}
       <div class="cpf-mkt"><div class="big ${sinceStart >= 0 ? 'up' : 'down'}"><small>${plain(mainI)} · 시작부터 지금까지</small><b>${fmtPct(sinceStart)}</b><em>직전 구간 ${fmtPct(lastBar)}</em></div>
         <div class="others">${moves.filter(m => m.id !== mainI).slice(0, 6).map(m => `<span class="${m.r >= 0 ? 'up' : 'down'}">${plain(m.id)} <b>${fmtPct(m.r)}</b></span>`).join('')}</div></div>`;
