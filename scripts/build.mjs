@@ -3,7 +3,7 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync } fro
 
 const read = p => readFileSync(new URL('../' + p, import.meta.url), 'utf8');
 const stripImports = src => src.replace(/^import[^\n]*\n/gm, '');
-const inline = ['src/engine.js', 'src/audio.js', 'src/game.js'].map(p => `/* ===== ${p} ===== */\n` + stripImports(read(p))).join('\n');
+const inline = ['src/engine.js', 'src/audio.js', 'src/game.js', 'src/minigames.js'].map(p => `/* ===== ${p} ===== */\n` + stripImports(read(p))).join('\n');
 const tapes = readdirSync(new URL('../data/tapes/', import.meta.url)).filter(f => f.endsWith('.json') && f !== 'index.json')
   .map(f => JSON.parse(read('data/tapes/' + f))).sort((a, b) => a.bars[0].t.localeCompare(b.bars[0].t));
 

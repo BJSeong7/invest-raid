@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   ROLES, HP_PER_PCT, validateTape, ReplayAdapter, LiveAdapter, defaultParty, validateParty,
   barReturnPct, portfolioReturnPct, createBattle, step, intervene, runToEnd, settle, gradeOf,
-  applyExp, expNext, classifyCut, coachText, contribution, alternatives,
+  applyExp, expNext, classifyCut, coachText, contribution, alternatives, buildField, fieldScore, fieldRank,
 } from '../src/engine.js';
 
 const load = id => JSON.parse(readFileSync(new URL(`../data/tapes/${id}.json`, import.meta.url)));
@@ -202,4 +202,25 @@ test('alternatives enumerate single-action strategies and are sorted best first'
   assert.ok(alts.at(-1).label.includes('나스닥100 3배'), 'worst move is leverage before the drop: ' + alts.at(-1).label);
   const hold = alts.find(a => a.detail.type === 'hold');
   assert.ok(Math.abs(hold.returnPct - runToEnd(createBattle(fomc, defaultParty(fomc))).result.returnPct) < 1e-9);
+});
+
+test('leaderboard field is deterministic, finite and ranks the player 1-based', () => {
+  const tape = load('fomc-2026-09-16');
+  const field = buildField(tape, { lossLimit: 1.5 });
+  assert.ok(field.length >= 20, `field has ${field.length} entries`);
+  for (const e of field) {
+    assert.ok(Number.isFinite(e.returnPct) && Number.isFinite(e.alpha) && Number.isFinite(e.score), JSON.stringify(e));
+    assert.ok(e.stars >= 0 && e.stars <= 3 && /모험단/.test(e.name));
+    assert.ok(Math.abs(e.score - (e.stars * 100 + e.alpha * 10)) < 1e-9);
+  }
+  assert.deepEqual(buildField(tape, { lossLimit: 1.5 }), field, 'same tape, same field');
+  assert.equal(new Set(field.map(e => e.name)).size, field.length, 'names are unique');
+  assert.ok(buildField(tape, { unit: '포트폴리오' }).every(e => /포트폴리오/.test(e.name) && !/모험단/.test(e.name)));
+  // the player: default party, hold everywhere
+  const me = fieldScore(runToEnd(createBattle(tape, defaultParty(tape))), 1.5);
+  const { rank, total, pct } = fieldRank(field, me.score);
+  assert.ok(Number.isInteger(rank) && rank >= 1 && rank <= total && total === field.length + 1, `${rank}/${total}`);
+  assert.ok(pct >= 1 && pct <= 100);
+  assert.equal(fieldRank(field, Infinity).rank, 1);
+  assert.equal(fieldRank(field, -Infinity).rank, total);
 });

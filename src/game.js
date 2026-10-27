@@ -1,7 +1,7 @@
 // Game layer: screens, Phaser battle scene, cut-ins, checkpoint modal, chart, result.
 // The build concatenates engine.js + audio.js + this file into one inline module, so these imports
 // exist for editors/tests only and are stripped at build time.
-import { ROLES, ROLE_META, ReplayAdapter, defaultParty, validateParty, createBattle, step, intervene, nextCheckpoint, settle, coachText, contribution, applyExp, expNext, alternatives, gradeReason, benchmarkOf } from './engine.js';
+import { ROLES, ROLE_META, ReplayAdapter, defaultParty, validateParty, createBattle, step, intervene, nextCheckpoint, settle, coachText, contribution, applyExp, expNext, alternatives, gradeReason, benchmarkOf, buildField, fieldScore, fieldRank } from './engine.js';
 import { unlock, setMuted, isMuted, sfx, startBgm, stopBgm } from './audio.js';
 
 const TAPES = window.__TAPES__ || [];
@@ -252,6 +252,28 @@ function renderChapter() {
 function earnStars(s, r) {
   const minEq = Math.min(...s.history.map(h => h.equity)) - 100;
   return [r.alive > 0, r.alpha >= 0, minEq >= -starLoss(currentTape.id)];
+}
+/* ---------- 리더보드: the same tape, played by a fixed field of other parties (deterministic, cached per tape) ---------- */
+const FIELD_CACHE = new Map();
+function fieldFor(tape) {
+  const key = tape.id + (chartMode() ? ':chart' : '');
+  if (!FIELD_CACHE.has(key)) FIELD_CACHE.set(key, buildField(tape, { lossLimit: starLoss(tape.id), unit: chartMode() ? '포트폴리오' : '모험단' }));
+  return FIELD_CACHE.get(key);
+}
+function renderBoard(s) {
+  const host = $('#rBoard'); if (!host) return;
+  const field = fieldFor(currentTape), me = fieldScore(s, starLoss(currentTape.id));
+  const { rank, total, pct } = fieldRank(field, me.score);
+  const meName = chartMode() ? '내 포트폴리오' : '나';
+  const rows = [...field.map(e => ({ ...e, me: false })), { ...me, name: meName, me: true }]
+    .sort((a, b) => b.score - a.score || b.returnPct - a.returnPct || (a.me ? -1 : b.me ? 1 : 0));
+  const myI = rows.findIndex(x => x.me);
+  const shown = rows.slice(0, 5); if (myI >= 5) shown.push(null, rows[myI]);
+  const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.returnPct)}</span><span class="st">${'★'.repeat(e.stars)}<i>${'★'.repeat(3 - e.stars)}</i></span></div>` : `<div class="gap"><span class="rk">⋯</span></div>`;
+  host.innerHTML = `<div class="hd"><h3>이번 판 리더보드</h3><b>이번 판 ${total}${chartMode() ? '개 포트폴리오' : '명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
+    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${chartMode() ? '포트폴리오' : '모험단'}</span><span class="v">수익률</span><span class="st">별</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
+    <p class="small muted">같은 판을 플레이한 ${chartMode() ? '포트폴리오' : '모험단'} 기준 · 실제 서비스에서는 같은 주에 플레이한 고객이 올라요</p>`;
+  return { rank, total, pct };
 }
 /** in-game reward: every new star adds a point to each hero's leading stat; finishing a chapter adds more */
 function grantStars(id, flags) {
@@ -1409,6 +1431,7 @@ async function showResult() {
   rPriceChart?.remove(); rPriceChart = new BattleChart($('#rPriceChart'), currentTape, 'compare', { state: s, upto: currentTape.bars.length - 1, ids: battleInstruments().slice(0, 5) });
   $('#rPriceLegend').innerHTML = rPriceChart.legend();
   $('#coachAv').src = portrait('hero_healer');
+  renderBoard(s);
   // growth: plain sentences + status windows with this raid's gains
   const pnl = totalValue() - SEED, top = ROLES.map(role => { const g = growth.gains[role], k = STAT_KEYS.slice().sort((a, b) => g[b] - g[a])[0]; return { role, k, v: g[k] }; }).sort((a, b) => b.v - a.v)[0];
   const nm = charOf(top.role).name, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];

@@ -418,3 +418,81 @@ export function alternatives(tape, baseParty) {
   out.sort((a, b) => b.returnPct - a.returnPct);
   return out;
 }
+
+/* ------------------------------------------------------------------ */
+/* Leaderboard field: other parties that "played" the same tape        */
+/* ------------------------------------------------------------------ */
+
+/** star rule shared by the result screen and the field: finished alive, beat the market, worst point within the loss limit */
+export function fieldScore(state, lossLimit = 1.5) {
+  const r = state.result || settle(state);
+  const minEq = Math.min(...state.history.map(h => h.equity)) - 100;
+  const flags = [r.alive > 0, r.alpha >= 0, minEq >= -lossLimit];
+  const stars = flags.filter(Boolean).length;
+  return { returnPct: r.returnPct, alpha: r.alpha, stars, flags, score: stars * 100 + r.alpha * 10 };
+}
+
+/** the same formations the party screen offers as one-tap presets (weights only; skills are picked per tape) */
+export const FIELD_PRESETS = [
+  { key: 'balanced', weights: { tank: 25, dealer: 40, healer: 20, support: 15 }, pick: {} },
+  { key: 'safe', weights: { tank: 40, dealer: 20, healer: 20, support: 20 }, pick: { healer: ['cash'] } },
+  { key: 'aggro', weights: { tank: 10, dealer: 60, healer: 10, support: 20 }, pick: { dealer: ['lev', 'sector'], healer: ['cash'] } },
+  { key: 'hedge', weights: { tank: 30, dealer: 30, healer: 25, support: 15 }, pick: { healer: ['option', 'gold'] } },
+];
+const FIELD_NAMES = ['느긋한 모험단', '방패 모험단', '폭주 모험단', '초보 모험단 1호', '새벽 모험단', '우직한 모험단', '초보 모험단 2호', '바람 모험단', '돌다리 모험단', '불꽃 모험단', '초보 모험단 3호', '달빛 모험단', '거북이 모험단', '번개 모험단', '초보 모험단 4호', '숲속 모험단', '강철 모험단', '구름 모험단', '초보 모험단 5호', '호수 모험단', '성실한 모험단', '초보 모험단 6호', '파도 모험단', '별빛 모험단', '초보 모험단 7호', '산길 모험단', '모래 모험단', '초보 모험단 8호', '노을 모험단', '초보 모험단 9호'];
+
+/**
+ * buildField(tape, { lossLimit, unit }) -> [{ name, returnPct, alpha, stars, score }]
+ * Deterministic: preset formations × simple checkpoint policies, plus a 100%-dealer "몰빵" and a cash-heavy party.
+ * Only skills anyone can equip (no unlockLevel, not chartOnly). Duplicated runs (e.g. a tape with one checkpoint) are dropped.
+ */
+export function buildField(tape, { lossLimit = 1.5, unit = '모험단' } = {}) {
+  const open = tape.skills.filter(k => !k.unlockLevel && !k.chartOnly);
+  const byRole = role => open.filter(k => k.role === role);
+  const kindOf = k => tape.instruments[k.instrument]?.kind;
+  const nameOf = k => tape.instruments[k.instrument]?.name || '';
+  const by = { lev: k => kindOf(k) === 'lev', sector: k => /반도체/.test(nameOf(k)), cash: k => kindOf(k) === 'cash', option: k => !!k.blend || kindOf(k) === 'option', gold: k => /금/.test(nameOf(k)) };
+  const dflt = role => (byRole(role).find(k => k.default) || byRole(role)[0]);
+  const pick = (role, prefs) => { for (const p of prefs) { const hit = byRole(role).find(k => by[p]?.(k)); if (hit) return hit; } return dflt(role); };
+  if (ROLES.some(r => !dflt(r))) return [];
+  const bySkill = Object.fromEntries(tape.skills.map(s => [s.id, s]));
+  const base = pr => ({ weights: { ...pr.weights }, skills: Object.fromEntries(ROLES.map(r => [r, (pr.pick[r] ? pick(r, pr.pick[r]) : dflt(r)).id])), _bySkill: bySkill });
+  // the most defensive healer skill: cash if the tape has it, else the one that moved least over the tape
+  const vol = k => { let s = 0; for (let i = 1; i < tape.bars.length; i++) s += Math.abs(skillReturnPct(tape, k, i)); return s; };
+  const defensive = byRole('healer').find(k => kindOf(k) === 'cash') || byRole('healer').slice().sort((a, b) => vol(a) - vol(b))[0];
+  const cps = (tape.checkpoints || []).map(c => c.bar);
+  const first = cps[0], last = cps.at(-1);
+  const hold = () => ({ type: 'hold' });
+  const at = (bar, mk) => (cp, st) => (cp.bar === bar ? mk(st) : hold());
+  const equipDef = st => (st.party.skills.healer === defensive.id ? hold() : { type: 'equip', role: 'healer', skill: defensive.id });
+  const equipAlt = st => { const alt = byRole('dealer').find(k => k.id !== st.party.skills.dealer); return alt ? { type: 'equip', role: 'dealer', skill: alt.id } : hold(); };
+  const toTank = st => { const w = { ...st.party.weights }, mv = Math.min(20, w.dealer); if (!mv) return hold(); return { type: 'rebalance', weights: { ...w, dealer: w.dealer - mv, tank: w.tank + mv } }; };
+  const policies = [hold, at(first, equipDef), at(first, equipAlt), at(first, toTank), at(last, equipDef), at(last, equipAlt)];
+  const parties = [];
+  for (const pr of FIELD_PRESETS) for (const pol of policies) parties.push([base(pr), pol]);
+  const simple = w => ({ weights: w, skills: Object.fromEntries(ROLES.map(r => [r, dflt(r).id])), _bySkill: bySkill });
+  parties.push([simple({ tank: 0, dealer: 100, healer: 0, support: 0 }), hold]);                               // 몰빵
+  const cash = byRole('healer').find(k => kindOf(k) === 'cash');
+  parties.push([{ ...simple({ tank: 20, dealer: 10, healer: 70, support: 0 }), skills: { ...simple({}).skills, healer: (cash || defensive).id } }, hold]);   // 현금 위주
+  parties.push([simple({ tank: 25, dealer: 25, healer: 25, support: 25 }), hold]);
+  parties.push([simple({ tank: 20, dealer: 20, healer: 10, support: 50 }), hold]);
+  const alt = byRole('dealer').find(k => !k.default);
+  if (alt) parties.push([{ ...simple({ tank: 0, dealer: 100, healer: 0, support: 0 }), skills: { ...simple({}).skills, dealer: alt.id } }, hold]);
+  const seen = new Set(), out = [];
+  for (const [party, pol] of parties) {
+    const st = runToEnd(createBattle(tape, party), pol);
+    const key = JSON.stringify([party.weights, party.skills, st.actions || []]);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const i = out.length;
+    const name = FIELD_NAMES[i % FIELD_NAMES.length].replace('모험단', unit) + (i >= FIELD_NAMES.length ? ` ${Math.floor(i / FIELD_NAMES.length) + 1}` : '');
+    out.push({ name, ...fieldScore(st, lossLimit) });
+  }
+  return out;
+}
+
+/** 1-based rank of a score inside a field (ties go to the player), with the field size including the player */
+export function fieldRank(field, score) {
+  const rank = 1 + field.filter(e => e.score > score).length;
+  return { rank, total: field.length + 1, pct: Math.max(1, Math.round(rank / (field.length + 1) * 100)) };
+}

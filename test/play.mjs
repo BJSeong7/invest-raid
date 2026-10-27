@@ -32,7 +32,7 @@ try {
   check(true, 'first-visit coach tip appears');
   await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
   check((await page.$$('#chapterMap .stage')).length === 13 && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'map shows 13 stages + 3 upcoming');
-  check((await page.textContent('#screen-select .section-h')).includes('실제 종가'), 'real raid section carries the real-data chip');
+  check((await page.$$('#minigames .mgcard')).length === 2, 'home lists 2 minigames');
   await shot(page, '1-select');
 
   // brief
@@ -91,6 +91,9 @@ try {
   check(coach.length > 20, 'coach text typed');
   const decisions = await page.textContent('#rDecisions');
   check(decisions.includes('그대로') && decisions.includes('→'), 'decision log lists hold + equip');
+  const board = await page.textContent('#rBoard .hd b');
+  check(/^이번 판 \d+명 중 \d+등 · 상위 \d+%$/.test(board.trim()), 'leaderboard headline: ' + board.trim());
+  check((await page.$$('#rBoard .tbl .me')).length === 1 && (await page.$$('#rBoard .tbl > div')).length >= 6, 'leaderboard lists top 5 + my row');
   await shot(page, '6-result');
 
   // profile persisted

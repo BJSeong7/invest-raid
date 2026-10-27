@@ -360,6 +360,22 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .whatif .k.best{color:var(--green)} .whatif .k.worst{color:var(--red)} .whatif .k.me{color:var(--gold-dark)}
 .whatif .v{text-align:right;font-family:var(--display);font-size:17px}
 .whatif .lock{color:var(--orange);font-size:11px;margin-left:6px;font-family:var(--display)}
+/* 리더보드 */
+.board{background:var(--panel2);border:2px solid var(--line);border-radius:var(--r2);padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.board .hd{display:flex;flex-direction:column;gap:2px}
+.board .hd h3{font-size:14px;color:var(--muted)}
+.board .hd b{font-family:var(--display);font-weight:400;font-size:20px;line-height:1.3;color:var(--navy);overflow-wrap:anywhere}
+.board .tbl{display:flex;flex-direction:column;gap:3px}
+.board .tbl>div{display:grid;grid-template-columns:34px minmax(0,1fr) 72px 58px;gap:6px;align-items:center;padding:5px 8px;border-radius:10px;font-size:13px;background:#fff;border:1.5px solid transparent}
+.board .th{background:transparent!important;color:var(--muted);font-size:11px;padding-top:0!important;padding-bottom:0!important}
+.board .gap{background:transparent!important;padding:0 8px!important;color:var(--muted)}
+.board .me{background:#FFF7E0!important;border-color:var(--gold)!important}
+.board .rk{font-family:var(--display);color:var(--navy)} .board .me .rk{color:var(--gold-dark)}
+.board .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .board .me .nm{font-family:var(--display);color:var(--gold-dark)}
+.board .v{text-align:right;font-family:var(--display);font-size:14px}
+.board .st{text-align:right;color:var(--gold-dark);letter-spacing:1px;white-space:nowrap} .board .st i{font-style:normal;color:#DDD3BE}
+.board p{margin:0;line-height:1.5}
+@media (max-width:420px){.board .tbl>div{grid-template-columns:28px minmax(0,1fr) 64px 50px;gap:4px;padding:5px 6px}.board .hd b{font-size:18px}}
 .expgain{display:flex;flex-direction:column;gap:6px}
 .expgain .big{font-family:var(--display);font-size:22px;color:var(--navy)}
 .expbar.lg{width:100%;height:16px}
@@ -728,6 +744,62 @@ body:not(.mode-chart) .raid-lists{display:none}
 .rstars .st.new b{animation:starPop .6s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes starPop{from{transform:scale(.2) rotate(-40deg);opacity:0}}
 .rstars .rw{font-family:var(--display);font-size:14px;color:var(--navy);text-align:center}
+
+/* ---- minigames ---- */
+body.mode-chart .mg-sec{display:none}
+.mglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.mgcard{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer;box-shadow:0 4px 0 var(--edge)}
+.mgcard:active{transform:translateY(2px)}
+.mgcard img{width:56px;height:56px;border-radius:50%;object-fit:cover;background:#E4EFFF;border:3px solid #fff;box-shadow:0 0 0 2px var(--blue)}
+.mgcard .tx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.mgcard b{font-family:var(--display);font-weight:400;font-size:19px;color:var(--navy)}
+.mgcard small{font-size:12px;color:var(--muted)}
+.mgcard .mgbest{font-family:var(--display);font-size:13px;color:var(--gold-dark);white-space:nowrap}
+.mg-box{gap:10px}
+.mg-head{display:flex;align-items:center;gap:10px}
+.mg-head img{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#E4EFFF}
+.mg-head small{display:block;font-size:12px;color:var(--muted)}
+.mg-head h2{font-size:24px}
+.mg-head .mg-best{margin-left:auto;font-family:var(--display);color:var(--gold-dark)}
+.mg-how{margin:0;font-size:14px;color:var(--ink);line-height:1.55}
+.mg-stage{position:relative;background:#CFE9F8;border:2px solid var(--line);border-radius:var(--r);overflow:hidden;min-height:200px}
+.mg-stage canvas{display:block;width:100%;height:auto;aspect-ratio:2/1;touch-action:manipulation;cursor:pointer}
+.mg-hud{position:absolute;right:10px;bottom:8px;font-family:var(--display);font-size:13px;color:var(--navy);background:rgba(255,255,255,.85);border-radius:999px;padding:2px 10px}
+.mg-start{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:22px;padding:14px 34px;z-index:2}
+.mg-start[hidden]{display:none}
+.mg-pick{display:flex;flex-direction:column;gap:10px;padding:12px;background:#fff;min-height:200px}
+.mg-q{display:flex;flex-direction:column;gap:4px}
+.mg-q small{font-size:12px;color:var(--muted)}
+.mg-q b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--navy)}
+.mg-timer{display:block;height:8px;border-radius:4px;background:#EEE6D2;overflow:hidden}
+.mg-timer em{display:block;height:100%;background:linear-gradient(90deg,var(--blue),#6FA2FF);transition:width .05s linear}
+.mg-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mg-card{position:relative;background:var(--panel2);border:3px solid var(--line);border-radius:var(--r2);padding:8px;cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:stretch;transition:transform .08s}
+.mg-card:active{transform:scale(.97)}
+.mg-card svg{width:100%;height:auto;aspect-ratio:300/120}
+.mg-card .who{font-family:var(--display);font-size:15px;color:var(--navy);text-align:center;min-height:20px}
+.mg-card.win{border-color:var(--green);background:#EAF7EE}
+.mg-card.lose{opacity:.6}
+.mg-card.picked.lose{border-color:var(--red);opacity:1;background:#FBECEB}
+.mg-score{font-family:var(--display);text-align:center;color:var(--navy);font-size:16px}
+.mg-one svg{width:100%;height:auto;aspect-ratio:320/130;display:block;background:var(--panel2);border-radius:var(--r2)}
+.mg-btn{font-family:var(--display);font-size:22px;padding:16px;border-radius:14px;border:3px solid var(--line);background:#fff;cursor:pointer;color:var(--navy);transition:transform .08s}
+.mg-btn:active{transform:scale(.97)}
+.mg-btn.up{border-color:#B5DEC2}.mg-btn.dn{border-color:#EFC2BF}
+.mg-btn.win{background:#EAF7EE;border-color:var(--green)}.mg-btn.lose{opacity:.45}
+.mg-btn:disabled{cursor:default}
+.mg-two.caps{align-items:stretch}
+.cap-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--panel2);border:3px solid var(--line);border-radius:var(--r2);padding:16px 10px;text-align:center;min-height:120px}
+.cap-card small{font-size:12px;color:var(--muted)}
+.cap-card b{font-family:var(--display);font-weight:400;font-size:22px;color:var(--navy)}
+.cap-card .cap{font-family:var(--display);font-size:20px;color:var(--gold-dark)}
+.cap-card.ask{background:#fff;border-style:dashed}
+.cap-card.ask .cap{font-size:34px}
+.cap-card.win{border-color:var(--green);border-style:solid;background:#EAF7EE}
+.cap-card.lose{border-color:var(--red);border-style:solid;background:#FBECEB}
+.mg-end{text-align:center;display:flex;flex-direction:column;gap:6px}
+.mg-end b{font-family:var(--shout);font-size:40px;color:var(--gold-dark)}
+.mg-end p{margin:0;font-size:15px;line-height:1.5}
 </style>
 
 <div class="wrap">
@@ -758,6 +830,7 @@ body:not(.mode-chart) .raid-lists{display:none}
       <div class="week-card" id="weekCard"></div>
     </div>
     <div class="chapters" id="chapterMap" aria-label="시나리오 지도"></div>
+    <div class="mg-sec"><div class="section-h"><h3>미니게임</h3><span class="chip" style="color:var(--blue)">버튼 하나 · 실제 차트</span></div><div class="mglist" id="minigames"></div></div>
     <div class="raid-lists">
     <div>
       <div class="section-h"><h3 data-chart="실제 이벤트">실전 레이드</h3><span class="chip real">실제 종가</span></div>
@@ -865,6 +938,7 @@ body:not(.mode-chart) .raid-lists{display:none}
         </div>
       </div>
       <div class="card" style="display:flex;flex-direction:column;gap:14px">
+        <div class="board" id="rBoard"></div>
         <div class="growth-text" id="rGrowthText"></div>
         <div class="growth" id="rGrowth"></div>
         <div class="coach"><div class="av"><img id="coachAv" alt=""></div><div class="bubble" id="coachBubble"></div></div>
@@ -930,6 +1004,9 @@ body:not(.mode-chart) .raid-lists{display:none}
     </details>
   </div>
 </div>
+
+<!-- minigame -->
+<div class="modal" id="mg" hidden role="dialog" aria-modal="true"><div class="box wide mg-box"></div></div>
 
 <!-- collection (도감) -->
 <div class="modal" id="dex" hidden role="dialog" aria-modal="true" aria-labelledby="dexTitle">
