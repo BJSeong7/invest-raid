@@ -105,6 +105,8 @@ try {
   const prof = await page.evaluate(() => JSON.parse(localStorage.getItem('invest-rpg.profile.v1')));
   check(prof && prof.exp >= 0 && prof.plays['fomc-2026-10-29']?.count === 1, 'profile saved with play count');
 
+  // season carries over
+  check(prof.season && prof.season.raids === 1 && Math.abs(prof.season.bal - 10_000_000) > 0, 'season balance carried over: ' + prof.season?.bal);
   // collection
   await page.click('#dexBtn'); await page.waitForSelector('#dex:not([hidden])');
   check((await page.$$('#dexBosses .dex:not(.unknown)')).length === 1 && (await page.$$('#dexClasses .dex')).length === 4, '도감 shows the met boss and 4 class slots');

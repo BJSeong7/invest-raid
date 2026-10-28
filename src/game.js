@@ -18,7 +18,8 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const fmtPct = n => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 // The raid plays with a notional 1,000만원 of 모험단 자금. Equity is a constant-mix index (engine), so a role's
 // current value is equity × its current weight — the number a brokerage user actually wants to see.
-const SEED = 10_000_000;
+const SEASON_START = 10_000_000;
+let SEED = SEASON_START;   // this raid's starting money = the season balance carried over from the last raid
 const fmtKRW = n => Math.round(n).toLocaleString('ko-KR') + '원';
 // tiny inline icons (currentColor) so labels read as game UI, not form labels
 const ICON = {
@@ -294,6 +295,35 @@ function renderBoard(s) {
     <p class="small muted">같은 판을 플레이한 ${chartMode() ? '포트폴리오' : '모험단'} 기준 · 실제 서비스에서는 같은 주에 플레이한 고객이 올라요</p>`;
   return { rank, total, pct };
 }
+/* ---------- 시즌: 천만 원으로 시작해서 판 결과가 다음 판으로 이어져요 ---------- */
+const season = () => (profile.season ||= { bal: SEASON_START, raids: 0 });
+let SEASON_FIELD = null;
+/** other parties' seasons: each plays the first n stages of the map in order (n is fixed per name), compounding the same
+ *  per-raid results the raid leaderboards show. Deterministic, no randomness. */
+function seasonField() {
+  const key = chartMode() ? 'chart' : 'game';
+  if (SEASON_FIELD?.key === key) return SEASON_FIELD.rows;
+  const order = CHAPTERS.flatMap(c => c.stages).map(id => TAPES.find(t => t.id === id)).filter(Boolean);
+  const per = order.map(t => Object.fromEntries(fieldFor(t).map(e => [e.name, e.returnPct])));
+  const names = [...new Set(per.flatMap(p => Object.keys(p)))];
+  const hash = n => [...n].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const rows = names.map(name => { const n = 1 + hash(name) % Math.min(8, order.length); let eq = 1, done = 0;
+    for (let i = 0; i < order.length && done < n; i++) { const r = per[i][name]; if (r === undefined) continue; eq *= 1 + r / 100; done++; }
+    return { name, raids: done, ret: (eq - 1) * 100 }; }).filter(r => r.raids > 0);
+  SEASON_FIELD = { key, rows }; return rows;
+}
+function renderSeason() {
+  const host = $('#season'); if (!host) return;
+  const se = season(), myRet = (se.bal / SEASON_START - 1) * 100, meName = chartMode() ? '내 포트폴리오' : '나';
+  const rows = [...seasonField().map(e => ({ ...e, me: false })), { name: meName, raids: se.raids, ret: myRet, me: true }]
+    .sort((a, b) => b.ret - a.ret || (a.me ? -1 : b.me ? 1 : 0));
+  const myI = rows.findIndex(x => x.me), shown = rows.slice(0, 5); if (myI >= 5) shown.push(null, rows[myI]);
+  const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.ret >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.ret)}</span><span class="st">${e.raids}판</span></div>` : '<div class="gap">…</div>';
+  host.innerHTML = `<div class="hd"><h3>시즌 순위 · 천만 원으로 시작, 판 결과가 다음 판으로 이어져요</h3><b>${se.raids ? `${rows.length}${chartMode() ? '개' : '명'} 중 ${myI + 1}등 · 잔고 ${fmtKRW(se.bal)}` : '첫 판을 하면 순위에 올라요'}</b></div>
+    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${chartMode() ? '포트폴리오' : '모험단'}</span><span class="v">누적 수익률</span><span class="st">판수</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
+    ${se.raids ? '<button type="button" class="linkbtn" id="seasonReset">시즌 새로 시작</button>' : ''}`;
+  const rb = host.querySelector('#seasonReset'); if (rb) rb.onclick = () => { if (rb.dataset.armed) { profile.season = { bal: SEASON_START, raids: 0 }; saveProfile(); renderSeason(); toast('시즌을 새로 시작했어요'); } else { rb.dataset.armed = '1'; rb.textContent = '정말 새로 시작? (한 번 더)'; } };
+}
 /** in-game reward: every new star adds a point to each hero's most-held product; finishing a chapter adds more */
 function grantStars(id, flags) {
   profile.stars = profile.stars || {};
@@ -327,7 +357,7 @@ function openPeek(role, skillId) {
 /* ---------- 1. raid select ---------- */
 let currentTape = null, party = null;
 function renderSelect() {
-  renderHome();
+  renderHome(); renderSeason();
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
   const real = TAPES.filter(t => !t.example && !t.dailyRaid).slice().reverse(), examples = TAPES.filter(t => t.example);
@@ -603,6 +633,7 @@ function renderPartyMeta() {
   renderPresets();
 }
 function openParty() {
+  SEED = season().bal;
   party = party && party._tapeId === currentTape.id ? party : Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
   renderPartyScreen();
   showScreen('party');
@@ -1188,6 +1219,7 @@ function flashChart(ret) { const box = $('#battleChartBox'); box.classList.remov
 async function startBattle() {
   const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
   unlock(); sfx.select();
+  SEED = season().bal;
   $('#hMoney').dataset.v = SEED; $('#hMoney').textContent = fmtKRW(SEED);
   battle = createBattle(currentTape, party); aborted = false; userPaused = false; skipping = false; justDecided = false; nextWaiter = null; $('#nextBtn').hidden = true; $('#skipBtn').disabled = false; $('#pauseBtn').textContent = '일시정지';
   showScreen('battle');
@@ -1394,6 +1426,7 @@ async function showResult() {
   const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
   const growth = chartMode() ? { gains: Object.fromEntries(ROLES.map(x => [x, { atk: 0, def: 0, stab: 0, ins: 0 }])), evolved: [] } : growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
+  { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }
   const after = { ...profile };
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
