@@ -885,6 +885,30 @@ body.r2-mode .role .skills{display:none}
 .arch-row{display:grid;grid-template-columns:80px 90px minmax(0,1fr);align-items:center;gap:10px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 14px;cursor:pointer}
 .arch-row b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--navy)}
 .arch-row small{color:var(--muted)}
+/* ---- phone: thinner cards ---- */
+@media (max-width:620px){
+  .daily-card,.daily-card.done{grid-template-columns:minmax(0,1fr) auto;padding:12px 14px;gap:8px 12px;border-radius:16px}
+  .daily-card .dc-l b{font-size:21px}
+  .daily-card .dc-r{align-items:flex-end;gap:4px}
+  .daily-card .dc-r .btn{min-width:0;padding:9px 18px;font-size:16px}
+  .daily-card.done .dc-r{grid-column:1/-1;flex-direction:row;justify-content:space-between;align-items:center}
+  .week-card.major{grid-template-columns:40px minmax(0,1fr) auto;padding:12px 14px;gap:10px;border-radius:16px}
+  .week-card.major .pf{width:40px;height:40px}
+  .week-card.major .tx b{font-size:18px} .week-card.major .tx span{font-size:12.5px}
+  .week-card.major .dpick{display:none}
+  .week-card.major .btn{grid-column:auto;padding:9px 14px;font-size:15px}
+  .week-card.major .dgrid{grid-column:2/3}
+  .season{padding:12px 14px;gap:10px}
+  .season .sbal b{font-size:24px} .season .sbal em{font-size:14px}
+  .season .srank{text-align:right} .season .srank b{font-size:16px}
+  .season .linkbtn{display:none}
+  .season .tbl>div{padding:4px 8px;font-size:12.5px}
+  .home-cast-wrap{min-height:170px;padding:8px 6px 10px}
+  .cast{max-width:86px}
+  .hero-sheet{display:none}
+  #raidsUpcoming{gap:6px} #raidsUpcoming .raid{padding:8px 12px;gap:10px;border-radius:14px} #raidsUpcoming .raid .pf{width:38px!important;height:38px!important;min-width:38px} #raidsUpcoming .raid h3{font-size:15px} #raidsUpcoming .raid .meta{gap:2px} #raidsUpcoming .raid .meta>.small{display:none} #raidsUpcoming .chip{font-size:11px;padding:2px 8px}
+  .season .s-left{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end}
+}
 </style>
 
 <div class="wrap">
@@ -904,13 +928,13 @@ body.r2-mode .role .skills{display:none}
 
   <!-- 1. raid select -->
   <section id="screen-select" class="screen">
-    <div class="daily-card" id="dailyCard"></div>
     <div class="board season" id="season"></div>
     <div class="home-stage">
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
       <div class="hero-sheet" id="heroSheet"></div>
     </div>
     <div class="rhythm">
+        <div class="daily-card" id="dailyCard"></div>
       <div class="week-card" id="weekCard"></div>
     </div>
     <div class="archive" id="archive" hidden></div>
