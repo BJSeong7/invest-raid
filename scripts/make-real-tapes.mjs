@@ -421,7 +421,7 @@ const capex = buildTape({
       { at: 0, label: '관전 포인트', value: '2026년 설비투자 가이던스 $130~145B 상향 여부' },
       { at: 6, label: '매출', value: '$64.6B (+26%)', note: '예상 $63.2B 상회', good: true },
       { at: 6, label: '주당순이익', value: '$3.83', note: '일회성 소송비 $9.9B 제외 시 $7.40' },
-      { at: 6, label: '설비투자 가이던스', value: '$135~145B', note: '하단 상향, 임차·계약 약정 약 $825B', good: false },
+      { at: 6, label: '설비투자 가이던스', value: '$135~145B', note: '하단 상향, 임차와 계약 약정 약 $825B', good: false },
       { at: 6, label: '시간외 주가', value: '한때 +4%', good: true },
       { at: 7, label: '다음 날 주가', value: '−6.98%', note: 'AI 투자 자금 조달 우려', good: false },
       { at: 7, label: '필라델피아 반도체', value: '−6.72%', note: '30개 종목 전부 하락, 나스닥 −2.6%', good: false },

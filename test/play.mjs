@@ -143,7 +143,7 @@ try {
   check(/\d\d\/\d\d\(.\)/.test(await page.textContent('#bTimeline')), 'daily timeline shows dates, not clock times');
   await page.click('#toParty'); await page.click('[data-preset="balanced"]'); await page.click('#startBattle');
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
-  check(/\d\d\/\d\d.*마감 후/.test(await page.textContent('#cpStep')), 'daily checkpoint step carries the date: ' + (await page.textContent('#cpStep')).trim());
+  check(/^체크포인트 \d \/ \d$/.test((await page.textContent('#cpStep')).trim()), 'daily checkpoint step is short: ' + (await page.textContent('#cpStep')).trim());
   await page.click('#cp [data-tab="equip"]');
   const healerOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:not(:disabled)');
   const lockedOpts = await page.$$('#cpEquip .cp-role:nth-child(3) .opts .skill:disabled');

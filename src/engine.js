@@ -18,7 +18,7 @@ export const ROLES = ['tank', 'dealer', 'healer', 'support'];
 export const ROLE_META = {
   tank:    { name: '탱커',  asset: '채권',    char: '채권', title: '채권', color: '#8EA0B8' },
   dealer:  { name: '딜러',  asset: '성장주',  char: '성장주', title: '성장주',   color: '#6E9BFF' },
-  healer:  { name: '힐러',  asset: '금·현금', char: '금·현금', title: '금·현금',     color: '#F2C14E' },
+  healer:  { name: '힐러',  asset: '금과 현금', char: '금과 현금', title: '금과 현금',     color: '#F2C14E' },
   support: { name: '서포터', asset: '배당주', char: '배당주', title: '배당주',     color: '#6FD39A' },
 };
 

@@ -832,6 +832,13 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .season .tbl>div{grid-template-columns:34px minmax(0,1fr) 84px 44px}
 @media (max-width:760px){.season{grid-template-columns:1fr}}
 .linkbtn{align-self:flex-start;background:none;border:0;padding:0;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer}
+.cpf-one{display:flex;flex-direction:column;gap:4px}
+.cp-box .choices.two button{min-height:0;padding:12px 14px;justify-content:center}
+.cpf-one small{font-size:13px;color:var(--muted)}
+.cpf-one b{font-family:var(--display);font-weight:400;font-size:30px;line-height:1.15;color:var(--navy)}
+.cpf-one b.good{color:var(--green)} .cpf-one b.bad{color:var(--red)}
+.cpf-one .mkt{font-size:14px;color:var(--ink)} .cpf-one .mkt b{font-size:16px}
+.cp-facts.more{display:flex;flex-direction:column;gap:6px}
 </style>
 
 <div class="wrap">
@@ -912,7 +919,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
           <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>기본 배분</b></button>
           <button type="button" class="preset" data-preset="safe" aria-pressed="false"><b>주식 적게</b></button>
           <button type="button" class="preset" data-preset="aggro" aria-pressed="false"><b>주식 많이</b></button>
-          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>풋옵션·금 포함</b></button>
+          <button type="button" class="preset" data-preset="hedge" aria-pressed="false"><b>풋옵션과 금 포함</b></button>
         </div>
         <div class="mixrow"><div class="sum" id="sumTxt">비중 100%</div><div id="partyRadar"></div></div>
       </div>
@@ -1002,7 +1009,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
         </div>
       </div>
     </details>
-    <p class="foot">게임 결과는 학습용이며 특정 상품의 투자권유가 아닙니다. 투자 전 상품설명서를 확인하세요. 캐릭터·배경 아트: 이 게임을 위해 생성한 오리지널 디자인. 차트: TradingView Lightweight Charts</p>
+    <p class="foot">게임 결과는 학습용이며 특정 상품의 투자권유가 아닙니다. 투자 전 상품설명서를 확인하세요. 캐릭터와 배경 아트: 이 게임을 위해 생성한 오리지널 디자인. 차트: TradingView Lightweight Charts</p>
   </section>
 </div>
 
@@ -1015,18 +1022,19 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     </div>
     <div class="cp-facts" id="cpFacts"></div>
     <p class="cp-hint" id="cpHint"></p>
-    <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
-    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
+    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b></span><span id="cpHoldPay"></span></button>
     <div class="choices two" role="tablist">
-      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
-      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
+      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b></button>
+      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b></button>
     </div>
     <div id="cpHold" hidden></div>
     <div class="cp-panel cp-roles" id="cpEquip" hidden></div>
     <div class="cp-panel" id="cpRebal" hidden><div class="rebal" id="cpSliders"></div><div class="total" style="margin-top:8px"><div class="sum" id="cpSum"></div><button class="btn" id="cpRebalBtn" type="button">이 비중으로 간다</button></div></div>
     <details class="cp-more" id="cpMore">
-      <summary>차트랑 자료 더 보기</summary>
+      <summary>자료 더 보기</summary>
       <div class="cp-more-body">
+        <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
+        <div class="cp-facts more" id="cpFactsMore"></div>
         <div class="chartbox" style="padding:8px 10px 4px"><div class="legend"><span class="small" id="cpChartTitle"></span></div><div class="chart" id="cpChart" style="height:170px"></div><div class="ticker" id="cpTicker"></div></div>
         <div class="cp-scen"><div class="up"><b>▲ 오르면</b><span id="cpBull"></span></div><div class="dn"><b>▼ 내리면</b><span id="cpBear"></span></div></div>
         <p class="small muted" id="cpScenNote" style="margin:0;font-size:11.5px"></p>
@@ -1074,7 +1082,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <div class="box wide">
     <div class="cp-head"><h2 id="pdTitle" style="font-size:24px">이번 레이드에서 고른 상품</h2><span class="small muted" id="pdSub"></span></div>
     <div class="pgrid" id="pdCards"></div>
-    <p class="small muted" style="margin:0;font-size:11.5px">총보수·운용사·기초지수: stockanalysis.com, 2026-10-27 확인. 학습용 정보이며 투자권유가 아닙니다. 투자 전 투자설명서를 확인하세요.</p>
+    <p class="small muted" style="margin:0;font-size:11.5px">총보수, 운용사, 기초지수: stockanalysis.com, 2026-10-27 확인. 학습용 정보이며 투자권유가 아닙니다. 투자 전 투자설명서를 확인하세요.</p>
     <button class="btn secondary" id="etfClose" type="button">닫기</button>
   </div>
 </div>

@@ -148,7 +148,7 @@ function recordProducts(state) {
   usedInstruments(state).forEach(id => { if (!PRODUCTS[id]) return; const e = profile.products[id] || { uses: 0 }; e.uses++; profile.products[id] = e; });
 }
 
-/* ---------- badges · boss collection · streak ---------- */
+/* ---------- badges, boss collection, streak ---------- */
 const BADGES = [
   { id: 'first', name: '첫 레이드', desc: '레이드를 처음 끝까지 해냈어요.', test: ctx => true },
   { id: 'slayer', name: '보스 격파', desc: '보스를 쓰러뜨렸어요.', test: ctx => ctx.r.bossDown },
@@ -548,7 +548,7 @@ const PRESETS = {
   balanced: { name: '기본 배분', weights: { tank: 25, dealer: 40, healer: 20, support: 15 }, pick: {} },
   safe: { name: '주식 적게', weights: { tank: 40, dealer: 20, healer: 20, support: 20 }, pick: { healer: ['cash'] } },
   aggro: { name: '주식 많이', weights: { tank: 10, dealer: 60, healer: 10, support: 20 }, pick: { dealer: ['lev', 'sector'], healer: ['cash'] } },
-  hedge: { name: '풋옵션·금 포함', weights: { tank: 30, dealer: 30, healer: 25, support: 15 }, pick: { healer: ['option', 'gold'] } },
+  hedge: { name: '풋옵션과 금 포함', weights: { tank: 30, dealer: 30, healer: 25, support: 15 }, pick: { healer: ['option', 'gold'] } },
 };
 /* ---------- 내 계좌로 편성 ----------
    A sample brokerage account (in the real app: the user's holdings via the account API). Each holding is mapped to a
@@ -767,7 +767,7 @@ class BattleScene extends Phaser.Scene {
     this.idle(b);
   }
   tw(cfg) { return new Promise(res => this.tweens.add({ ...cfg, onComplete: () => { cfg.onComplete?.(); res(); } })); }
-  /** Top banner inside the arena: "05:00 매파 발언 · 동결이의 매파 발언!" */
+  /** Top banner inside the arena: "05:00 매파 발언, 동결이의 매파 발언!" */
   banner(main, sub, color, speed = 1) {
     this.bannerObjs?.forEach(o => o.destroy());
     const bg = this.add.rectangle(W / 2, 54, W, 80, 0x1E3A5F, .78).setDepth(70);
@@ -1308,10 +1308,10 @@ async function showCheckpoint(cp) {
     const m = $('#cp'); m.hidden = false;
     setTimeout(() => showTip('cp'), 300);
     const cps = currentTape.checkpoints, idx = cps.indexOf(cp);
-    $('#cpStep').innerHTML = `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length}, ${cpWhen(cp)}`;
+    $('#cpStep').innerHTML = `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length}`;
     $('#cpTitle span:last-child').textContent = cp.title;
-    const cum = battle.equity - 100, next = currentTape.bars[cp.bar];
-    $('#cpHint').innerHTML = `${cp.hint}<br><span class="muted small">다음 구간 <b>${fmtBar(next.t)} ${next.label}</b></span>`;
+    const cum = battle.equity - 100;
+    $('#cpHint').textContent = cp.hint;
     // what is already known, large: the event's results so far and how the market has moved since the start
     const ev = currentTape.event, known = visibleFacts(currentTape, cp.bar), fresh = known.filter(f => f.at >= Math.max(1, cp.bar - 1));
     const shown = (fresh.length ? fresh : known.filter(f => f.at > 0)).slice(0, 4);
@@ -1320,18 +1320,19 @@ async function showCheckpoint(cp) {
     const moves = Object.keys(currentTape.instruments).filter(id => !/^(NQF|NQFS|QQQP|QQQC)$/.test(id) && bars[0].prices[id] > 0).map(id => ({ id, r: 100 * (bNow && bars[cp.bar - 1].prices[id] / bars[0].prices[id] - 1) })).sort((a, b) => b.r - a.r);
     const plain = id => ({ QQQ: '나스닥100', TQQQ: '나스닥 3배', SOXX: '반도체', TLT: '장기채', SHY: '단기채', GLD: '금', BIL: '현금', SQQQ: '인버스 3배', PSQ: '인버스', SCHD: '배당주', KBOND: '국고채', K200: '코스피200', K200L: '코스피 2배', KSEMI: '반도체', KGOLD: '금', KCASH: '현금', KDIV: '고배당', K200_P: '풋옵션', QQQ_P: '풋옵션' })[id] || id;
     const kindName = ev ? (ev.kind === 'earnings' ? '실적 발표' : ev.kind === 'fomc' ? '금리 결정' : ev.kind === 'crisis' ? '시장 상황' : '지표 발표') : '시장 상황';
-    const lead = shown[0], rest = shown.slice(1);
-    $('#cpFacts').innerHTML = `<div class="cpf-h"><b>${shown.length ? `${kindName} 결과` : `${kindName}은 아직 안 나왔어요`}</b><small>${ev?.company || ''}</small></div>
-      ${lead ? `<div class="cpf-lead ${lead.good === true ? 'good' : lead.good === false ? 'bad' : ''}"><small>${lead.label}</small><b>${lead.value}</b>${lead.note ? `<em>${lead.note}</em>` : ''}</div>` : ''}
-      ${rest.length ? `<div class="cpf-list">${rest.map(f => `<div class="cpf ${f.good === true ? 'good' : f.good === false ? 'bad' : ''}"><small>${f.label}</small><b>${f.value}</b>${f.note ? `<em>${f.note}</em>` : ''}</div>`).join('')}</div>`
-        : shown.length ? ''
-        : `<div class="cpf-list">${known.slice(0, 2).map(f => `<div class="cpf"><small>${f.label}</small><b>${f.value}</b></div>`).join('')}</div>`}
-      <div class="cpf-mkt"><div class="big ${sinceStart >= 0 ? 'up' : 'down'}"><small>시작부터 지금까지 ${plain(mainI)}</small><b>${fmtPct(sinceStart)}</b><em>직전 구간 ${fmtPct(lastBar)}</em></div>
-        <div class="others">${moves.filter(m => m.id !== mainI).slice(0, 6).map(m => `<span class="${m.r >= 0 ? 'up' : 'down'}">${plain(m.id)} <b>${fmtPct(m.r)}</b></span>`).join('')}</div></div>`;
+    // one fact, one market number, one question. Everything else waits behind "자료 더 보기".
+    const lead = shown[0] || known.filter(f => !/일정|시각|시간|시나리오/.test(f.label)).at(-1), rest = shown.slice(1);
+    const cls = f => f?.good === true ? 'good' : f?.good === false ? 'bad' : '';
+    $('#cpFacts').innerHTML = `<div class="cpf-one"><small>${shown.length ? `${kindName} 결과` : `${kindName} 발표 전`}${lead ? `, ${lead.label}` : ''}</small>
+      ${lead ? `<b class="${cls(lead)}">${lead.value}</b>` : ''}
+      <span class="mkt">${plain(mainI)} 지금까지 <b class="ret ${sinceStart >= 0 ? 'up' : 'down'}">${fmtPct(sinceStart)}</b></span></div>`;
+    $('#cpFactsMore').innerHTML = [...(lead?.note ? [{ label: lead.label, value: lead.note }] : []), ...rest, ...(shown.length ? [] : known.filter(f => f !== lead && !/시나리오/.test(f.label)))].map(f => `<div class="cpf ${cls(f)}"><small>${f.label}</small><b>${f.value}</b>${f.note ? `<em>${f.note}</em>` : ''}</div>`).join('')
+      + `<div class="cpf"><small>직전 구간 ${plain(mainI)}</small><b>${fmtPct(lastBar)}</b></div>`
+      + `<div class="cpf"><small>다른 상품, 시작부터 지금까지</small><b style="font-size:14px">${moves.filter(m => m.id !== mainI).slice(0, 6).map(m => `${plain(m.id)} ${fmtPct(m.r)}`).join(', ')}</b></div>`;
     $('#cpMore').open = false;
     // the chart is the question: real closes up to now, the rest still hidden
     const main = mainInstrument(currentTape);
-    $('#cpChartTitle').innerHTML = `${main} ${currentTape.instruments[main].name} <span class="muted">· 지금까지의 실제 흐름</span>`;
+    $('#cpChartTitle').innerHTML = `${main} ${currentTape.instruments[main].name} <span class="muted">(지금까지의 실제 흐름)</span>`;
     cpChart?.remove(); cpChart = new BattleChart($('#cpChart'), currentTape, 'price', { state: battle, upto: cp.bar - 1, quiet: true, futureShade: true });
     const v = totalValue();
     $('#cpMoney').textContent = fmtKRW(v); $('#cpMoneyD').textContent = `${fmtKRWd(v - SEED)} (${fmtPct(cum)})`; $('#cpMoneyD').className = 'ret tabular ' + (v >= SEED ? 'up' : 'down');
@@ -1439,7 +1440,7 @@ async function showResult() {
   $('#rDecisions').innerHTML = acts.length ? acts.map(a => {
     const bar = currentTape.bars[a.at]; const after = s.log.filter(t => t.bar >= a.at).reduce((x, t) => x + t.boss.portfolioRet, 0);
     const what = a.type === 'hold' ? '그대로' : a.type === 'equip' ? `${charOf(ROLES.find(r => s.party._bySkill[a.to]?.role === r) || 'dealer').name} → ${s.party._bySkill[a.to].name}` : '비중 조정 ' + ROLES.map(r => a.to[r]).join('/');
-    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">· 이후 ${"파티"} ${fmtPct(after)}</span></div>`;
+    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">이후 ${"파티"} ${fmtPct(after)}</span></div>`;
   }).join('') : '<span class="muted">체크포인트 없음</span>';
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
@@ -1525,9 +1526,9 @@ $('#dexClose').addEventListener('click', () => { sfx.back(); $('#dex').hidden = 
 let tutStep = 0;
 const TUT = [
   { art: 'hero_dealer', title: '캐릭터 하나 = ETF 하나', text: '성장주는 회사 한 곳이 아니라 나스닥100 기업 100곳을 한꺼번에 들고 있어요. 여러 종목을 묶어 주식처럼 한 번에 사고파는 상품이 ETF예요. 파티 화면에서 🔍를 누르면 안에 든 종목이 보여요.' },
-  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '채권·성장주·금·현금·배당주에게 비중을 나눠요. 비중을 어떻게 나누느냐가 곧 내 포트폴리오예요. 자산마다 같은 뉴스에 다르게 움직여서, 나눠 담으면 전체 등락이 줄어들 수 있어요.' },
+  { art: 'hero_tank', title: '파티 비중 = 포트폴리오', text: '채권, 성장주, 금과 현금, 배당주에게 비중을 나눠요. 비중을 어떻게 나누느냐가 곧 내 포트폴리오예요. 자산마다 같은 뉴스에 다르게 움직여서, 나눠 담으면 전체 등락이 줄어들 수 있어요.' },
   { art: 'boss_lich', title: '보스 = 실제 시장 이벤트', text: 'FOMC, 실적 발표, 물가 지표가 보스로 나타나요. 데미지는 전부 그날 실제 가격 변동으로 계산돼요. 난수는 없어요.' },
-  { art: 'hero_healer', title: '체크포인트에서 개입', text: '레이드는 자동으로 흘러가다 중요한 순간에 멈춰요. 30초 안에 버티기·기술 교체·비중 조정 중 하나를 고르세요. 차트와 자금 평가를 보고 결정하면 돼요.' },
+  { art: 'hero_healer', title: '체크포인트에서 개입', text: '레이드는 자동으로 흘러가다 중요한 순간에 멈춰요. 30초 안에 그대로 가기, 상품 바꾸기, 비중 바꾸기 중 하나를 고르세요.' },
 ];
 function renderTut() { const t = TUT[tutStep]; $('#tutArt').src = cutArt(t.art); $('#tutTitle').textContent = t.title; $('#tutText').textContent = t.text; $('#tutDots').innerHTML = TUT.map((_, i) => `<i class="${i === tutStep ? 'on' : ''}"></i>`).join(''); $('#tutNext').textContent = tutStep === TUT.length - 1 ? '시작하기' : '다음'; }
 function openTutorial() { tutStep = 0; renderTut(); $('#tut').hidden = false; }
@@ -1536,11 +1537,11 @@ $('#tutSkip').addEventListener('click', () => { sfx.back(); $('#tut').hidden = t
 $('#helpBtn').addEventListener('click', () => { sfx.select(); openTutorial(); });
 // ---- guided first raid: one coach tip per screen, shown once (replaces the up-front modal) ----
 const TIPS = {
-  select: ['먼저 <b>훈련 레이드</b> 하나를 골라 보세요. 예시 시세라 부담 없이 연습할 수 있어요.', 'raidsExample'],
-  brief: ['보스 = 실제 시장 이벤트예요. 이벤트 자료와 지금까지의 차트를 보고 <b>파티 짜기</b>를 누르세요.', 'toParty'],
-  party: ['비중 = 포트폴리오, 상품 = 실제 ETF·채권·옵션. 처음엔 <b>프리셋 하나</b>만 고르고 출발해도 돼요.', 'startBattle'],
+  select: ['지도의 첫 칸 <b>10월 FOMC</b>부터 시작해 보세요.', 'chapterMap'],
+  brief: ['보스는 실제 시장 이벤트예요. 자료를 보고 <b>파티 짜기</b>를 누르세요.', 'toParty'],
+  party: ['비중이 곧 포트폴리오예요. 처음엔 <b>기본 배분</b>을 고르고 바로 출발해도 돼요.', 'startBattle'],
   battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
-  cp: ['여기가 핵심. 선택지마다 <b>▲ 오르면 / ▼ 내리면 걸린 돈</b>이 적혀 있어요. 30초 안에 하나를 고르세요.', 'cpHoldBtn'],
+  cp: ['버튼 옆 <b>▲ ▼</b>는 시장이 오르거나 내릴 때 내 돈이 얼마나 바뀌는지예요. 30초 안에 고르세요.', 'cpHoldBtn'],
   result: ['제일 많이 번 때와 잃은 때, 그때 누가 그랬는지 보여 줘요.', 'rWhatIf'],
 };
 function showTip(key) {
