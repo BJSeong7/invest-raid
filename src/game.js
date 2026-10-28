@@ -47,7 +47,7 @@ const fmtTime = iso => iso.slice(11, 16);
 const fmtDate = iso => `${iso.slice(0, 4)}.${iso.slice(5, 7)}.${iso.slice(8, 10)}`;
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
 /** Bar label: daily tapes print the trading date ("09/16(수)"), intraday tapes the KST clock time. */
-const fmtBar = (iso, tape = currentTape) => tape?.daily ? `${iso.slice(5, 7)}/${iso.slice(8, 10)}(${WD[new Date(iso.slice(0, 10) + 'T12:00:00Z').getUTCDay()]})` : iso.slice(11, 16);
+const fmtBar = (iso, tape = currentTape) => tape?.blind ? (i => i <= 0 ? '시작' : `${i}일차`)(tape.bars.findIndex(b => b.t === iso)) : tape?.daily ? `${iso.slice(5, 7)}/${iso.slice(8, 10)}(${WD[new Date(iso.slice(0, 10) + 'T12:00:00Z').getUTCDay()]})` : iso.slice(11, 16);
 /** when a checkpoint happens: daily tapes pause after the previous close, intraday tapes right before the next bar */
 const cpWhen = (cp, tape = currentTape) => tape?.daily ? `${fmtBar(tape.bars[Math.max(0, cp.bar - 1)].t, tape)} 마감 후` : fmtBar(tape.bars[cp.bar].t, tape);
 const unitNote = (tape = currentTape) => tape?.daily ? '뉴욕 종가' : 'KST';
@@ -289,6 +289,94 @@ function renderBoard(s) {
 }
 /* ---------- 시즌: 천만 원으로 시작해서 판 결과가 다음 판으로 이어져요 ---------- */
 const season = () => (profile.season ||= { bal: SEASON_START, raids: 0 });
+
+/* ---------- 오늘의 한 판: 매일 모두가 같은 과거 이벤트를 풀어요. 사건은 끝날 때까지 가리고, 하루 한 번만 ---------- */
+const DAILY_START = '2026-10-28';
+const DAILY_ORDER = ['cpi-2022-09', 'svb-2023', 'covid-2020', 'fomc-2026-09-16', 'tariff-2025', 'cpi-2022-06', 'carry-2024', 'jackson-2022', 'cpi-2022-11', 'capex-2026-10-22'];
+const kstDay = (ms = Date.now()) => new Date(ms + 9 * 3600000).toISOString().slice(0, 10);
+let DAILY_OVERRIDE = null;
+const dailyNo = () => DAILY_OVERRIDE || Math.max(1, Math.round((Date.parse(kstDay()) - Date.parse(DAILY_START)) / 864e5) + 1);
+const dailyTapeId = n => { const ids = DAILY_ORDER.filter(id => TAPES.some(t => t.id === id)); return ids[(n - 1) % ids.length]; };
+const dailyRec = n => (profile.daily ||= {})[n];
+const dailyStreak = () => { const n = dailyNo(); let k = dailyRec(n)?.done ? n : n - 1, c = 0; while (k > 0 && dailyRec(k)?.done) { c++; k--; } return c; };
+const KIND_WORD = { fomc: '금리 결정', macro: '경제 지표 발표', earnings: '실적 발표', crisis: '시장 위기' };
+const BLIND_LINE = { fomc: '금리 결정 발표를 앞두고 있어요.', macro: '경제 지표 발표를 앞두고 있어요.', earnings: '대형 기술주 실적 발표를 앞두고 있어요.', crisis: '시장이 흔들리기 시작했어요.' };
+/** a copy of a tape with everything that names the event (title, dates, labels, dated facts) hidden until the end */
+function blindTape(t, n) {
+  const kind = t.event?.kind || 'macro', dated = v => /(19|20)\d\d|\d{1,2}\/\d{1,2}|\d+월/.test(String(v || ''));
+  return { ...t, blind: true, dailyNo: n, real: { title: t.title, briefing: t.briefing, lesson: t.lesson, from: t.bars[0].t, to: t.bars.at(-1).t },
+    title: `오늘의 한 판 #${n}`, briefing: BLIND_LINE[kind] || '큰 발표를 앞두고 있어요.', concepts: [],
+    event: t.event ? { ...t.event, company: KIND_WORD[kind] || '시장 이벤트', source: '', facts: (t.event.facts || []).filter(f => !dated(f.value) && !dated(f.label) && !dated(f.note)) } : t.event,
+    bars: t.bars.map((b, i) => ({ ...b, label: i === 0 ? '시작' : `${i}일차` })), checkpoints: t.checkpoints.map((c, k) => ({ ...c, title: `${k + 2}라운드` })) };
+}
+async function openDaily() {
+  const n = dailyNo(); if (dailyRec(n)?.done) { renderSelect(); return; }
+  unlock(); sfx.select(); party = null;
+  await openBrief(null, blindTape(await adapter.load(dailyTapeId(n)), n));
+}
+/** one row per round (start, then each checkpoint), one cell per role: up, down, flat or empty */
+function dailyGrid(s) {
+  const cuts = s.tape.checkpoints.map(c => c.bar).sort((a, b) => a - b), acc = Array.from({ length: cuts.length + 1 }, () => Object.fromEntries(ROLES.map(r => [r, 1]))), w = Array.from({ length: cuts.length + 1 }, () => ({}));
+  s.log.forEach(t => { const k = cuts.filter(c => t.bar >= c).length; ROLES.forEach(r => { const x = t.roles[r]; if (!x) return; acc[k][r] *= 1 + x.ret / 100; w[k][r] = x.weight; }); });
+  return acc.map((row, k) => ROLES.map(r => !w[k][r] ? 'e' : row[r] > 1.001 ? 'g' : row[r] < 0.999 ? 'r' : 'n'));
+}
+const GRID_EMOJI = { g: '🟩', r: '🟥', n: '⬜', e: '⬛' };
+const gridHTML = (g, small, heads) => `<div class="dgrid ${small ? 'sm' : ''}">${heads ? `<div class="dh">${ROLES.map(r => `<span>${ROLE_META[r].char}</span>`).join('')}</div>` : ''}${g.map(row => `<div>${row.map(c => `<i class="${c}"></i>`).join('')}</div>`).join('')}</div>`;
+const shareText = rec => `오늘의 한 판 #${rec.n} 시장보다 ${fmtPct(rec.alpha).replace('%', '%p')}\n${rec.grid.map(row => row.map(c => GRID_EMOJI[c]).join('')).join('\n')}`;
+async function copyShare(rec, btn) {
+  const txt = shareText(rec);
+  try { await navigator.clipboard.writeText(txt); toast('결과를 복사했어요'); }
+  catch { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('결과를 복사했어요'); } catch { toast(txt, 4000); } ta.remove(); }
+  if (btn) btn.blur();
+}
+let dailyTimer = null;
+function tickCountdown() {
+  const left = Date.parse(kstDay() + 'T00:00:00+09:00') + 864e5 - Date.now(), h = Math.floor(left / 36e5), m = Math.floor(left % 36e5 / 6e4), sec = Math.floor(left % 6e4 / 1e3);
+  const txt = `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; $$('.dcount').forEach(el => { el.textContent = txt; });
+}
+function startCountdown() { clearInterval(dailyTimer); tickCountdown(); dailyTimer = setInterval(tickCountdown, 1000); }
+/** everyone's score on today's problem: a small histogram with my bar marked */
+function distHTML(field, me) {
+  const xs = [...field.map(e => e.alpha), me], lo = Math.min(...xs), hi = Math.max(...xs), N = 9, bw = (hi - lo) / N || 1, bin = x => Math.min(N - 1, Math.floor((x - lo) / bw));
+  const cnt = Array(N).fill(0); field.forEach(e => cnt[bin(e.alpha)]++); const mi = bin(me); cnt[mi]++; const mx = Math.max(...cnt);
+  return `<svg viewBox="0 0 300 92" class="dist" role="img" aria-label="오늘 참가자 점수 분포">${cnt.map((c, i) => `<rect x="${8 + i * 32}" y="${70 - c / mx * 56}" width="26" height="${c / mx * 56}" rx="4" fill="${i === mi ? 'var(--gold)' : '#D9CDAE'}"/>`).join('')}
+    <text x="${8 + mi * 32 + 13}" y="${64 - cnt[mi] / mx * 56}" text-anchor="middle" font-size="12" font-family="Jua, sans-serif" fill="var(--gold-dark)">나</text>
+    <text x="8" y="88" font-size="11" fill="#8A7E66">${fmtPct(lo)}p</text><text x="292" y="88" font-size="11" text-anchor="end" fill="#8A7E66">${fmtPct(hi)}p</text></svg>`;
+}
+const pickHTML = pick => `<div class="dpick">${(pick || []).filter(p => p.w > 0).map(p => `<span style="--rc:${ROLE_COLOR[p.role]}"><b>${ROLE_META[p.role].char} ${p.w}%</b>${p.skill}</span>`).join('')}</div>`;
+function renderDailyCard() {
+  const host = $('#dailyCard'); if (!host) return;
+  const n = dailyNo(), rec = dailyRec(n), st = dailyStreak(), t = TAPES.find(x => x.id === dailyTapeId(n));
+  if (!rec?.done) {
+    host.className = 'daily-card';
+    host.innerHTML = `<div class="dc-l"><small>오늘의 한 판 #${n}</small><b>오늘 문제는 ${KIND_WORD[t?.event?.kind] || '시장 이벤트'}예요</b><span>무슨 사건인지는 끝나고 알려 드려요. 하루 한 번만 할 수 있어요.</span></div>
+      <div class="dc-r">${st ? `<em>연속 ${st}일</em>` : ''}<button type="button" class="btn" id="dailyGo">시작</button></div>`;
+    host.querySelector('#dailyGo').onclick = openDaily;
+  } else {
+    host.className = 'daily-card done';
+    host.innerHTML = `<div class="dc-l"><small>오늘의 한 판 #${n}</small><b>${rec.title}</b><span>시장보다 <strong class="${rec.alpha >= 0 ? 'up' : 'down'}">${fmtPct(rec.alpha)}p</strong>, 참가자 중 상위 ${rec.pct}%</span></div>
+      <div class="dc-g">${gridHTML(rec.grid, true)}</div>
+      <div class="dc-r"><button type="button" class="btn secondary" id="dailyShare">결과 복사</button><small>다음 문제까지 <b class="dcount"></b></small></div>`;
+    host.querySelector('#dailyShare').onclick = e => copyShare(rec, e.currentTarget);
+    startCountdown();
+  }
+}
+/** the reveal at the end of today's problem */
+function renderDailyResult(s, r) {
+  const t = currentTape, field = fieldFor(t), me = { name: '나', alpha: r.alpha, returnPct: r.returnPct, me: true, pick: ROLES.map(x => ({ role: x, w: s.party.weights[x], skill: s.party._bySkill[s.party.skills[x]].name })) };
+  const rows = [...field, me].sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : 1)), rank = rows.indexOf(me) + 1, pct = Math.max(1, Math.round(rank / rows.length * 100)), top = rows[0];
+  const rec = { n: t.dailyNo, done: true, tape: t.id, title: t.real.title, alpha: r.alpha, ret: r.returnPct, grid: dailyGrid(s), pct, at: Date.now() };
+  profile.daily = { ...(profile.daily || {}), [rec.n]: rec };
+  $('#rDaily').innerHTML = `<div class="dr-top"><small>오늘의 한 판 #${rec.n}</small>${gridHTML(rec.grid)}<b class="${rec.alpha >= 0 ? 'up' : 'down'}">시장보다 ${fmtPct(rec.alpha)}p</b></div>
+    <div class="dr-reveal"><small>오늘의 사건</small><b>${t.real.title}</b><span>${fmtDate(t.real.from)} ~ ${fmtDate(t.real.to)}</span><p>${t.real.briefing}</p></div>
+    <div class="dr-dist"><div><small>오늘 참가자 ${rows.length}명</small><b>상위 ${pct}%</b></div>${distHTML(field, r.alpha)}</div>
+    <div class="dr-top1"><small>${top.me ? '오늘 1등은 나예요' : `오늘 1등 ${top.name}, 시장보다 ${fmtPct(top.alpha)}p`}</small>${pickHTML(top.pick)}</div>
+    <div class="dr-share"><button type="button" class="btn secondary" id="rShare">결과 복사</button><small>다음 문제까지 <b class="dcount"></b></small></div>`;
+  $('#rShare').onclick = e => copyShare(rec, e.currentTarget);
+  startCountdown();
+  return rec;
+}
+
 let SEASON_FIELD = null;
 /** other parties' seasons: each plays the first n stages of the map in order (n is fixed per name), compounding the same
  *  per-raid results the raid leaderboards show. Deterministic, no randomness. */
@@ -350,7 +438,7 @@ function openPeek(role, skillId) {
 /* ---------- 1. raid select ---------- */
 let currentTape = null, party = null;
 function renderSelect() {
-  renderHome(); renderSeason();
+  renderDailyCard(); renderHome(); renderSeason();
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
   const real = TAPES.filter(t => !t.example && !t.dailyRaid).slice().reverse(), examples = TAPES.filter(t => t.example);
@@ -406,24 +494,24 @@ function renderNewsline() { $('#newsline').hidden = true; }
 
 /* ---------- 2. briefing ---------- */
 let bChart = null;
-async function openBrief(id) {
-  currentTape = await adapter.load(id);
+async function openBrief(id, pre) {
+  currentTape = pre || await adapter.load(id);
   if (true) currentTape = { ...currentTape, skills: currentTape.skills.filter(k => !k.chartOnly) };   // futures and options live in chart mode
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
   $('#bArt').alt = t.boss;
-  $('#bTag').textContent = `${t.market === 'US' ? '미국' : '국내'} 레이드 (${t.example ? '예시 데이터' : '실제 종가 데이터'})`;
-  $('#bDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)}, 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ` (출처: ${t.source})` : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
+  $('#bTag').textContent = t.blind ? `오늘의 한 판 #${t.dailyNo}` : `${t.market === 'US' ? '미국' : '국내'} 레이드 (${t.example ? '예시 데이터' : '실제 종가 데이터'})`;
+  $('#bDate').textContent = t.blind ? `무슨 사건인지는 끝나고 알려 드려요` : t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)}, 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ` (출처: ${t.source})` : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
   $('#bTitle').textContent = `${t.boss} 출현`;
-  $('#bThumb').style.backgroundImage = `url(${sceneOf(t)})`; $('#bThumbTitle').textContent = evTitle(t.title); $('#bThumbDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} (${t.example ? '예시 시세' : '실제 종가'})` : `${fmtDate(t.bars[0].t)} (${t.example ? '예시 시세' : '실제 시세'})`;
+  $('#bThumb').hidden = !!t.blind; $('#bThumb').style.backgroundImage = `url(${sceneOf(t)})`; $('#bThumbTitle').textContent = evTitle(t.title); $('#bThumbDate').textContent = t.blind ? '' : t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} (${t.example ? '예시 시세' : '실제 종가'})` : `${fmtDate(t.bars[0].t)} (${t.example ? '예시 시세' : '실제 시세'})`;
   $('#bBrief').textContent = t.briefing;
   // labels after the first checkpoint describe what happened; keep them hidden until the raid reaches them
-  const reveal = Math.min(...t.checkpoints.map(c => c.bar), t.bars.length - 1);
+  const reveal = t.blind ? 0 : Math.min(...t.checkpoints.map(c => c.bar), t.bars.length - 1);   // today's problem shows nothing past the start
   $('#bEvent').innerHTML = eventCardHTML(t, reveal);
   $('#bTimeline').innerHTML = t.bars.map((b, i) => { const cp = t.checkpoints.find(c => c.bar === i); return `<span class="${cp ? 'cp' : ''}">${fmtBar(b.t, t)} ${cp ? cp.title : i <= reveal ? b.label : '???'}</span>`; }).join('');
   $('#bConcepts').innerHTML = (t.concepts || []).map(c => `<span class="chip" style="color:var(--gold)">${c.name}</span>`).join('');
   const main = mainInstrument(t);
-  $('#bChartTitle').innerHTML = `${main} ${t.instruments[main].name} <span class="muted">(${t.example ? '예시 시세' : '실제 종가'}, 첫 체크포인트까지)</span>`;
+  $('#bChartTitle').innerHTML = t.blind ? `${main} ${t.instruments[main].name}` : `${main} ${t.instruments[main].name} <span class="muted">(${t.example ? '예시 시세' : '실제 종가'}, 첫 체크포인트까지)</span>`;
   bChart?.remove(); bChart = new BattleChart($('#bChart'), t, 'price', { upto: reveal, quiet: true, futureShade: true }); $('#bMore').open = false; $('#bMore').ontoggle = () => { if ($('#bMore').open) setTimeout(() => bChart?.c.timeScale().fitContent(), 50); };
   showScreen('brief');
   gsap.fromTo('#bArt', { scale: .6, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .6, ease: 'back.out(1.6)' });
@@ -1088,7 +1176,7 @@ class BattleChart {
       autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#5A5244', fontFamily: '"Noto Sans KR", sans-serif', fontSize: 13 },
       grid: { vertLines: { visible: false }, horzLines: { color: '#EFE8D6', style: 0 } },
       rightPriceScale: { borderColor: '#D9CDAE', scaleMargins: { top: .18, bottom: .2 }, ticksVisible: false, minimumWidth: 74 }, leftPriceScale: { visible: withLeft, borderColor: '#D9CDAE', scaleMargins: { top: .06, bottom: 0 } },
-      timeScale: { borderColor: '#D9CDAE', timeVisible: !tape.daily, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, rightOffset: 0, ticksVisible: false, visible: !opts.noTime },
+      timeScale: { borderColor: '#D9CDAE', timeVisible: !tape.daily, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, rightOffset: 0, ticksVisible: false, visible: !opts.noTime && !tape.blind },
       crosshair: { vertLine: { visible: false, labelVisible: false }, horzLine: { visible: false, labelVisible: false } }, handleScroll: false, handleScale: false, localization: { locale: 'ko-KR', dateFormat: 'MM-dd' },
     });
     const pct = { type: 'custom', formatter: v => fmtPct(v), minMove: .01 };
@@ -1308,8 +1396,9 @@ async function showCheckpoint(cp) {
     const m = $('#cp'); m.hidden = false;
     setTimeout(() => showTip('cp'), 300);
     const cps = currentTape.checkpoints, idx = cps.indexOf(cp);
-    $('#cpStep').innerHTML = `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length}`;
-    $('#cpTitle span:last-child').textContent = cp.title;
+    $('#cpStep').innerHTML = currentTape.blind ? `${ICON.flag} 라운드 ${idx + 2} / ${cps.length + 1}` : `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length}`;
+    $('#cpGrid').hidden = !currentTape.blind; if (currentTape.blind) $('#cpGrid').innerHTML = gridHTML(dailyGrid(battle).filter(row => row.some(c => c !== 'e')), false, true);
+    $('#cpTitle span:last-child').textContent = currentTape.blind ? '바꿀까요, 그대로 갈까요?' : cp.title;
     const cum = battle.equity - 100;
     $('#cpHint').textContent = cp.hint;
     // what is already known, large: the event's results so far and how the market has moved since the start
@@ -1401,11 +1490,11 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
-  const inMap = true && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
+  const daily = !!currentTape.blind, inMap = !daily && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
   const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
   const growth = growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
-  { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }
+  if (daily) { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }   // only today's problem (and the weekly major) moves the season
   const after = { ...profile };
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
@@ -1466,6 +1555,13 @@ async function showResult() {
   $('#coachAv').src = portrait('hero_healer');
   renderBoard(s);
   $('#rSum').innerHTML = `시장(${benchmarkOf(currentTape)})보다 <b style="color:${r.alpha >= 0 ? 'var(--green)' : 'var(--red)'}">${Math.abs(r.alpha).toFixed(2)}%p ${r.alpha >= 0 ? '앞섰어요' : '뒤졌어요'}</b>`;
+  // today's problem: the grid, the reveal, where I stand; the practice-only blocks step aside
+  ['#rSum', '#rBoard', '#rWhatIf', '#rEtfCard', '.rmain .coach'].forEach(q => { const el = $(q); if (el) el.hidden = daily; });
+  $('#rDaily').hidden = !daily; $('#retryBtn').hidden = daily; $('.rmain .stamp-wrap').hidden = daily; if (daily) $('#rWhy').hidden = true;
+  if (daily) {
+    renderDailyResult(s, r); saveProfile();
+    $('#nextRaidBtn').textContent = '홈으로'; $('#nextRaidBtn').onclick = () => { sfx.select(); party = null; renderSelect(); showScreen('select'); };
+  }
   // growth: plain sentences + status windows with this raid's gains
   const pnl = totalValue() - SEED, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
   const nameList = rs => rs.map(r => jobOf(r)).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
@@ -1492,7 +1588,7 @@ async function showResult() {
     const pick = eq >= 70 ? ['AOA', '주식 80%'] : eq >= 55 ? ['AOR', '주식 60%'] : eq >= 40 ? ['AOM', '주식 40%'] : ['AOK', '주식 30%'];
     const AO = { AOA: ['iShares Core Aggressive Allocation', 80], AOR: ['iShares Core Growth Allocation', 60], AOM: ['iShares Core Moderate Allocation', 40], AOK: ['iShares Core Conservative Allocation', 30] }[pick[0]];
     const card = $('#rEtfCard');
-    if (card) { card.hidden = false; card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
+    if (card) { card.hidden = !!currentTape.blind; card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
         <div class="ec-bar"><i style="width:${AO[1]}%">주식 ${AO[1]}</i><em style="width:${100 - AO[1]}%">채권 ${100 - AO[1]}</em></div>
         <div class="ec-bar mine"><i style="width:${eq}%">내 파티 주식 ${eq}</i><em style="width:${100 - eq}%">${100 - eq}</em></div>
         <p>주식과 채권을 이 비율로 나눠 담는 ETF예요.</p></div></div>`; } }
@@ -1537,7 +1633,7 @@ $('#tutSkip').addEventListener('click', () => { sfx.back(); $('#tut').hidden = t
 $('#helpBtn').addEventListener('click', () => { sfx.select(); openTutorial(); });
 // ---- guided first raid: one coach tip per screen, shown once (replaces the up-front modal) ----
 const TIPS = {
-  select: ['지도의 첫 칸 <b>10월 FOMC</b>부터 시작해 보세요.', 'chapterMap'],
+  select: ['<b>오늘의 한 판</b>부터 시작해 보세요. 하루 한 문제예요.', 'dailyCard'],
   brief: ['보스는 실제 시장 이벤트예요. 자료를 보고 <b>파티 짜기</b>를 누르세요.', 'toParty'],
   party: ['비중이 곧 포트폴리오예요. 처음엔 <b>기본 배분</b>을 고르고 바로 출발해도 돼요.', 'startBattle'],
   battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
@@ -1566,7 +1662,7 @@ document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-bat
 renderProfile(); renderSelect(); showScreen('select');
 
 // test/automation hooks (not used by the UI)
-window.__rpg = { TAPES, vsIntro, get dbg() { return { userPaused, skipping, autoMode, justDecided, hasWaiter: !!nextWaiter, aborted, sceneReady: scene?.ready, paused: battle?.paused }; }, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작, 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언, 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, get drama() { return drama; }, get lastCallout() { return window.__lastCallout || ''; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; if (v >= 4) setAuto(true); }, setAuto, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
+window.__rpg = { TAPES, setDaily: n => { DAILY_OVERRIDE = n; renderSelect(); }, openDaily, vsIntro, get dbg() { return { userPaused, skipping, autoMode, justDecided, hasWaiter: !!nextWaiter, aborted, sceneReady: scene?.ready, paused: battle?.paused }; }, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작, 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언, 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, get drama() { return drama; }, get lastCallout() { return window.__lastCallout || ''; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; if (v >= 4) setAuto(true); }, setAuto, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
 
 // phone battle menu
 $('#bmenuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $('#bmenu'), o = !m.classList.contains('open'); m.classList.toggle('open', o); $('#bmenuBtn').setAttribute('aria-expanded', String(o)); });

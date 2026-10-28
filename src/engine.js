@@ -486,7 +486,7 @@ export function buildField(tape, { lossLimit = 1.5, unit = '모험단' } = {}) {
     seen.add(key);
     const i = out.length;
     const name = FIELD_NAMES[i % FIELD_NAMES.length].replace('모험단', unit) + (i >= FIELD_NAMES.length ? ` ${Math.floor(i / FIELD_NAMES.length) + 1}` : '');
-    out.push({ name, ...fieldScore(st, lossLimit) });
+    out.push({ name, ...fieldScore(st, lossLimit), pick: ROLES.map(r => ({ role: r, w: st.party.weights[r], skill: (st.party._bySkill || bySkill)[st.party.skills[r]]?.name || '' })) });
   }
   return out;
 }

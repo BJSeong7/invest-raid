@@ -841,6 +841,44 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .cpf-one b.good{color:var(--green)} .cpf-one b.bad{color:var(--red)}
 .cpf-one .mkt{font-size:14px;color:var(--ink)} .cpf-one .mkt b{font-size:16px}
 .cp-facts.more{display:flex;flex-direction:column;gap:6px}
+.daily-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 18px;align-items:center;border-radius:20px;padding:16px 18px;border:2px solid #B9841A;background:linear-gradient(135deg,#FFE9A8,#FFD166 60%,#F5B83D);box-shadow:0 4px 0 #9A6B0E}
+.daily-card.done{grid-template-columns:minmax(0,1fr) auto auto;background:linear-gradient(135deg,#FFFDF6,#F4ECD8);border-color:var(--line);box-shadow:0 4px 0 var(--edge)}
+.daily-card .dc-l{display:flex;flex-direction:column;gap:2px;min-width:0}
+.daily-card small{font-family:var(--display);font-size:13px;color:#8A5A00}
+.daily-card .dc-l b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--navy);line-height:1.2}
+.daily-card .dc-l span{font-size:13.5px;color:#6B5523}
+.daily-card strong.up{color:var(--green)} .daily-card strong.down{color:var(--red)}
+.daily-card .dc-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.daily-card .dc-r em{font-style:normal;font-family:var(--display);color:#8A5A00}
+.daily-card .dc-r .btn{min-width:120px}
+.dgrid{display:flex;flex-direction:column;gap:4px}
+.dgrid>div{display:flex;gap:4px}
+.dgrid i{width:30px;height:30px;border-radius:6px;background:#D9D3C4}
+.dgrid i.g{background:#4CAF6A} .dgrid i.r{background:#E0534A} .dgrid i.n{background:#C9C2B2} .dgrid i.e{background:#3A3A3A;opacity:.25}
+.dgrid.sm i{width:18px;height:18px;border-radius:4px}
+.dgrid .dh{display:flex;gap:4px}.dgrid .dh span{width:56px;text-align:center;font-size:11.5px;color:var(--muted)}
+.cp-grid{display:flex;justify-content:center}.cp-grid .dgrid{align-items:center}.cp-grid .dgrid i{width:56px;height:26px}
+.daily-res{display:flex;flex-direction:column;gap:14px}
+.dr-top{display:flex;flex-direction:column;align-items:center;gap:10px}
+.dr-top small,.dr-reveal small,.dr-dist small,.dr-top1 small{font-size:12.5px;color:var(--muted)}
+.dr-top>b{font-family:var(--display);font-weight:400;font-size:34px}
+.dr-top>b.up{color:var(--green)} .dr-top>b.down{color:var(--red)}
+.dr-reveal{display:flex;flex-direction:column;gap:2px;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:14px 16px}
+.dr-reveal b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--navy)}
+.dr-reveal span{font-size:13px;color:var(--muted)}
+.dr-reveal p{margin:6px 0 0;line-height:1.6}
+.dr-dist{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center}
+.dr-dist>div{display:flex;flex-direction:column}
+.dr-dist b{font-family:var(--display);font-weight:400;font-size:26px;color:var(--navy)}
+.dr-dist svg{width:100%;max-width:320px;justify-self:end}
+.dr-top1{display:flex;flex-direction:column;gap:6px}
+.dpick{display:flex;flex-wrap:wrap;gap:6px}
+.dpick span{display:flex;flex-direction:column;padding:6px 10px;border-radius:10px;background:#fff;border:1.5px solid var(--line);border-left:4px solid var(--rc);font-size:12.5px;color:var(--muted)}
+.dpick b{font-family:var(--display);font-weight:400;font-size:14px;color:var(--ink)}
+.dr-share{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dr-share small,.daily-card .dc-r small{font-size:12.5px;color:var(--muted)}
+.dcount{font-family:var(--display);font-weight:400;color:var(--navy)}
+@media (max-width:620px){.daily-card,.daily-card.done{grid-template-columns:1fr}.daily-card .dc-r{align-items:stretch}.dr-dist{grid-template-columns:1fr}}
 </style>
 
 <div class="wrap">
@@ -860,6 +898,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 
   <!-- 1. raid select -->
   <section id="screen-select" class="screen">
+    <div class="daily-card" id="dailyCard"></div>
     <div class="board season" id="season"></div>
     <div class="home-stage">
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
@@ -868,8 +907,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="rhythm">
       <div class="week-card" id="weekCard"></div>
     </div>
-    <div class="chapters" id="chapterMap" aria-label="시나리오 지도"></div>
-    <div class="mg-sec"><div class="section-h"><h3>미니게임</h3><span class="chip" style="color:var(--blue)">실제 차트로 해요</span></div><div class="mglist" id="minigames"></div></div>
+    <div class="section-h"><h3>지난 문제 연습</h3></div>
+    <div class="chapters" id="chapterMap" aria-label="지난 문제"></div>
     <div class="raid-lists">
     <div>
       <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
@@ -964,6 +1003,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <!-- 5. result -->
   <section id="screen-result" hidden style="display:flex;flex-direction:column;gap:14px">
     <div class="card rmain">
+        <div class="daily-res" id="rDaily" hidden></div>
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
         <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
         <div class="rstars" id="rStars" hidden></div>
@@ -1021,6 +1061,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div><span class="cp-step" id="cpStep">체크포인트</span><h2 id="cpTitle"><span class="pause"></span><span></span></h2></div>
       <div class="timer" id="cpTimer" title="시간이 다 되면 그대로 진행"><span id="cpTimerTxt">30</span><i><b id="cpTimerBar"></b></i></div>
     </div>
+    <div class="cp-grid" id="cpGrid" hidden></div>
     <div class="cp-facts" id="cpFacts"></div>
     <p class="cp-hint" id="cpHint"></p>
     <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b></span><span id="cpHoldPay"></span></button>
@@ -1047,8 +1088,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   </div>
 </div>
 
-<!-- minigame -->
-<div class="modal" id="mg" hidden role="dialog" aria-modal="true"><div class="box wide mg-box"></div></div>
 
 <!-- 가방 열기 -->
 <div class="modal" id="peek" hidden role="dialog" aria-modal="true"><div class="box pk-box"></div></div>
@@ -1588,7 +1627,7 @@ export function buildField(tape, { lossLimit = 1.5, unit = '모험단' } = {}) {
     seen.add(key);
     const i = out.length;
     const name = FIELD_NAMES[i % FIELD_NAMES.length].replace('모험단', unit) + (i >= FIELD_NAMES.length ? ` ${Math.floor(i / FIELD_NAMES.length) + 1}` : '');
-    out.push({ name, ...fieldScore(st, lossLimit) });
+    out.push({ name, ...fieldScore(st, lossLimit), pick: ROLES.map(r => ({ role: r, w: st.party.weights[r], skill: (st.party._bySkill || bySkill)[st.party.skills[r]]?.name || '' })) });
   }
   return out;
 }
@@ -1716,7 +1755,7 @@ const fmtTime = iso => iso.slice(11, 16);
 const fmtDate = iso => `${iso.slice(0, 4)}.${iso.slice(5, 7)}.${iso.slice(8, 10)}`;
 const WD = ['일', '월', '화', '수', '목', '금', '토'];
 /** Bar label: daily tapes print the trading date ("09/16(수)"), intraday tapes the KST clock time. */
-const fmtBar = (iso, tape = currentTape) => tape?.daily ? `${iso.slice(5, 7)}/${iso.slice(8, 10)}(${WD[new Date(iso.slice(0, 10) + 'T12:00:00Z').getUTCDay()]})` : iso.slice(11, 16);
+const fmtBar = (iso, tape = currentTape) => tape?.blind ? (i => i <= 0 ? '시작' : `${i}일차`)(tape.bars.findIndex(b => b.t === iso)) : tape?.daily ? `${iso.slice(5, 7)}/${iso.slice(8, 10)}(${WD[new Date(iso.slice(0, 10) + 'T12:00:00Z').getUTCDay()]})` : iso.slice(11, 16);
 /** when a checkpoint happens: daily tapes pause after the previous close, intraday tapes right before the next bar */
 const cpWhen = (cp, tape = currentTape) => tape?.daily ? `${fmtBar(tape.bars[Math.max(0, cp.bar - 1)].t, tape)} 마감 후` : fmtBar(tape.bars[cp.bar].t, tape);
 const unitNote = (tape = currentTape) => tape?.daily ? '뉴욕 종가' : 'KST';
@@ -1958,6 +1997,94 @@ function renderBoard(s) {
 }
 /* ---------- 시즌: 천만 원으로 시작해서 판 결과가 다음 판으로 이어져요 ---------- */
 const season = () => (profile.season ||= { bal: SEASON_START, raids: 0 });
+
+/* ---------- 오늘의 한 판: 매일 모두가 같은 과거 이벤트를 풀어요. 사건은 끝날 때까지 가리고, 하루 한 번만 ---------- */
+const DAILY_START = '2026-10-28';
+const DAILY_ORDER = ['cpi-2022-09', 'svb-2023', 'covid-2020', 'fomc-2026-09-16', 'tariff-2025', 'cpi-2022-06', 'carry-2024', 'jackson-2022', 'cpi-2022-11', 'capex-2026-10-22'];
+const kstDay = (ms = Date.now()) => new Date(ms + 9 * 3600000).toISOString().slice(0, 10);
+let DAILY_OVERRIDE = null;
+const dailyNo = () => DAILY_OVERRIDE || Math.max(1, Math.round((Date.parse(kstDay()) - Date.parse(DAILY_START)) / 864e5) + 1);
+const dailyTapeId = n => { const ids = DAILY_ORDER.filter(id => TAPES.some(t => t.id === id)); return ids[(n - 1) % ids.length]; };
+const dailyRec = n => (profile.daily ||= {})[n];
+const dailyStreak = () => { const n = dailyNo(); let k = dailyRec(n)?.done ? n : n - 1, c = 0; while (k > 0 && dailyRec(k)?.done) { c++; k--; } return c; };
+const KIND_WORD = { fomc: '금리 결정', macro: '경제 지표 발표', earnings: '실적 발표', crisis: '시장 위기' };
+const BLIND_LINE = { fomc: '금리 결정 발표를 앞두고 있어요.', macro: '경제 지표 발표를 앞두고 있어요.', earnings: '대형 기술주 실적 발표를 앞두고 있어요.', crisis: '시장이 흔들리기 시작했어요.' };
+/** a copy of a tape with everything that names the event (title, dates, labels, dated facts) hidden until the end */
+function blindTape(t, n) {
+  const kind = t.event?.kind || 'macro', dated = v => /(19|20)\d\d|\d{1,2}\/\d{1,2}|\d+월/.test(String(v || ''));
+  return { ...t, blind: true, dailyNo: n, real: { title: t.title, briefing: t.briefing, lesson: t.lesson, from: t.bars[0].t, to: t.bars.at(-1).t },
+    title: `오늘의 한 판 #${n}`, briefing: BLIND_LINE[kind] || '큰 발표를 앞두고 있어요.', concepts: [],
+    event: t.event ? { ...t.event, company: KIND_WORD[kind] || '시장 이벤트', source: '', facts: (t.event.facts || []).filter(f => !dated(f.value) && !dated(f.label) && !dated(f.note)) } : t.event,
+    bars: t.bars.map((b, i) => ({ ...b, label: i === 0 ? '시작' : `${i}일차` })), checkpoints: t.checkpoints.map((c, k) => ({ ...c, title: `${k + 2}라운드` })) };
+}
+async function openDaily() {
+  const n = dailyNo(); if (dailyRec(n)?.done) { renderSelect(); return; }
+  unlock(); sfx.select(); party = null;
+  await openBrief(null, blindTape(await adapter.load(dailyTapeId(n)), n));
+}
+/** one row per round (start, then each checkpoint), one cell per role: up, down, flat or empty */
+function dailyGrid(s) {
+  const cuts = s.tape.checkpoints.map(c => c.bar).sort((a, b) => a - b), acc = Array.from({ length: cuts.length + 1 }, () => Object.fromEntries(ROLES.map(r => [r, 1]))), w = Array.from({ length: cuts.length + 1 }, () => ({}));
+  s.log.forEach(t => { const k = cuts.filter(c => t.bar >= c).length; ROLES.forEach(r => { const x = t.roles[r]; if (!x) return; acc[k][r] *= 1 + x.ret / 100; w[k][r] = x.weight; }); });
+  return acc.map((row, k) => ROLES.map(r => !w[k][r] ? 'e' : row[r] > 1.001 ? 'g' : row[r] < 0.999 ? 'r' : 'n'));
+}
+const GRID_EMOJI = { g: '🟩', r: '🟥', n: '⬜', e: '⬛' };
+const gridHTML = (g, small, heads) => `<div class="dgrid ${small ? 'sm' : ''}">${heads ? `<div class="dh">${ROLES.map(r => `<span>${ROLE_META[r].char}</span>`).join('')}</div>` : ''}${g.map(row => `<div>${row.map(c => `<i class="${c}"></i>`).join('')}</div>`).join('')}</div>`;
+const shareText = rec => `오늘의 한 판 #${rec.n} 시장보다 ${fmtPct(rec.alpha).replace('%', '%p')}\n${rec.grid.map(row => row.map(c => GRID_EMOJI[c]).join('')).join('\n')}`;
+async function copyShare(rec, btn) {
+  const txt = shareText(rec);
+  try { await navigator.clipboard.writeText(txt); toast('결과를 복사했어요'); }
+  catch { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('결과를 복사했어요'); } catch { toast(txt, 4000); } ta.remove(); }
+  if (btn) btn.blur();
+}
+let dailyTimer = null;
+function tickCountdown() {
+  const left = Date.parse(kstDay() + 'T00:00:00+09:00') + 864e5 - Date.now(), h = Math.floor(left / 36e5), m = Math.floor(left % 36e5 / 6e4), sec = Math.floor(left % 6e4 / 1e3);
+  const txt = `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; $$('.dcount').forEach(el => { el.textContent = txt; });
+}
+function startCountdown() { clearInterval(dailyTimer); tickCountdown(); dailyTimer = setInterval(tickCountdown, 1000); }
+/** everyone's score on today's problem: a small histogram with my bar marked */
+function distHTML(field, me) {
+  const xs = [...field.map(e => e.alpha), me], lo = Math.min(...xs), hi = Math.max(...xs), N = 9, bw = (hi - lo) / N || 1, bin = x => Math.min(N - 1, Math.floor((x - lo) / bw));
+  const cnt = Array(N).fill(0); field.forEach(e => cnt[bin(e.alpha)]++); const mi = bin(me); cnt[mi]++; const mx = Math.max(...cnt);
+  return `<svg viewBox="0 0 300 92" class="dist" role="img" aria-label="오늘 참가자 점수 분포">${cnt.map((c, i) => `<rect x="${8 + i * 32}" y="${70 - c / mx * 56}" width="26" height="${c / mx * 56}" rx="4" fill="${i === mi ? 'var(--gold)' : '#D9CDAE'}"/>`).join('')}
+    <text x="${8 + mi * 32 + 13}" y="${64 - cnt[mi] / mx * 56}" text-anchor="middle" font-size="12" font-family="Jua, sans-serif" fill="var(--gold-dark)">나</text>
+    <text x="8" y="88" font-size="11" fill="#8A7E66">${fmtPct(lo)}p</text><text x="292" y="88" font-size="11" text-anchor="end" fill="#8A7E66">${fmtPct(hi)}p</text></svg>`;
+}
+const pickHTML = pick => `<div class="dpick">${(pick || []).filter(p => p.w > 0).map(p => `<span style="--rc:${ROLE_COLOR[p.role]}"><b>${ROLE_META[p.role].char} ${p.w}%</b>${p.skill}</span>`).join('')}</div>`;
+function renderDailyCard() {
+  const host = $('#dailyCard'); if (!host) return;
+  const n = dailyNo(), rec = dailyRec(n), st = dailyStreak(), t = TAPES.find(x => x.id === dailyTapeId(n));
+  if (!rec?.done) {
+    host.className = 'daily-card';
+    host.innerHTML = `<div class="dc-l"><small>오늘의 한 판 #${n}</small><b>오늘 문제는 ${KIND_WORD[t?.event?.kind] || '시장 이벤트'}예요</b><span>무슨 사건인지는 끝나고 알려 드려요. 하루 한 번만 할 수 있어요.</span></div>
+      <div class="dc-r">${st ? `<em>연속 ${st}일</em>` : ''}<button type="button" class="btn" id="dailyGo">시작</button></div>`;
+    host.querySelector('#dailyGo').onclick = openDaily;
+  } else {
+    host.className = 'daily-card done';
+    host.innerHTML = `<div class="dc-l"><small>오늘의 한 판 #${n}</small><b>${rec.title}</b><span>시장보다 <strong class="${rec.alpha >= 0 ? 'up' : 'down'}">${fmtPct(rec.alpha)}p</strong>, 참가자 중 상위 ${rec.pct}%</span></div>
+      <div class="dc-g">${gridHTML(rec.grid, true)}</div>
+      <div class="dc-r"><button type="button" class="btn secondary" id="dailyShare">결과 복사</button><small>다음 문제까지 <b class="dcount"></b></small></div>`;
+    host.querySelector('#dailyShare').onclick = e => copyShare(rec, e.currentTarget);
+    startCountdown();
+  }
+}
+/** the reveal at the end of today's problem */
+function renderDailyResult(s, r) {
+  const t = currentTape, field = fieldFor(t), me = { name: '나', alpha: r.alpha, returnPct: r.returnPct, me: true, pick: ROLES.map(x => ({ role: x, w: s.party.weights[x], skill: s.party._bySkill[s.party.skills[x]].name })) };
+  const rows = [...field, me].sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : 1)), rank = rows.indexOf(me) + 1, pct = Math.max(1, Math.round(rank / rows.length * 100)), top = rows[0];
+  const rec = { n: t.dailyNo, done: true, tape: t.id, title: t.real.title, alpha: r.alpha, ret: r.returnPct, grid: dailyGrid(s), pct, at: Date.now() };
+  profile.daily = { ...(profile.daily || {}), [rec.n]: rec };
+  $('#rDaily').innerHTML = `<div class="dr-top"><small>오늘의 한 판 #${rec.n}</small>${gridHTML(rec.grid)}<b class="${rec.alpha >= 0 ? 'up' : 'down'}">시장보다 ${fmtPct(rec.alpha)}p</b></div>
+    <div class="dr-reveal"><small>오늘의 사건</small><b>${t.real.title}</b><span>${fmtDate(t.real.from)} ~ ${fmtDate(t.real.to)}</span><p>${t.real.briefing}</p></div>
+    <div class="dr-dist"><div><small>오늘 참가자 ${rows.length}명</small><b>상위 ${pct}%</b></div>${distHTML(field, r.alpha)}</div>
+    <div class="dr-top1"><small>${top.me ? '오늘 1등은 나예요' : `오늘 1등 ${top.name}, 시장보다 ${fmtPct(top.alpha)}p`}</small>${pickHTML(top.pick)}</div>
+    <div class="dr-share"><button type="button" class="btn secondary" id="rShare">결과 복사</button><small>다음 문제까지 <b class="dcount"></b></small></div>`;
+  $('#rShare').onclick = e => copyShare(rec, e.currentTarget);
+  startCountdown();
+  return rec;
+}
+
 let SEASON_FIELD = null;
 /** other parties' seasons: each plays the first n stages of the map in order (n is fixed per name), compounding the same
  *  per-raid results the raid leaderboards show. Deterministic, no randomness. */
@@ -2019,7 +2146,7 @@ function openPeek(role, skillId) {
 /* ---------- 1. raid select ---------- */
 let currentTape = null, party = null;
 function renderSelect() {
-  renderHome(); renderSeason();
+  renderDailyCard(); renderHome(); renderSeason();
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
   const real = TAPES.filter(t => !t.example && !t.dailyRaid).slice().reverse(), examples = TAPES.filter(t => t.example);
@@ -2075,24 +2202,24 @@ function renderNewsline() { $('#newsline').hidden = true; }
 
 /* ---------- 2. briefing ---------- */
 let bChart = null;
-async function openBrief(id) {
-  currentTape = await adapter.load(id);
+async function openBrief(id, pre) {
+  currentTape = pre || await adapter.load(id);
   if (true) currentTape = { ...currentTape, skills: currentTape.skills.filter(k => !k.chartOnly) };   // futures and options live in chart mode
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
   $('#bArt').alt = t.boss;
-  $('#bTag').textContent = `${t.market === 'US' ? '미국' : '국내'} 레이드 (${t.example ? '예시 데이터' : '실제 종가 데이터'})`;
-  $('#bDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)}, 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ` (출처: ${t.source})` : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
+  $('#bTag').textContent = t.blind ? `오늘의 한 판 #${t.dailyNo}` : `${t.market === 'US' ? '미국' : '국내'} 레이드 (${t.example ? '예시 데이터' : '실제 종가 데이터'})`;
+  $('#bDate').textContent = t.blind ? `무슨 사건인지는 끝나고 알려 드려요` : t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)}, 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ` (출처: ${t.source})` : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
   $('#bTitle').textContent = `${t.boss} 출현`;
-  $('#bThumb').style.backgroundImage = `url(${sceneOf(t)})`; $('#bThumbTitle').textContent = evTitle(t.title); $('#bThumbDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} (${t.example ? '예시 시세' : '실제 종가'})` : `${fmtDate(t.bars[0].t)} (${t.example ? '예시 시세' : '실제 시세'})`;
+  $('#bThumb').hidden = !!t.blind; $('#bThumb').style.backgroundImage = `url(${sceneOf(t)})`; $('#bThumbTitle').textContent = evTitle(t.title); $('#bThumbDate').textContent = t.blind ? '' : t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} (${t.example ? '예시 시세' : '실제 종가'})` : `${fmtDate(t.bars[0].t)} (${t.example ? '예시 시세' : '실제 시세'})`;
   $('#bBrief').textContent = t.briefing;
   // labels after the first checkpoint describe what happened; keep them hidden until the raid reaches them
-  const reveal = Math.min(...t.checkpoints.map(c => c.bar), t.bars.length - 1);
+  const reveal = t.blind ? 0 : Math.min(...t.checkpoints.map(c => c.bar), t.bars.length - 1);   // today's problem shows nothing past the start
   $('#bEvent').innerHTML = eventCardHTML(t, reveal);
   $('#bTimeline').innerHTML = t.bars.map((b, i) => { const cp = t.checkpoints.find(c => c.bar === i); return `<span class="${cp ? 'cp' : ''}">${fmtBar(b.t, t)} ${cp ? cp.title : i <= reveal ? b.label : '???'}</span>`; }).join('');
   $('#bConcepts').innerHTML = (t.concepts || []).map(c => `<span class="chip" style="color:var(--gold)">${c.name}</span>`).join('');
   const main = mainInstrument(t);
-  $('#bChartTitle').innerHTML = `${main} ${t.instruments[main].name} <span class="muted">(${t.example ? '예시 시세' : '실제 종가'}, 첫 체크포인트까지)</span>`;
+  $('#bChartTitle').innerHTML = t.blind ? `${main} ${t.instruments[main].name}` : `${main} ${t.instruments[main].name} <span class="muted">(${t.example ? '예시 시세' : '실제 종가'}, 첫 체크포인트까지)</span>`;
   bChart?.remove(); bChart = new BattleChart($('#bChart'), t, 'price', { upto: reveal, quiet: true, futureShade: true }); $('#bMore').open = false; $('#bMore').ontoggle = () => { if ($('#bMore').open) setTimeout(() => bChart?.c.timeScale().fitContent(), 50); };
   showScreen('brief');
   gsap.fromTo('#bArt', { scale: .6, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .6, ease: 'back.out(1.6)' });
@@ -2757,7 +2884,7 @@ class BattleChart {
       autoSize: true, layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#5A5244', fontFamily: '"Noto Sans KR", sans-serif', fontSize: 13 },
       grid: { vertLines: { visible: false }, horzLines: { color: '#EFE8D6', style: 0 } },
       rightPriceScale: { borderColor: '#D9CDAE', scaleMargins: { top: .18, bottom: .2 }, ticksVisible: false, minimumWidth: 74 }, leftPriceScale: { visible: withLeft, borderColor: '#D9CDAE', scaleMargins: { top: .06, bottom: 0 } },
-      timeScale: { borderColor: '#D9CDAE', timeVisible: !tape.daily, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, rightOffset: 0, ticksVisible: false, visible: !opts.noTime },
+      timeScale: { borderColor: '#D9CDAE', timeVisible: !tape.daily, secondsVisible: false, fixLeftEdge: true, fixRightEdge: true, rightOffset: 0, ticksVisible: false, visible: !opts.noTime && !tape.blind },
       crosshair: { vertLine: { visible: false, labelVisible: false }, horzLine: { visible: false, labelVisible: false } }, handleScroll: false, handleScale: false, localization: { locale: 'ko-KR', dateFormat: 'MM-dd' },
     });
     const pct = { type: 'custom', formatter: v => fmtPct(v), minMove: .01 };
@@ -2977,8 +3104,9 @@ async function showCheckpoint(cp) {
     const m = $('#cp'); m.hidden = false;
     setTimeout(() => showTip('cp'), 300);
     const cps = currentTape.checkpoints, idx = cps.indexOf(cp);
-    $('#cpStep').innerHTML = `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length}`;
-    $('#cpTitle span:last-child').textContent = cp.title;
+    $('#cpStep').innerHTML = currentTape.blind ? `${ICON.flag} 라운드 ${idx + 2} / ${cps.length + 1}` : `${ICON.flag} 체크포인트 ${idx + 1} / ${cps.length}`;
+    $('#cpGrid').hidden = !currentTape.blind; if (currentTape.blind) $('#cpGrid').innerHTML = gridHTML(dailyGrid(battle).filter(row => row.some(c => c !== 'e')), false, true);
+    $('#cpTitle span:last-child').textContent = currentTape.blind ? '바꿀까요, 그대로 갈까요?' : cp.title;
     const cum = battle.equity - 100;
     $('#cpHint').textContent = cp.hint;
     // what is already known, large: the event's results so far and how the market has moved since the start
@@ -3070,11 +3198,11 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
-  const inMap = true && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
+  const daily = !!currentTape.blind, inMap = !daily && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
   const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
   const growth = growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
-  { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }
+  if (daily) { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }   // only today's problem (and the weekly major) moves the season
   const after = { ...profile };
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
@@ -3135,6 +3263,13 @@ async function showResult() {
   $('#coachAv').src = portrait('hero_healer');
   renderBoard(s);
   $('#rSum').innerHTML = `시장(${benchmarkOf(currentTape)})보다 <b style="color:${r.alpha >= 0 ? 'var(--green)' : 'var(--red)'}">${Math.abs(r.alpha).toFixed(2)}%p ${r.alpha >= 0 ? '앞섰어요' : '뒤졌어요'}</b>`;
+  // today's problem: the grid, the reveal, where I stand; the practice-only blocks step aside
+  ['#rSum', '#rBoard', '#rWhatIf', '#rEtfCard', '.rmain .coach'].forEach(q => { const el = $(q); if (el) el.hidden = daily; });
+  $('#rDaily').hidden = !daily; $('#retryBtn').hidden = daily; $('.rmain .stamp-wrap').hidden = daily; if (daily) $('#rWhy').hidden = true;
+  if (daily) {
+    renderDailyResult(s, r); saveProfile();
+    $('#nextRaidBtn').textContent = '홈으로'; $('#nextRaidBtn').onclick = () => { sfx.select(); party = null; renderSelect(); showScreen('select'); };
+  }
   // growth: plain sentences + status windows with this raid's gains
   const pnl = totalValue() - SEED, soon = ROLES.filter(r => !hero(r).branch).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0];
   const nameList = rs => rs.map(r => jobOf(r)).reduce((a, n, i, arr) => i === 0 ? n : a + (i === arr.length - 1 ? josa(arr[i - 1], '과', '와') + ' ' : ', ') + n, '');
@@ -3161,7 +3296,7 @@ async function showResult() {
     const pick = eq >= 70 ? ['AOA', '주식 80%'] : eq >= 55 ? ['AOR', '주식 60%'] : eq >= 40 ? ['AOM', '주식 40%'] : ['AOK', '주식 30%'];
     const AO = { AOA: ['iShares Core Aggressive Allocation', 80], AOR: ['iShares Core Growth Allocation', 60], AOM: ['iShares Core Moderate Allocation', 40], AOK: ['iShares Core Conservative Allocation', 30] }[pick[0]];
     const card = $('#rEtfCard');
-    if (card) { card.hidden = false; card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
+    if (card) { card.hidden = !!currentTape.blind; card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
         <div class="ec-bar"><i style="width:${AO[1]}%">주식 ${AO[1]}</i><em style="width:${100 - AO[1]}%">채권 ${100 - AO[1]}</em></div>
         <div class="ec-bar mine"><i style="width:${eq}%">내 파티 주식 ${eq}</i><em style="width:${100 - eq}%">${100 - eq}</em></div>
         <p>주식과 채권을 이 비율로 나눠 담는 ETF예요.</p></div></div>`; } }
@@ -3206,7 +3341,7 @@ $('#tutSkip').addEventListener('click', () => { sfx.back(); $('#tut').hidden = t
 $('#helpBtn').addEventListener('click', () => { sfx.select(); openTutorial(); });
 // ---- guided first raid: one coach tip per screen, shown once (replaces the up-front modal) ----
 const TIPS = {
-  select: ['지도의 첫 칸 <b>10월 FOMC</b>부터 시작해 보세요.', 'chapterMap'],
+  select: ['<b>오늘의 한 판</b>부터 시작해 보세요. 하루 한 문제예요.', 'dailyCard'],
   brief: ['보스는 실제 시장 이벤트예요. 자료를 보고 <b>파티 짜기</b>를 누르세요.', 'toParty'],
   party: ['비중이 곧 포트폴리오예요. 처음엔 <b>기본 배분</b>을 고르고 바로 출발해도 돼요.', 'startBattle'],
   battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
@@ -3235,7 +3370,7 @@ document.addEventListener('keydown', e => { if (e.key === ' ' && !$('#screen-bat
 renderProfile(); renderSelect(); showScreen('select');
 
 // test/automation hooks (not used by the UI)
-window.__rpg = { TAPES, vsIntro, get dbg() { return { userPaused, skipping, autoMode, justDecided, hasWaiter: !!nextWaiter, aborted, sceneReady: scene?.ready, paused: battle?.paused }; }, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작, 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언, 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, get drama() { return drama; }, get lastCallout() { return window.__lastCallout || ''; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; if (v >= 4) setAuto(true); }, setAuto, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
+window.__rpg = { TAPES, setDaily: n => { DAILY_OVERRIDE = n; renderSelect(); }, openDaily, vsIntro, get dbg() { return { userPaused, skipping, autoMode, justDecided, hasWaiter: !!nextWaiter, aborted, sceneReady: scene?.ready, paused: battle?.paused }; }, previewCut: kind => cutIn(kind === 'deal' ? { text: '크리티컬!', sub: '05:00 기자회견 시작, 파티 +1.24%', bg: '#1F9663', artL: cutArt('hero_dealer'), artR: null } : { text: '필살기!', sub: '05:00 매파 발언, 파티 -1.20%', bg: '#B9343C', artL: cutArt('hero_dealer', true), artR: cutArt('boss_minotaur'), hit: true }, 1), get battle() { return battle; }, get profile() { return profile; }, get drama() { return drama; }, get lastCallout() { return window.__lastCallout || ''; }, openBrief, openParty, startBattle, setSpeed: v => { speed = v; if (v >= 4) setAuto(true); }, setAuto, setParty: p => { party = Object.assign(p, { _tapeId: currentTape.id }); } };
 
 // phone battle menu
 $('#bmenuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $('#bmenu'), o = !m.classList.contains('open'); m.classList.toggle('open', o); $('#bmenuBtn').setAttribute('aria-expanded', String(o)); });
@@ -3243,252 +3378,6 @@ document.addEventListener('click', e => { if (!e.target.closest('#bmenu')) { $('
 
 // mode switch (게임 / 차트)
 matchMedia('(max-width:760px)').addEventListener('change', () => { if (!$('#screen-select').hidden) renderChapter(); });
-
-/* ===== src/minigames.js ===== */
-/* ===== 미니게임: one button, real charts, high score (미니게임천국 style) =====
-   Inlined after game.js by scripts/build.mjs, so it can use its globals ($, $$, TAPES, profile, saveProfile, sfx, toast,
-   fmtDate, portrait, cutArt, ROLE_COLOR, josa, reduceMotion). Everything here is DOM + canvas; no Phaser. */
-
-/* ---------- shared: real daily series pulled from the tapes ---------- */
-const MG_KEY = 'minigames';
-const mgStore = () => (profile[MG_KEY] = profile[MG_KEY] || { best: {}, plays: {} });
-/** every daily-close tape, as one long QQQ path (date, close, label) in chronological order, de-duplicated by date */
-function mgDailyPath() {
-  const seen = new Set(), out = [];
-  for (const t of TAPES.filter(x => x.daily && x.bars[0].prices.QQQ)) {
-    for (const b of t.bars) { const d = b.t.slice(0, 10); if (seen.has(d)) continue; seen.add(d); out.push({ d, c: b.prices.QQQ, label: b.label, event: t.title.replace(/ 레이드$/, '') }); }
-  }
-  return out.sort((a, b) => a.d.localeCompare(b.d));
-}
-const PLAIN_MG = { QQQ: '나스닥100', TLT: '미국 장기채', GLD: '금', SCHD: '미국 배당주', SOXX: '미국 반도체', SHY: '미국 단기채', TQQQ: '나스닥100 3배', BIL: '현금' };
-function mgSaveBest(game, score) { const s = mgStore(); s.plays[game] = (s.plays[game] || 0) + 1; const prev = s.best[game] || 0; if (score > prev) s.best[game] = score; saveProfile(); return { prev, best: Math.max(prev, score), isNew: score > prev && prev > 0, first: prev === 0 }; }
-
-/* ---------- 1. 달려달려: run along the real price line, jump the crash gaps ---------- */
-function runRunner(host, onEnd) {
-  const real = mgDailyPath(); if (real.length < 20) { onEnd({ score: 0 }); return () => {}; }
-  // a short flat run-up before the first real day, so the first hole is never the first thing you see
-  const path = [...Array.from({ length: 8 }, (_, k) => ({ d: real[0].d, c: real[0].c, label: '출발', event: '준비' })), ...real];
-  const cv = host.querySelector('canvas'), ctx = cv.getContext('2d');
-  const W = cv.width = 720, H = cv.height = 360;
-  const SEG = 56, GROUND_Y = 240, SCALE = 420;               // px per day, baseline, px per 100% return (gentle hills; the gaps are the game)
-  // terrain: y of the line at each day, relative to a slowly re-centred baseline so the path stays on screen
-  const ys = []; let base = 0;
-  for (let i = 0; i < path.length; i++) {
-    const r = i ? Math.log(path[i].c / path[i - 1].c) : 0; base += r;
-    ys.push(base);
-  }
-  const yAt = i => { const a = Math.max(0, i - 10); let m = 0; for (let k = a; k <= i; k++) m += ys[k]; m /= (i - a + 1); return GROUND_Y - Math.max(-80, Math.min(80, (ys[i] - m) * SCALE)); };   // hills around a rolling 10-day mean, clamped
-  const gaps = path.map((b, i) => i > 0 && b.c / path[i - 1].c - 1 <= -0.03); for (let i = 1; i < gaps.length; i++) if (gaps[i] && gaps[i - 1]) gaps[i] = false;   // a 3%+ drop is a hole, never two in a row
-  const gapAt = i => !!gaps[i];
-  const bigUp = i => i > 0 && path[i].c / path[i - 1].c - 1 >= 0.03;
-  const img = new Image(); img.src = cutArt('hero_dealer');
-  let x = 0, speed = 190, t0 = performance.now(), last = t0, py = 0, vy = 0, onGround = true, alive = true, days = 0, coins = 0, raf = 0, hurtUntil = 0;
-  const jump = () => { if (!alive) return; if (onGround) { vy = -560; onGround = false; sfx.select(); } };
-  const key = e => { if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); } };
-  cv.addEventListener('pointerdown', jump); document.addEventListener('keydown', key);
-  const hud = host.querySelector('.mg-hud');
-  function draw(now) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    if (alive) { speed = 190 + Math.min(200, (now - t0) / 1000 * 8); x += speed * dt; }
-    const i = Math.floor(x / SEG), frac = (x % SEG) / SEG;
-    if (i >= path.length - 2) { alive = false; finish(true); return; }
-    days = i;
-    // player physics on the line
-    const lineY = yAt(i) * (1 - frac) + yAt(i + 1) * frac;
-    vy += 1500 * dt; py += vy * dt;
-    const feet = py;                                     // py is offset above the line (0 = on the line), negative = in the air
-    const overHole = gapAt(i + 1) && frac > 0.3 && frac < 0.85;
-    if (feet >= 0 && !overHole) { py = 0; vy = 0; onGround = true; }
-    if (overHole && feet >= 0) { alive = false; finish(false); return; }
-    if (bigUp(i + 1) && frac > 0.45 && frac < 0.55 && now > hurtUntil) { coins++; hurtUntil = now + 300; sfx.crit?.(); }
-    // draw
-    ctx.clearRect(0, 0, W, H);
-    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#CFE9F8'); g.addColorStop(1, '#EAF4EC'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    const PX = 160;                                      // player's screen x
-    ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.strokeStyle = '#E0A72E';
-    ctx.beginPath();
-    for (let k = -4; k < 16; k++) { const j = i + k; if (j < 0 || j >= path.length) continue; const sx = PX + (j - i - frac) * SEG, sy = yAt(j); if (gapAt(j)) { ctx.moveTo(sx, sy); continue; } k === -4 || gapAt(j - 1) ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy); }
-    ctx.stroke();
-    for (let k = -4; k < 16; k++) { const j = i + k; if (j <= 0 || j >= path.length) continue; const sx = PX + (j - i - frac) * SEG, sy = yAt(j);
-      if (gapAt(j)) { ctx.fillStyle = 'rgba(214,69,63,.85)'; ctx.fillRect(sx - SEG + 6, sy - 6, SEG - 12, H); ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Jua, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(`${(100 * (path[j].c / path[j - 1].c - 1)).toFixed(1)}%`, sx - SEG / 2, sy + 26); }
-      if (bigUp(j)) { ctx.fillStyle = '#2E9A58'; ctx.beginPath(); ctx.arc(sx - SEG / 2, (yAt(j - 1) + sy) / 2 - 40, 9, 0, 7); ctx.fill(); ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Jua, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('+', sx - SEG / 2, (yAt(j - 1) + sy) / 2 - 36); } }
-    // player
-    const s = 84, cy = lineY + py;
-    ctx.drawImage(img, PX - s / 2, cy - s + 4, s, s);
-    // date strip
-    ctx.fillStyle = 'rgba(36,64,95,.85)'; ctx.fillRect(0, 0, W, 34); ctx.fillStyle = '#fff'; ctx.font = '15px Jua, "Noto Sans KR", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText(`${path[i].d.replace(/-/g, '.')}  ${path[i].event}, ${path[i].label}`, 12, 23);
-    ctx.textAlign = 'right'; ctx.fillText(`${days}일 버팀  +${coins}`, W - 12, 23);
-    hud.textContent = `${days}일째, 보너스 ${coins}`;
-    raf = requestAnimationFrame(draw);
-  }
-  function finish(won) {
-    cancelAnimationFrame(raf); cv.removeEventListener('pointerdown', jump); document.removeEventListener('keydown', key);
-    const i = Math.min(path.length - 1, Math.floor(x / SEG) + 1);
-    onEnd({ score: Math.max(0, days - 8) * 10 + coins * 25, days: Math.max(0, days - 8), coins, won, where: won ? '' : `${path[i].d.replace(/-/g, '.')} ${path[i].event}, 하루 ${(100 * (path[i].c / path[i - 1].c - 1)).toFixed(1)}%에 빠졌어요` });
-  }
-  raf = requestAnimationFrame(draw);
-  return () => { cancelAnimationFrame(raf); cv.removeEventListener('pointerdown', jump); document.removeEventListener('keydown', key); };
-}
-
-/* ---------- 2. 시총 더높이더낮게: Higher or Lower with real market caps ---------- */
-// Market caps in USD billions, stockanalysis.com biggest-companies list, checked 2026-10-27. Rounded; the game only compares.
-const CAPS = [
-  ['엔비디아', 5220, '미국 반도체'], ['애플', 5020, '미국 스마트폰'], ['마이크로소프트', 3960, '미국 소프트웨어'], ['알파벳(구글)', 3870, '미국 검색과 광고'], ['아마존', 2690, '미국 전자상거래'],
-  ['TSMC', 1900, '대만 반도체 위탁생산'], ['아람코', 1650, '사우디 석유'], ['메타', 1610, '미국 SNS'], ['브로드컴', 1570, '미국 반도체'], ['테슬라', 1550, '미국 전기차'],
-  ['일라이 릴리', 1140, '미국 제약'], ['삼성전자', 1070, '한국 반도체와 가전'], ['마이크론', 1020, '미국 메모리'], ['월마트', 954, '미국 유통'], ['JP모건', 887, '미국 은행'],
-  ['AMD', 867, '미국 반도체'], ['엑슨모빌', 759, '미국 석유'], ['SK하이닉스', 745, '한국 메모리'], ['비자', 742, '미국 결제'], ['존슨앤드존슨', 641, '미국 제약'],
-  ['ASML', 615, '네덜란드 반도체 장비'], ['마스터카드', 537, '미국 결제'], ['팔란티어', 478, '미국 데이터 소프트웨어'], ['셰브론', 455, '미국 석유'], ['코스트코', 445, '미국 유통'],
-  ['텐센트', 444, '중국 게임과 메신저'], ['시스코', 435, '미국 네트워크 장비'], ['코카콜라', 399, '미국 음료'], ['오라클', 382, '미국 소프트웨어'], ['P&G', 371, '미국 생활용품'],
-  ['HSBC', 345, '영국 은행'], ['넷플릭스', 300, '미국 스트리밍'], ['알리바바', 289, '중국 전자상거래'], ['셸', 269, '영국 석유'], ['도요타', 228, '일본 자동차'],
-  ['세일즈포스', 192, '미국 소프트웨어'], ['디즈니', 179, '미국 미디어'], ['맥도날드', 177, '미국 외식'], ['노보 노디스크', 175, '덴마크 제약'], ['화이자', 159, '미국 제약'],
-  ['보잉', 156, '미국 항공기'], ['우버', 143, '미국 모빌리티'], ['소니', 138, '일본 전자와 게임'], ['스타벅스', 108, '미국 커피'], ['스포티파이', 103, '스웨덴 음악'],
-  ['에어비앤비', 95, '미국 숙박'], ['어도비', 95, '미국 소프트웨어'], ['페라리', 79, '이탈리아 자동차'], ['GM', 73, '미국 자동차'], ['나이키', 54, '미국 스포츠'],
-  ['코인베이스', 53, '미국 코인 거래소'], ['포드', 52, '미국 자동차'], ['KB금융', 46, '한국 은행'], ['페이팔', 45, '미국 결제'], ['신한지주', 39, '한국 은행'],
-];
-const capText = b => b >= 1000 ? `${(b / 1000).toFixed(2).replace(/\.?0+$/, '')}조 달러` : `${Math.round(b * 10).toLocaleString('ko-KR')}억 달러`;
-/* Other measures. Sources, checked 2026-10-27: revenue (TTM, USD) and employees = stockanalysis.com lists and company pages;
-   store counts and founding years = Wikipedia infoboxes. All approximate; the game only compares. */
-const REV = [['아마존', 776], ['월마트', 736], ['아람코', 486], ['애플', 467], ['유나이티드헬스', 450], ['알파벳(구글)', 446], ['CVS헬스', 413], ['삼성전자', 367], ['엑슨모빌', 361], ['폭스바겐', 360],
-  ['마이크로소프트', 332], ['도요타', 331], ['코스트코', 303], ['엔비디아', 303], ['셸', 299], ['메타', 242], ['셰브론', 209], ['JP모건', 191], ['포드', 188], ['GM', 187], ['홈디포', 169], ['스타벅스', 37.2], ['맥도날드', 26.9]];
-const EMP = [['월마트', 2100000], ['아마존', 1576000], ['BYD', 911900], ['징둥닷컴', 900000], ['폭스콘', 826608], ['액센츄어', 814000], ['폭스바겐', 594022], ['페덱스', 530000], ['홈디포', 472400], ['UPS', 460000],
-  ['타깃', 415000], ['메리어트', 414000], ['스타벅스', 381000], ['도요타', 367990], ['코스트코', 355000], ['마이크로소프트', 223000], ['알파벳(구글)', 190820], ['애플', 166000], ['맥도날드', 150000], ['테슬라', 134785], ['삼성전자', 128612], ['메타', 75472], ['나이키', 73000], ['코카콜라', 65900], ['엔비디아', 42000], ['넷플릭스', 16000]];
-const STORES = [['세븐일레븐', 85000], ['맥도날드', 45356], ['스타벅스', 40990], ['서브웨이', 37000], ['월마트', 10974], ['코스트코', 924]];
-const FOUNDED = [['코카콜라', 1886], ['IBM', 1911], ['디즈니', 1923], ['도요타', 1937], ['페라리', 1939], ['소니', 1946], ['맥도날드', 1955], ['비자', 1958], ['월마트', 1962], ['나이키', 1964], ['현대자동차', 1967], ['인텔', 1968], ['삼성전자', 1969],
-  ['스타벅스', 1971], ['마이크로소프트', 1975], ['애플', 1976], ['코스트코', 1983], ['SK하이닉스', 1983], ['엔비디아', 1993], ['아마존', 1994], ['넷플릭스', 1997], ['구글', 1998], ['네이버', 1999], ['테슬라', 2003], ['메타(페이스북)', 2004], ['카카오', 2010], ['쿠팡', 2010]];
-const PER_EMP = (() => { const e = Object.fromEntries(EMP); return REV.filter(([n]) => e[n]).map(([n, r]) => [n, Math.round(r * 1e9 / e[n] / 1000)]); })();   // revenue per employee, $K
-const CATS = [
-  { id: 'cap', name: '시가총액', q: n => `${n}의 시가총액은`, up: '더 높다', dn: '더 낮다', rows: CAPS.map(c => [c[0], c[1], c[2]]), fmt: capText, ratio: true },
-  { id: 'rev', name: '1년 매출', q: n => `${n}의 1년 매출은`, up: '더 많다', dn: '더 적다', rows: REV, fmt: capText, ratio: true },
-  { id: 'emp', name: '임직원 수', q: n => `${n}의 임직원은`, up: '더 많다', dn: '더 적다', rows: EMP, fmt: v => `${Math.round(v).toLocaleString('ko-KR')}명`, ratio: true },
-  { id: 'store', name: '매장 수', q: n => `${n}의 매장은`, up: '더 많다', dn: '더 적다', rows: STORES, fmt: v => `${Math.round(v).toLocaleString('ko-KR')}곳`, ratio: true },
-  { id: 'found', name: '창업 연도', q: n => `${n}${josa(n, '은', '는')} 창업이`, up: '더 최근', dn: '더 먼저', rows: FOUNDED, fmt: v => `${v}년`, ratio: false },
-  { id: 'peremp', name: '직원 1명당 매출', q: n => `${n}의 직원 1명당 매출은`, up: '더 많다', dn: '더 적다', rows: PER_EMP, fmt: v => `${Math.round(v / 10).toLocaleString('ko-KR')}만 달러`, ratio: true },
-];
-function runHiLo(host, onEnd) {
-  const box = host.querySelector('.mg-pick');
-  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-  let cat, A, B, lastCat = null, k = 0, streak = 0, lives = 3, correct = 0, best = 0, timer = 0, locked = false, cancelled = false;
-  function nextQ() {
-    cat = pick(CATS.filter(c => c.id !== lastCat && c.rows.length >= 2)); lastCat = cat.id;
-    const rows = cat.rows; A = pick(rows); let tries = 0; do { B = pick(rows); } while ((B === A || B[1] === A[1]) && ++tries < 20);
-  }
-  const card = (c, reveal, cls = '') => `<div class="cap-card ${cls}"><small>${c[2] || cat.name}</small><b>${c[0]}</b><span class="cap">${reveal ? cat.fmt(c[1]) : '?'}</span></div>`;
-  function show() {
-    if (cancelled) return;
-    if (lives <= 0 || k >= 20) { onEnd({ score: correct * 100 + best * 30, correct, total: k, best, lives }); return; }
-    nextQ(); locked = false;
-    box.innerHTML = `<div class="mg-q"><small class="mg-cat">${cat.name}</small><b>${cat.q(B[0])} ${A[0]}보다?</b><i class="mg-timer"><em style="width:100%"></em></i></div>
-      <div class="mg-two caps">${card(A, true, 'known')}${card(B, false, 'ask')}</div>
-      <div class="mg-two"><button type="button" class="mg-btn up" data-k="up">▲ ${cat.up}</button><button type="button" class="mg-btn dn" data-k="dn">▼ ${cat.dn}</button></div>
-      <div class="mg-score">${'♥'.repeat(lives)}${'♡'.repeat(3 - lives)}  연속 ${streak}</div>`;
-    const bar = box.querySelector('.mg-timer em'); clearInterval(timer); const t0 = performance.now();
-    timer = setInterval(() => { const el = (performance.now() - t0) / 1000; bar.style.width = Math.max(0, 100 - el / 5 * 100) + '%'; if (el >= 5 && !locked) answer(null); }, 50);
-    box.querySelectorAll('.mg-btn').forEach(b => b.onclick = () => answer(b.dataset.k));
-  }
-  function answer(ans) {
-    if (locked) return; locked = true; clearInterval(timer);
-    const right = B[1] >= A[1] ? 'up' : 'dn', ok = ans === right;
-    if (ok) { correct++; streak++; best = Math.max(best, streak); sfx.crit?.(); } else { lives--; streak = 0; sfx.faint?.(); }
-    box.querySelector('.cap-card.ask').outerHTML = card(B, true, 'ask ' + (ok ? 'win' : 'lose'));
-    box.querySelectorAll('.mg-btn').forEach(b => { b.disabled = true; b.classList.add(b.dataset.k === right ? 'win' : 'lose'); });
-    const ratio = B[1] / A[1];
-    const note = cat.ratio ? `${B[0]}${josa(B[0], '은', '는')} ${A[0]}의 ${ratio >= 1 ? `${ratio.toFixed(1)}배` : `${Math.round(ratio * 100)}%`}예요` : `${Math.abs(B[1] - A[1])}년 차이예요`;
-    box.querySelector('.mg-score').innerHTML = `${ans === null ? '시간이 다 됐어요' : ok ? '맞았어요!' : '아쉬워요'} ${note}`;
-    setTimeout(() => { k++; show(); }, 1500);
-  }
-  show();
-  return () => { cancelled = true; clearInterval(timer); };
-}
-
-/* ---------- 3. 얼마나 될까요: SizeUp-style estimation. Drag to guess a number; closer guess, more points ---------- */
-function runSizeUp(host, onEnd) {
-  const box = host.querySelector('.mg-pick'), pick = arr => arr[Math.floor(Math.random() * arr.length)];
-  // number questions from the same tables (log slider), plus chart questions from real tapes (linear slider)
-  const numQ = () => { const cat = pick(CATS.filter(c => c.id !== 'found')), row = pick(cat.rows), vals = cat.rows.map(r => r[1]);
-    const lo = Math.min(...vals) / 2, hi = Math.max(...vals) * 2;
-    // a reference the player can reason from: another company in the same table, ideally within 1/4x to 4x, never the answer itself
-    const near = cat.rows.filter(r => r !== row && r[1] / row[1] >= 0.25 && r[1] / row[1] <= 4), ref = pick(near.length ? near : cat.rows.filter(r => r !== row));
-    return { kind: 'log', text: `${row[0]}의 ${cat.name}${josa(cat.name, '은', '는')} 얼마나 될까요?`, sub: row[2] || cat.name, hint: `참고로 ${ref[0]}${josa(ref[0], '은', '는')} ${cat.fmt(ref[1])}이에요.`, actual: row[1], lo, hi, fmt: cat.fmt }; };
-  const stats = t => { const ps = t.bars.map(b => b.prices.QQQ), peak = Math.max(...ps), trough = Math.min(...ps.slice(ps.indexOf(peak))); return { ps, dd: 100 * (1 - trough / peak), tot: 100 * (ps.at(-1) / ps[0] - 1) }; };
-  const chartQ = () => { const daily = TAPES.filter(x => x.daily), t = pick(daily), { ps, dd, tot } = stats(t), i0 = 0, i1 = ps.length - 1;
-    const other = pick(daily.filter(x => x !== t)), os = stats(other), oname = other.title.replace(/ 레이드$/, '');
-    const which = Math.random() < 0.5 && dd >= 2 ? 'dd' : 'tot';
-    const w = 320, h = 110, mn = Math.min(...ps), mx = Math.max(...ps), pts = ps.map((p, i) => `${(i / (ps.length - 1) * (w - 16) + 8).toFixed(1)},${(h - 10 - (p - mn) / (mx - mn || 1) * (h - 20)).toFixed(1)}`).join(' ');
-    const svg = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#24405F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    const span = `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)}, 눈금은 숨겼어요`;
-    return which === 'dd' ? { kind: 'pct', text: `${t.title.replace(/ 레이드$/, '')} 때 나스닥100은 고점에서 얼마나 빠졌을까요?`, sub: span, hint: `참고로 ${oname} 때는 고점에서 ${os.dd.toFixed(1)}% 빠졌어요. 하루에 3% 넘게 빠지면 큰 날이에요.`, svg, actual: -dd, lo: -40, hi: 0, fmt: v => `${v.toFixed(1)}%` }
-      : { kind: 'pct', text: `${t.title.replace(/ 레이드$/, '')} 구간 전체에서 나스닥100은 몇 % 움직였을까요?`, sub: span, hint: `참고로 ${oname} 구간은 ${os.tot >= 0 ? '+' : ''}${os.tot.toFixed(1)}%였어요. 이 구간은 ${t.bars.length - 1}거래일이에요.`, svg, actual: tot, lo: -30, hi: 30, fmt: v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` }; };
-  const qs = Array.from({ length: 8 }, (_, i) => i % 2 ? chartQ() : numQ());
-  let q = 0, total = 0, cancelled = false;
-  const sig2 = v => { const m = Math.pow(10, Math.floor(Math.log10(v)) - 1); return Math.round(v / m) * m; };
-  const toVal = (Q, x) => Q.kind === 'log' ? sig2(Math.exp(Math.log(Q.lo) + (Math.log(Q.hi) - Math.log(Q.lo)) * x)) : Math.round((Q.lo + (Q.hi - Q.lo) * x) * 10) / 10;
-  const toX = (Q, v) => Q.kind === 'log' ? (Math.log(v) - Math.log(Q.lo)) / (Math.log(Q.hi) - Math.log(Q.lo)) : (v - Q.lo) / (Q.hi - Q.lo);
-  const points = (Q, g) => Q.kind === 'log' ? Math.max(0, Math.round(100 * (1 - Math.abs(Math.log10(g / Q.actual))))) : Math.max(0, Math.round(100 - Math.abs(g - Q.actual) * 8));
-  function show() {
-    if (cancelled) return;
-    if (q >= qs.length) { onEnd({ score: total, total: qs.length }); return; }
-    const Q = qs[q];
-    box.innerHTML = `<div class="mg-q"><small class="mg-cat">${q + 1} / ${qs.length}</small><b>${Q.text}</b><small>${Q.sub}</small></div>
-      ${Q.svg ? `<div class="mg-one">${Q.svg}</div>` : ''}
-      <div class="su-hint">💡 ${Q.hint}</div>
-      <div class="su-guess"><b id="suVal">${Q.fmt(toVal(Q, .5))}</b></div>
-      <input type="range" class="su-range" id="suRange" min="0" max="1000" value="500" aria-label="추정값">
-      <div class="su-ends"><span>${Q.fmt(Q.lo)}</span><span>${Q.fmt(Q.hi)}</span></div>
-      <button type="button" class="btn" id="suOk">이 정도!</button>
-      <div class="mg-score">지금까지 ${total}점</div>`;
-    const r = box.querySelector('#suRange'), v = box.querySelector('#suVal');
-    r.oninput = () => { v.textContent = Q.fmt(toVal(Q, r.value / 1000)); };
-    box.querySelector('#suOk').onclick = () => {
-      const g = toVal(Q, r.value / 1000), pt = points(Q, g); total += pt; sfx[pt >= 70 ? 'crit' : pt >= 30 ? 'select' : 'faint']?.();
-      r.disabled = true; box.querySelector('#suOk').hidden = true;
-      const ax = Math.min(1, Math.max(0, toX(Q, Q.actual)));
-      box.querySelector('.su-ends').insertAdjacentHTML('beforebegin', `<div class="su-answer" style="--x:${(ax * 100).toFixed(1)}%"><i></i><b>${Q.fmt(Q.actual)}</b></div>`);
-      box.querySelector('.mg-score').innerHTML = `<b style="color:${pt >= 70 ? 'var(--green)' : pt >= 30 ? 'var(--gold-dark)' : 'var(--red)'}">+${pt}점</b> ${pt >= 90 ? '거의 정확해요!' : pt >= 70 ? '가까워요' : pt >= 30 ? '조금 벗어났어요' : '많이 벗어났어요'}, 내 답 ${Q.fmt(g)}`;
-      setTimeout(() => { q++; show(); }, 1800);
-    };
-  }
-  show();
-  return () => { cancelled = true; };
-}
-
-/* ---------- shell: list, play, result ---------- */
-const MINIGAMES = [
-  { id: 'runner', name: '달려달려', how: '화면을 탭하면 점프해요. 실제 나스닥 차트 위를 달리다가, 하루 3% 넘게 빠진 날(빨간 구멍)은 뛰어넘으세요.', learn: '폭락은 예고 없이 와요. 2020년 3월과 2025년 4월 구간을 지나 보세요.', art: 'hero_dealer', run: runRunner, unit: '점' },
-  { id: 'sizeup', name: '얼마나 될까요', how: '숫자를 보여 주지 않아요. 슬라이더를 끌어서 "이 정도!"로 맞히세요. 회사 매출이나 임직원 수, 눈금을 숨긴 차트의 낙폭이 번갈아 나와요. 가까울수록 점수가 커요.', learn: '감으로 찍은 숫자와 실제 숫자의 거리를 보면서 크기 감각을 익혀요.', art: 'hero_support', run: runSizeUp, unit: '점' },
-  { id: 'hilo', name: '더높이 더낮게', how: '시가총액, 매출, 임직원 수, 매장 수, 창업 연도 같은 질문이 매번 바뀌어요. 5초 안에 높은지 낮은지 고르세요. 목숨은 셋, 20문제예요.', learn: '엔비디아 직원 한 명이 1년에 720만 달러를 벌고, 세븐일레븐 매장은 8만 5천 곳이에요. 회사의 크기를 숫자로 익혀요.', art: 'hero_healer', run: runHiLo, unit: '점', cats: true },
-];
-let mgStop = null;
-function openMinigame(id) {
-  const g = MINIGAMES.find(x => x.id === id), m = $('#mg'), best = mgStore().best[id] || 0;
-  m.hidden = false; $('#tip').hidden = true;
-  m.querySelector('.box').innerHTML = `<div class="mg-head"><img src="${portrait(g.art)}" alt=""><div><small>미니게임</small><h2>${g.name}</h2></div><span class="mg-best">최고 ${best}${g.unit}</span><button type="button" class="iconbtn" id="mgClose">닫기</button></div>
-    <p class="mg-how">${g.how}</p>
-    <div class="mg-stage" id="mgStage">${id === 'runner' ? '<canvas></canvas><div class="mg-hud"></div>' : '<div class="mg-pick"></div>'}<button type="button" class="btn mg-start" id="mgStart">시작</button></div>
-    <div class="mg-end" id="mgEnd" hidden></div>`;
-  const close = () => { mgStop?.(); mgStop = null; m.hidden = true; renderMinigames?.(); };
-  $('#mgClose').onclick = close;
-  $('#mgStart').onclick = () => {
-    sfx.select(); $('#mgStart').hidden = true; $('#mgEnd').hidden = true; const cats = $('#mgCats'); if (cats) cats.hidden = true;
-    mgStop = g.run($('#mgStage'), res => {
-      mgStop = null; const r = mgSaveBest(id, res.score);
-      const line = id === 'runner' ? (res.won ? `끝까지 달렸어요! ${res.days}일을 버텼어요.` : `${res.days}일 버텼어요. ${res.where}`) : id === 'sizeup' ? `${res.total}문제, ${res.score}점이에요. 문제당 100점이 만점이에요.` : `${res.total}문제 중 ${res.correct}개를 맞혔어요. 최고 연속 ${res.best}개예요.`;
-      $('#mgEnd').hidden = false;
-      $('#mgEnd').innerHTML = `<b>${res.score}${g.unit}</b><p>${line}</p><p class="small muted">${r.first ? '첫 기록이에요.' : r.isNew ? `최고 기록을 넘었어요! (전 ${r.prev}${g.unit})` : `최고 기록 ${r.best}${g.unit}`}</p><p class="small muted">${g.learn}</p>
-        <div class="row" style="justify-content:center"><button type="button" class="btn" id="mgAgain">다시 하기</button><button type="button" class="btn secondary" id="mgDone">그만하기</button></div>`;
-      $('#mgAgain').onclick = () => $('#mgStart').click(); $('#mgDone').onclick = close; if (cats) cats.hidden = false;
-      if (r.isNew) sfx.level?.();
-    });
-  };
-}
-function renderMinigames() {
-  const el = $('#minigames'); if (!el) return;
-  el.innerHTML = MINIGAMES.map(g => { const best = mgStore().best[g.id] || 0, n = mgStore().plays[g.id] || 0;
-    return `<button type="button" class="mgcard" data-mg="${g.id}"><img src="${portrait(g.art)}" alt=""><span class="tx"><b>${g.name}</b><small>${g.how.split('.')[0]}.</small></span><span class="mgbest">${best ? `최고 ${best}` : n ? '' : 'NEW'}</span></button>`; }).join('');
-  el.querySelectorAll('.mgcard').forEach(b => b.onclick = () => { unlock(); sfx.select(); openMinigame(b.dataset.mg); });
-}
-renderMinigames();
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#mg').hidden) $('#mgClose')?.click(); });
 
 </script>
 </body></html>

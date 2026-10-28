@@ -839,6 +839,44 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .cpf-one b.good{color:var(--green)} .cpf-one b.bad{color:var(--red)}
 .cpf-one .mkt{font-size:14px;color:var(--ink)} .cpf-one .mkt b{font-size:16px}
 .cp-facts.more{display:flex;flex-direction:column;gap:6px}
+.daily-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 18px;align-items:center;border-radius:20px;padding:16px 18px;border:2px solid #B9841A;background:linear-gradient(135deg,#FFE9A8,#FFD166 60%,#F5B83D);box-shadow:0 4px 0 #9A6B0E}
+.daily-card.done{grid-template-columns:minmax(0,1fr) auto auto;background:linear-gradient(135deg,#FFFDF6,#F4ECD8);border-color:var(--line);box-shadow:0 4px 0 var(--edge)}
+.daily-card .dc-l{display:flex;flex-direction:column;gap:2px;min-width:0}
+.daily-card small{font-family:var(--display);font-size:13px;color:#8A5A00}
+.daily-card .dc-l b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--navy);line-height:1.2}
+.daily-card .dc-l span{font-size:13.5px;color:#6B5523}
+.daily-card strong.up{color:var(--green)} .daily-card strong.down{color:var(--red)}
+.daily-card .dc-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.daily-card .dc-r em{font-style:normal;font-family:var(--display);color:#8A5A00}
+.daily-card .dc-r .btn{min-width:120px}
+.dgrid{display:flex;flex-direction:column;gap:4px}
+.dgrid>div{display:flex;gap:4px}
+.dgrid i{width:30px;height:30px;border-radius:6px;background:#D9D3C4}
+.dgrid i.g{background:#4CAF6A} .dgrid i.r{background:#E0534A} .dgrid i.n{background:#C9C2B2} .dgrid i.e{background:#3A3A3A;opacity:.25}
+.dgrid.sm i{width:18px;height:18px;border-radius:4px}
+.dgrid .dh{display:flex;gap:4px}.dgrid .dh span{width:56px;text-align:center;font-size:11.5px;color:var(--muted)}
+.cp-grid{display:flex;justify-content:center}.cp-grid .dgrid{align-items:center}.cp-grid .dgrid i{width:56px;height:26px}
+.daily-res{display:flex;flex-direction:column;gap:14px}
+.dr-top{display:flex;flex-direction:column;align-items:center;gap:10px}
+.dr-top small,.dr-reveal small,.dr-dist small,.dr-top1 small{font-size:12.5px;color:var(--muted)}
+.dr-top>b{font-family:var(--display);font-weight:400;font-size:34px}
+.dr-top>b.up{color:var(--green)} .dr-top>b.down{color:var(--red)}
+.dr-reveal{display:flex;flex-direction:column;gap:2px;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:14px 16px}
+.dr-reveal b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--navy)}
+.dr-reveal span{font-size:13px;color:var(--muted)}
+.dr-reveal p{margin:6px 0 0;line-height:1.6}
+.dr-dist{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center}
+.dr-dist>div{display:flex;flex-direction:column}
+.dr-dist b{font-family:var(--display);font-weight:400;font-size:26px;color:var(--navy)}
+.dr-dist svg{width:100%;max-width:320px;justify-self:end}
+.dr-top1{display:flex;flex-direction:column;gap:6px}
+.dpick{display:flex;flex-wrap:wrap;gap:6px}
+.dpick span{display:flex;flex-direction:column;padding:6px 10px;border-radius:10px;background:#fff;border:1.5px solid var(--line);border-left:4px solid var(--rc);font-size:12.5px;color:var(--muted)}
+.dpick b{font-family:var(--display);font-weight:400;font-size:14px;color:var(--ink)}
+.dr-share{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.dr-share small,.daily-card .dc-r small{font-size:12.5px;color:var(--muted)}
+.dcount{font-family:var(--display);font-weight:400;color:var(--navy)}
+@media (max-width:620px){.daily-card,.daily-card.done{grid-template-columns:1fr}.daily-card .dc-r{align-items:stretch}.dr-dist{grid-template-columns:1fr}}
 </style>
 
 <div class="wrap">
@@ -858,6 +896,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 
   <!-- 1. raid select -->
   <section id="screen-select" class="screen">
+    <div class="daily-card" id="dailyCard"></div>
     <div class="board season" id="season"></div>
     <div class="home-stage">
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
@@ -866,8 +905,8 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="rhythm">
       <div class="week-card" id="weekCard"></div>
     </div>
-    <div class="chapters" id="chapterMap" aria-label="시나리오 지도"></div>
-    <div class="mg-sec"><div class="section-h"><h3>미니게임</h3><span class="chip" style="color:var(--blue)">실제 차트로 해요</span></div><div class="mglist" id="minigames"></div></div>
+    <div class="section-h"><h3>지난 문제 연습</h3></div>
+    <div class="chapters" id="chapterMap" aria-label="지난 문제"></div>
     <div class="raid-lists">
     <div>
       <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
@@ -962,6 +1001,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   <!-- 5. result -->
   <section id="screen-result" hidden style="display:flex;flex-direction:column;gap:14px">
     <div class="card rmain">
+        <div class="daily-res" id="rDaily" hidden></div>
         <div class="stamp-wrap"><div class="stamp" id="rStamp">S</div><div class="verdict" id="rVerdict"></div></div>
         <p class="small muted" id="rWhy" style="margin:-4px 0 0;text-align:center"></p>
         <div class="rstars" id="rStars" hidden></div>
@@ -1019,6 +1059,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div><span class="cp-step" id="cpStep">체크포인트</span><h2 id="cpTitle"><span class="pause"></span><span></span></h2></div>
       <div class="timer" id="cpTimer" title="시간이 다 되면 그대로 진행"><span id="cpTimerTxt">30</span><i><b id="cpTimerBar"></b></i></div>
     </div>
+    <div class="cp-grid" id="cpGrid" hidden></div>
     <div class="cp-facts" id="cpFacts"></div>
     <p class="cp-hint" id="cpHint"></p>
     <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b></span><span id="cpHoldPay"></span></button>
@@ -1045,8 +1086,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   </div>
 </div>
 
-<!-- minigame -->
-<div class="modal" id="mg" hidden role="dialog" aria-modal="true"><div class="box wide mg-box"></div></div>
 
 <!-- 가방 열기 -->
 <div class="modal" id="peek" hidden role="dialog" aria-modal="true"><div class="box pk-box"></div></div>
