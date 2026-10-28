@@ -30,7 +30,7 @@ try {
   await page.waitForFunction(() => window.__rpg && document.querySelectorAll('.raid').length > 0);
   await page.waitForSelector('#tip:not([hidden])', { timeout: 5000 });
   check(true, 'first-visit coach tip appears');
-  await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
+  await page.click('#menuBtn'); await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
   check(!(await page.$('#chapterMap')) && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'home has no scenario map (it would spoil future problems) and lists 3 upcoming');
   check(!!(await page.$('#dailyGo')) && !!(await page.$('#weekCard .btn')), 'home shows today\'s problem and the weekly major');
   await shot(page, '1-select');

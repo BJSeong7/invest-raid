@@ -71,6 +71,11 @@ const BOSS_DESC = { minotaur: '금리 결정이 보스가 됐어요. 동결 발�
 /* ------------------------------------------------------------------ */
 const PROFILE_KEY = 'invest-rpg.profile.v1';
 let profile = loadProfile();
+if (profile.seasonV !== 2) {   // the season used to count practice raids; it now counts only daily problems and majors
+  const recs = [...Object.values(profile.daily || {}), ...Object.values(profile.major || {}).map(m => m.done).filter(Boolean)].filter(r => r?.done);
+  profile.season = { bal: Math.round(recs.reduce((b, r) => b * (1 + r.ret / 100), 10_000_000)), raids: recs.length }; profile.seasonV = 2;
+  try { localStorage.setItem('invest-rpg.profile.v1', JSON.stringify(profile)); } catch {}
+}
 function loadProfile() {
   try { const p = JSON.parse(localStorage.getItem(PROFILE_KEY)); if (p && p.level) return { plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: false, ...p }; } catch {}
   return { level: 1, exp: 0, unlockAll: false, plays: {}, badges: {}, bosses: {}, streak: 0, lastDay: '', seenTutorial: false };
@@ -365,9 +370,8 @@ function renderDailyCard() {
     host.querySelector('#dailyGo').onclick = openDaily;
   } else {
     host.className = 'daily-card done';
-    host.innerHTML = `<div class="dc-l"><b>${GAME_NAME}</b><small>No. ${n}, ${dailyDate(n)}</small><span><strong class="${rec.alpha >= 0 ? 'up' : 'down'}">시장보다 ${fmtPct(rec.alpha)}p</strong>, 상위 ${rec.pct}%</span></div>
-      <div class="dc-g">${gridHTML(rec.grid, true)}</div>
-      <div class="dc-r"><button type="button" class="btn secondary" id="dailyShare">결과 복사</button><small>다음 문제 <b class="dcount"></b></small></div>`;
+    host.innerHTML = `<div class="dc-l"><b>${GAME_NAME}</b><small>No. ${n}, ${dailyDate(n)}</small><span><strong class="${rec.alpha >= 0 ? 'up' : 'down'}">시장보다 ${fmtPct(rec.alpha)}p</strong>, 상위 ${rec.pct}%</span><small>다음 문제 <b class="dcount"></b></small></div>
+      <div class="dc-g">${gridHTML(rec.grid, true)}<button type="button" class="btn secondary mini" id="dailyShare">복사</button></div>`;
     host.querySelector('#dailyShare').onclick = e => copyShare(rec, e.currentTarget);
     startCountdown();
   }
@@ -671,7 +675,7 @@ function renderHome() {
   $('#homeChip').hidden = true;   // money and raid count live in the season card above
   $('#homeCast').innerHTML = ROLES.map((r, i) => { const h = hero(r), sel = r === homeSel;
     return `<button type="button" class="cast ${sel ? 'sel' : ''} ${h.branch ? 'evo' : ''}" data-role="${r}" style="--rc:${ROLE_COLOR[r]};--bc:${h.branch ? EVO_COLOR : ROLE_COLOR[r]};--d:${-i * .45}s" aria-pressed="${sel}">
-      <span class="tag"><b>${charOf(r).name}</b></span>
+      <span class="tag"><b>${ROLE_META[r].char}</b></span>
       <img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span class="ring"></span></button>`; }).join('');
   $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); });
   $('#heroSheet').innerHTML = heroSheetHTML(homeSel);
@@ -1702,7 +1706,9 @@ function renderTut() { const t = TUT[tutStep]; $('#tutArt').src = cutArt(t.art);
 function openTutorial() { tutStep = 0; renderTut(); $('#tut').hidden = false; }
 $('#tutNext').addEventListener('click', () => { sfx.select(); if (tutStep < TUT.length - 1) { tutStep++; renderTut(); } else { $('#tut').hidden = true; profile.seenTutorial = true; saveProfile(); } });
 $('#tutSkip').addEventListener('click', () => { sfx.back(); $('#tut').hidden = true; profile.seenTutorial = true; saveProfile(); });
-$('#helpBtn').addEventListener('click', () => { sfx.select(); openTutorial(); });
+$('#menuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $('#menu'); m.hidden = !m.hidden; $('#menuBtn').setAttribute('aria-expanded', String(!m.hidden)); });
+document.addEventListener('click', e => { if (!e.target.closest('#menu')) $('#menu').hidden = true; });
+$('#helpBtn').addEventListener('click', () => { $('#menu').hidden = true; sfx.select(); openTutorial(); });
 // ---- guided first raid: one coach tip per screen, shown once (replaces the up-front modal) ----
 const TIPS = {
   select: ['하루에 한 문제, 한 번만 풀 수 있어요.', 'dailyCard'],
