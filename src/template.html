@@ -254,7 +254,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .seg{display:inline-flex;background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 0 var(--edge)}
 .seg button{background:transparent;border:0;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer;min-height:34px;font-family:var(--display);color:var(--muted);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
-#chartMode button{padding:4px 10px;min-height:28px;font-size:13px}
 @media (max-width:760px){.battlegrid{grid-template-columns:1fr}.chartbox.big .chart{min-height:200px}.chartbox.panes .pane-price{min-height:170px}.chartbox.panes .pane-eq{min-height:130px}}
 
 /* ---- checkpoint modal ---- */
@@ -636,89 +635,20 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 }
 
 /* ---- chart mode: same engine, no characters, no boss, no effects ---- */
-.mode-seg{display:inline-flex}
-.chart-intro{display:none}
-body.mode-chart .chart-intro{display:flex;flex-direction:column;gap:6px}
-.chart-intro h2{font-family:var(--body);font-weight:700;font-size:24px;color:var(--navy)}
-.chart-intro p{margin:0;color:var(--muted);font-size:14.5px}
-body.mode-chart{--display:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
-body.mode-chart .brand h1{font-family:var(--body);font-weight:700;font-size:22px;color:var(--navy);-webkit-text-stroke:0;text-shadow:none}
-body.mode-chart .home-stage,body.mode-chart #todayCard .pf,body.mode-chart .week-card .pf,body.mode-chart .raid img,body.mode-chart #dexBtn{display:none!important}
-body.mode-chart .boss-stage{display:none}
-body.mode-chart .brief{grid-template-columns:1fr}
-body.mode-chart .role img{display:none}
-body.mode-chart .arena,body.mode-chart .partyhud,body.mode-chart .bossbar,body.mode-chart #guardBtn{display:none!important}
-body.mode-chart .battlegrid{grid-template-columns:1fr}
-body.mode-chart .chartbox.big .chart{min-height:340px}
-body.mode-chart #cpSay,body.mode-chart .cp-role>.pf{display:none!important}
-body.mode-chart .stamp-wrap,body.mode-chart #rGrowthText,body.mode-chart #rGrowth,body.mode-chart .coach .av,body.mode-chart .stats .stat:nth-child(n+2){display:none!important}
-body.mode-chart .stats{grid-template-columns:1fr}
-body.mode-chart .event-card .eh>img{display:none}
 
 /* ---- chart mode, plain tone: white surfaces, thin lines, one accent, no shadows or bounces ---- */
-body.mode-chart{--bg:#F7F8FA;--panel:#fff;--panel2:#F2F4F6;--line:#E5E8EB;--edge:transparent;--navy:#191F28;--ink:#191F28;--muted:#6B7684;--dim:#8B95A1;--gold:#3182F6;--gold-dark:#1B64DA;--gold-ink:#fff;
   background:#F7F8FA;color:#191F28}
-body.mode-chart::after{display:none}
-body.mode-chart *{box-shadow:none!important;text-shadow:none!important;-webkit-text-stroke:0!important}
-body.mode-chart .card,body.mode-chart .raid,body.mode-chart .role,body.mode-chart .chartbox,body.mode-chart .week-card,body.mode-chart .today-card,body.mode-chart .account,body.mode-chart .preset,body.mode-chart .radar-card,body.mode-chart .event-card,body.mode-chart .modal .box,body.mode-chart .stat,body.mode-chart .money-result,body.mode-chart .whatif .wi,body.mode-chart .concepts details,body.mode-chart .cp-role,body.mode-chart .skill,body.mode-chart .choices button,body.mode-chart .cp-money,body.mode-chart .cp-hint,body.mode-chart .coach .bubble,body.mode-chart .timer i{
   background:#fff;border:1px solid #E5E8EB;border-radius:12px}
-body.mode-chart .role{border-top:1px solid #E5E8EB}
-body.mode-chart .btn{background:#191F28;color:#fff;border:0;border-radius:10px;font-weight:700;font-size:16px;min-height:48px}
-body.mode-chart .btn.secondary{background:#fff;color:#191F28;border:1px solid #D1D6DB}
-body.mode-chart .btn:active{transform:none}
-body.mode-chart .iconbtn{background:#fff;border:1px solid #D1D6DB;font-family:var(--body);font-weight:500;color:#191F28}
-body.mode-chart .seg{background:#F2F4F6;border:0}
-body.mode-chart .seg button{font-family:var(--body);font-weight:600}
-body.mode-chart .seg button[aria-pressed="true"]{background:#191F28;color:#fff}
-body.mode-chart .section-h h3{background:none;border:0;padding:0;font-family:var(--body);font-weight:700;font-size:17px;color:#191F28}
-body.mode-chart .chip{background:#F2F4F6;border:0;color:#6B7684;font-family:var(--body);font-weight:500}
-body.mode-chart .raid h3,body.mode-chart .role h3,body.mode-chart .today-card b,body.mode-chart .week-card b,body.mode-chart .preset b,body.mode-chart .account b,body.mode-chart .choices button b,body.mode-chart .primary-choice b,body.mode-chart .modal h2,body.mode-chart .cp-role .hdr b{font-family:var(--body);font-weight:700;color:#191F28}
-body.mode-chart .raid h3{font-size:17px}
-body.mode-chart .today-card small,body.mode-chart .week-card small{color:#6B7684;font-family:var(--body);font-weight:600}
-body.mode-chart .today-card .go{background:#191F28;font-family:var(--body);font-weight:700;font-size:15px}
-body.mode-chart .week-card .dday b{color:#191F28;font-family:var(--body);font-weight:700}
-body.mode-chart .account b{color:#191F28}
-body.mode-chart .preset[aria-pressed="true"],body.mode-chart .account[aria-pressed="true"],body.mode-chart .skill[aria-pressed="true"],body.mode-chart .choices button[aria-selected="true"]{border-color:#191F28;background:#fff}
-body.mode-chart .primary-choice{background:#191F28;color:#fff;border:0;border-radius:12px}
-body.mode-chart .primary-choice b{color:#fff}
-body.mode-chart .cp-step{background:none;color:#6B7684;padding:0}
-body.mode-chart .modal h2 .pause{display:none}
-body.mode-chart .controls .next{animation:none}
-body.mode-chart .chartbox.flash-up,body.mode-chart .chartbox.flash-down{animation:none}
-body.mode-chart .timeline span{background:#F2F4F6;border:0;color:#4E5968;font-family:var(--body)}
-body.mode-chart .timeline span.cp{background:#E8F3FF;color:#1B64DA}
-body.mode-chart .concepts summary{font-family:var(--body);font-weight:600}
-body.mode-chart .concepts summary::before{background:#191F28;border:0;width:6px;height:6px}
-body.mode-chart .money-result b,body.mode-chart .money-top b,body.mode-chart .cp-money b,body.mode-chart .weight output,body.mode-chart .role .wctl output{font-family:var(--body);font-weight:700;color:#191F28}
-body.mode-chart .wbtn{background:#F2F4F6;border:0}
-body.mode-chart .toast{background:#191F28;font-family:var(--body);font-weight:600;font-size:15px;border-radius:10px}
-body.mode-chart .whatif .wi b,body.mode-chart .whatif .wi small{font-family:var(--body);font-weight:700}
-body.mode-chart .ret,body.mode-chart .delta{font-family:var(--body)}
-body.mode-chart .alloc,body.mode-chart .preset .mini-alloc,body.mode-chart .account .mini-alloc{border:0}
-body.mode-chart .enter{animation:none}
-body.mode-chart .money-result .ic{display:none}
 
 /* scenario thumbnails: chart mode only */
 .thumb,.bthumb{display:none}
-body.mode-chart .raid{flex-direction:column;align-items:stretch;gap:10px;padding:0;overflow:hidden}
-body.mode-chart .raid .thumb{display:block;aspect-ratio:16/9;max-width:100%;background:#E5E8EB center/cover no-repeat}
-body.mode-chart .raid .meta{padding:0 14px 14px}
-body.mode-chart .raid.upcoming .thumb{filter:grayscale(1) brightness(.92)}
-body.mode-chart .raid.upcoming{border-style:solid}
-body.mode-chart .today-card .thumb,body.mode-chart .week-card .thumb{display:block;width:72px;height:72px;flex-shrink:0;border-radius:10px;background:#E5E8EB center/cover no-repeat}
-body.mode-chart .bthumb{display:flex;align-items:flex-end;aspect-ratio:21/9;max-width:100%;border-radius:12px;background:#191F28 center/cover no-repeat;overflow:hidden;position:relative}
-body.mode-chart .bthumb::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.62))}
-body.mode-chart .bthumb>div{position:relative;display:flex;flex-direction:column;gap:2px;padding:14px 16px;color:#fff}
-body.mode-chart .bthumb b{font-family:var(--body);font-weight:700;font-size:22px}
-body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
 
 /* ---- scenario map (game mode) ---- */
-body.mode-chart .chapters{display:none}
 .chapters{display:flex;flex-direction:column;gap:14px}
 .chapter.ch-locked .stage{filter:grayscale(.6)}
 .chapter .ch-lock{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;background:rgba(30,45,70,.38)}
 .chapter .ch-lock b{font-family:var(--display);font-weight:400;font-size:18px;color:#fff;background:rgba(20,40,70,.85);border-radius:14px;padding:10px 18px}
-body:not(.mode-chart) .raid-lists{display:none}
+.raid-lists{display:none}
 .chapter{position:relative;border-radius:var(--r);overflow:hidden;border:2px solid var(--line);box-shadow:0 4px 0 var(--edge);
   background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(40,70,20,.12)),url(assets/anime/bg_meadow.jpg) center 70%/cover;aspect-ratio:16/8;max-width:100%}
 @media (max-width:760px){.chapter{aspect-ratio:3/4.2}.chapter .ch-title{max-width:calc(100% - 24px)}.chapter .ch-title span{display:none!important}}
@@ -754,7 +684,6 @@ body:not(.mode-chart) .raid-lists{display:none}
 .rstars .rw{font-family:var(--display);font-size:14px;color:var(--navy);text-align:center}
 
 /* ---- minigames ---- */
-body.mode-chart .mg-sec{display:none}
 .mglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
 .mgcard{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer;box-shadow:0 4px 0 var(--edge)}
 .mgcard:active{transform:translateY(2px)}
@@ -905,7 +834,6 @@ body.mode-chart .mg-sec{display:none}
       </div>
     </div>
     <div class="row">
-      <div class="seg mode-seg" role="group" aria-label="보기 방식"><button type="button" data-mode="game" aria-pressed="true">게임</button><button type="button" data-mode="chart" aria-pressed="false">차트</button></div>
       <button class="iconbtn" id="dexBtn" type="button">도감</button>
       <button class="iconbtn" id="helpBtn" type="button" title="게임 방법">?</button>
       <button class="iconbtn" id="unlockBtn" type="button" aria-pressed="false" title="전직 전에도 모든 상품을 써 보는 체험 모드">체험 모드</button>
@@ -919,7 +847,6 @@ body.mode-chart .mg-sec{display:none}
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
       <div class="hero-sheet" id="heroSheet"></div>
     </div>
-    <div class="chart-intro"><h2>실제 시장 이벤트에 내 포트폴리오를 넣어 보세요</h2><p>캐릭터 없이 차트와 숫자로만 진행해요. 이벤트를 고르고, 비중을 정하고, 하루씩 넘기며 시장과 비교해요.</p></div>
     <div class="rhythm">
       <button type="button" class="today-card" id="todayCard" hidden></button>
       <div class="week-card" id="weekCard"></div>
@@ -929,16 +856,16 @@ body.mode-chart .mg-sec{display:none}
     <div class="mg-sec"><div class="section-h"><h3>미니게임</h3><span class="chip" style="color:var(--blue)">버튼 하나 · 실제 차트</span></div><div class="mglist" id="minigames"></div></div>
     <div class="raid-lists">
     <div>
-      <div class="section-h"><h3 data-chart="실제 이벤트">실전 레이드</h3><span class="chip real">실제 종가</span></div>
+      <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
       <div class="raids" id="raids"></div>
     </div>
     <div>
-      <div class="section-h"><h3 data-chart="연습 시나리오">훈련 레이드</h3><span class="chip example">예시 시세</span></div>
+      <div class="section-h"><h3>훈련 레이드</h3><span class="chip example">예시 시세</span></div>
       <div class="raids" id="raidsExample"></div>
     </div>
     </div>
     <div>
-      <div class="section-h"><h3 data-chart="다가오는 이벤트">다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
+      <div class="section-h"><h3>다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
       <div class="raids" id="raidsUpcoming"></div>
     </div>
     <p class="foot">학습용 게임이며 특정 상품의 투자권유가 아닙니다. · <button class="iconbtn" id="resetBtn" type="button" style="padding:3px 10px;font-size:11px">진행 초기화</button></p>
@@ -953,7 +880,7 @@ body.mode-chart .mg-sec{display:none}
         <p class="brief-copy" id="bBrief"></p>
         <div class="event-card" id="bEvent"></div>
         <div class="row">
-          <button class="btn" id="toParty" type="button" data-chart="비중 정하기">파티 짜기</button>
+          <button class="btn" id="toParty" type="button">파티 짜기</button>
           <button class="btn secondary" id="backToSelect" type="button">돌아가기</button>
         </div>
         <details class="cp-more" id="bMore">
@@ -972,7 +899,7 @@ body.mode-chart .mg-sec{display:none}
   <section id="screen-party" class="screen" hidden style="display:flex;flex-direction:column;gap:14px">
     <div class="party-top">
       <div class="party-meta">
-        <h2 style="font-size:28px;color:var(--navy)" data-chart="포트폴리오 정하기">파티 짜기</h2>
+        <h2 style="font-size:28px;color:var(--navy)">파티 짜기</h2>
         <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><span class="hold"></span></span></button>
         <div class="presets" role="group" aria-label="추천 편성">
           <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>기본 배분</b></button>
@@ -986,7 +913,7 @@ body.mode-chart .mg-sec{display:none}
     <details class="card more" id="partyDetail" open><summary>직접 조정</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
     <div class="row" style="justify-content:space-between">
       <button class="btn secondary" id="backToBrief" type="button">브리핑으로</button>
-      <button class="btn" id="startBattle" type="button" data-chart="시작하기">출발!</button>
+      <button class="btn" id="startBattle" type="button">출발!</button>
     </div>
   </section>
 
@@ -1036,7 +963,7 @@ body.mode-chart .mg-sec{display:none}
           <button class="btn" id="nextRaidBtn" type="button">다음 레이드 ▶</button>
           <div class="row">
             <button class="btn secondary" id="retryBtn" type="button">↻ 파티 바꿔 다시</button>
-            <button class="btn secondary" id="otherBtn" type="button" data-chart="이벤트 목록">지도로</button>
+            <button class="btn secondary" id="otherBtn" type="button">지도로</button>
             <button class="btn secondary" id="etfBtn" type="button">내가 담은 상품</button>
           </div>
         </div>
@@ -1062,7 +989,7 @@ body.mode-chart .mg-sec{display:none}
           <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">내가 든 상품들의 실제 흐름 (시작 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
-          <div><div class="small muted" style="margin-bottom:8px" data-chart="자산별 기여도 (포트폴리오 %p)">역할별 기여도 (포트폴리오 %p)</div><div class="contribs" id="rContribs"></div></div>
+          <div><div class="small muted" style="margin-bottom:8px">역할별 기여도 (포트폴리오 %p)</div><div class="contribs" id="rContribs"></div></div>
           <div><div class="small muted" style="margin-bottom:6px">체크포인트 선택</div><div class="decisions" id="rDecisions"></div></div>
           <div><div class="small muted" style="margin-bottom:6px">이번 레이드에서 배운 개념</div><div class="concepts" id="rConcepts"></div></div>
         </div>
@@ -1082,10 +1009,10 @@ body.mode-chart .mg-sec{display:none}
     <div class="cp-facts" id="cpFacts"></div>
     <p class="cp-hint" id="cpHint"></p>
     <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
-    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b data-chart="그대로 두기">이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
+    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
     <div class="choices two" role="tablist">
-      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span data-chart="한 자산의 상품만 교체">한 캐릭터의 상품만 교체</span></button>
-      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span data-chart="자산 간 비중 이동">캐릭터 간 비중 이동</span></button>
+      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
+      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
     </div>
     <div id="cpHold" hidden></div>
     <div class="cp-panel cp-roles" id="cpEquip" hidden></div>

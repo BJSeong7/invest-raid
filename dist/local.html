@@ -256,7 +256,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .seg{display:inline-flex;background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:3px;box-shadow:0 3px 0 var(--edge)}
 .seg button{background:transparent;border:0;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer;min-height:34px;font-family:var(--display);color:var(--muted);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
-#chartMode button{padding:4px 10px;min-height:28px;font-size:13px}
 @media (max-width:760px){.battlegrid{grid-template-columns:1fr}.chartbox.big .chart{min-height:200px}.chartbox.panes .pane-price{min-height:170px}.chartbox.panes .pane-eq{min-height:130px}}
 
 /* ---- checkpoint modal ---- */
@@ -638,89 +637,20 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 }
 
 /* ---- chart mode: same engine, no characters, no boss, no effects ---- */
-.mode-seg{display:inline-flex}
-.chart-intro{display:none}
-body.mode-chart .chart-intro{display:flex;flex-direction:column;gap:6px}
-.chart-intro h2{font-family:var(--body);font-weight:700;font-size:24px;color:var(--navy)}
-.chart-intro p{margin:0;color:var(--muted);font-size:14.5px}
-body.mode-chart{--display:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
-body.mode-chart .brand h1{font-family:var(--body);font-weight:700;font-size:22px;color:var(--navy);-webkit-text-stroke:0;text-shadow:none}
-body.mode-chart .home-stage,body.mode-chart #todayCard .pf,body.mode-chart .week-card .pf,body.mode-chart .raid img,body.mode-chart #dexBtn{display:none!important}
-body.mode-chart .boss-stage{display:none}
-body.mode-chart .brief{grid-template-columns:1fr}
-body.mode-chart .role img{display:none}
-body.mode-chart .arena,body.mode-chart .partyhud,body.mode-chart .bossbar,body.mode-chart #guardBtn{display:none!important}
-body.mode-chart .battlegrid{grid-template-columns:1fr}
-body.mode-chart .chartbox.big .chart{min-height:340px}
-body.mode-chart #cpSay,body.mode-chart .cp-role>.pf{display:none!important}
-body.mode-chart .stamp-wrap,body.mode-chart #rGrowthText,body.mode-chart #rGrowth,body.mode-chart .coach .av,body.mode-chart .stats .stat:nth-child(n+2){display:none!important}
-body.mode-chart .stats{grid-template-columns:1fr}
-body.mode-chart .event-card .eh>img{display:none}
 
 /* ---- chart mode, plain tone: white surfaces, thin lines, one accent, no shadows or bounces ---- */
-body.mode-chart{--bg:#F7F8FA;--panel:#fff;--panel2:#F2F4F6;--line:#E5E8EB;--edge:transparent;--navy:#191F28;--ink:#191F28;--muted:#6B7684;--dim:#8B95A1;--gold:#3182F6;--gold-dark:#1B64DA;--gold-ink:#fff;
   background:#F7F8FA;color:#191F28}
-body.mode-chart::after{display:none}
-body.mode-chart *{box-shadow:none!important;text-shadow:none!important;-webkit-text-stroke:0!important}
-body.mode-chart .card,body.mode-chart .raid,body.mode-chart .role,body.mode-chart .chartbox,body.mode-chart .week-card,body.mode-chart .today-card,body.mode-chart .account,body.mode-chart .preset,body.mode-chart .radar-card,body.mode-chart .event-card,body.mode-chart .modal .box,body.mode-chart .stat,body.mode-chart .money-result,body.mode-chart .whatif .wi,body.mode-chart .concepts details,body.mode-chart .cp-role,body.mode-chart .skill,body.mode-chart .choices button,body.mode-chart .cp-money,body.mode-chart .cp-hint,body.mode-chart .coach .bubble,body.mode-chart .timer i{
   background:#fff;border:1px solid #E5E8EB;border-radius:12px}
-body.mode-chart .role{border-top:1px solid #E5E8EB}
-body.mode-chart .btn{background:#191F28;color:#fff;border:0;border-radius:10px;font-weight:700;font-size:16px;min-height:48px}
-body.mode-chart .btn.secondary{background:#fff;color:#191F28;border:1px solid #D1D6DB}
-body.mode-chart .btn:active{transform:none}
-body.mode-chart .iconbtn{background:#fff;border:1px solid #D1D6DB;font-family:var(--body);font-weight:500;color:#191F28}
-body.mode-chart .seg{background:#F2F4F6;border:0}
-body.mode-chart .seg button{font-family:var(--body);font-weight:600}
-body.mode-chart .seg button[aria-pressed="true"]{background:#191F28;color:#fff}
-body.mode-chart .section-h h3{background:none;border:0;padding:0;font-family:var(--body);font-weight:700;font-size:17px;color:#191F28}
-body.mode-chart .chip{background:#F2F4F6;border:0;color:#6B7684;font-family:var(--body);font-weight:500}
-body.mode-chart .raid h3,body.mode-chart .role h3,body.mode-chart .today-card b,body.mode-chart .week-card b,body.mode-chart .preset b,body.mode-chart .account b,body.mode-chart .choices button b,body.mode-chart .primary-choice b,body.mode-chart .modal h2,body.mode-chart .cp-role .hdr b{font-family:var(--body);font-weight:700;color:#191F28}
-body.mode-chart .raid h3{font-size:17px}
-body.mode-chart .today-card small,body.mode-chart .week-card small{color:#6B7684;font-family:var(--body);font-weight:600}
-body.mode-chart .today-card .go{background:#191F28;font-family:var(--body);font-weight:700;font-size:15px}
-body.mode-chart .week-card .dday b{color:#191F28;font-family:var(--body);font-weight:700}
-body.mode-chart .account b{color:#191F28}
-body.mode-chart .preset[aria-pressed="true"],body.mode-chart .account[aria-pressed="true"],body.mode-chart .skill[aria-pressed="true"],body.mode-chart .choices button[aria-selected="true"]{border-color:#191F28;background:#fff}
-body.mode-chart .primary-choice{background:#191F28;color:#fff;border:0;border-radius:12px}
-body.mode-chart .primary-choice b{color:#fff}
-body.mode-chart .cp-step{background:none;color:#6B7684;padding:0}
-body.mode-chart .modal h2 .pause{display:none}
-body.mode-chart .controls .next{animation:none}
-body.mode-chart .chartbox.flash-up,body.mode-chart .chartbox.flash-down{animation:none}
-body.mode-chart .timeline span{background:#F2F4F6;border:0;color:#4E5968;font-family:var(--body)}
-body.mode-chart .timeline span.cp{background:#E8F3FF;color:#1B64DA}
-body.mode-chart .concepts summary{font-family:var(--body);font-weight:600}
-body.mode-chart .concepts summary::before{background:#191F28;border:0;width:6px;height:6px}
-body.mode-chart .money-result b,body.mode-chart .money-top b,body.mode-chart .cp-money b,body.mode-chart .weight output,body.mode-chart .role .wctl output{font-family:var(--body);font-weight:700;color:#191F28}
-body.mode-chart .wbtn{background:#F2F4F6;border:0}
-body.mode-chart .toast{background:#191F28;font-family:var(--body);font-weight:600;font-size:15px;border-radius:10px}
-body.mode-chart .whatif .wi b,body.mode-chart .whatif .wi small{font-family:var(--body);font-weight:700}
-body.mode-chart .ret,body.mode-chart .delta{font-family:var(--body)}
-body.mode-chart .alloc,body.mode-chart .preset .mini-alloc,body.mode-chart .account .mini-alloc{border:0}
-body.mode-chart .enter{animation:none}
-body.mode-chart .money-result .ic{display:none}
 
 /* scenario thumbnails: chart mode only */
 .thumb,.bthumb{display:none}
-body.mode-chart .raid{flex-direction:column;align-items:stretch;gap:10px;padding:0;overflow:hidden}
-body.mode-chart .raid .thumb{display:block;aspect-ratio:16/9;max-width:100%;background:#E5E8EB center/cover no-repeat}
-body.mode-chart .raid .meta{padding:0 14px 14px}
-body.mode-chart .raid.upcoming .thumb{filter:grayscale(1) brightness(.92)}
-body.mode-chart .raid.upcoming{border-style:solid}
-body.mode-chart .today-card .thumb,body.mode-chart .week-card .thumb{display:block;width:72px;height:72px;flex-shrink:0;border-radius:10px;background:#E5E8EB center/cover no-repeat}
-body.mode-chart .bthumb{display:flex;align-items:flex-end;aspect-ratio:21/9;max-width:100%;border-radius:12px;background:#191F28 center/cover no-repeat;overflow:hidden;position:relative}
-body.mode-chart .bthumb::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.62))}
-body.mode-chart .bthumb>div{position:relative;display:flex;flex-direction:column;gap:2px;padding:14px 16px;color:#fff}
-body.mode-chart .bthumb b{font-family:var(--body);font-weight:700;font-size:22px}
-body.mode-chart .bthumb span{font-size:12.5px;opacity:.9}
 
 /* ---- scenario map (game mode) ---- */
-body.mode-chart .chapters{display:none}
 .chapters{display:flex;flex-direction:column;gap:14px}
 .chapter.ch-locked .stage{filter:grayscale(.6)}
 .chapter .ch-lock{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;background:rgba(30,45,70,.38)}
 .chapter .ch-lock b{font-family:var(--display);font-weight:400;font-size:18px;color:#fff;background:rgba(20,40,70,.85);border-radius:14px;padding:10px 18px}
-body:not(.mode-chart) .raid-lists{display:none}
+.raid-lists{display:none}
 .chapter{position:relative;border-radius:var(--r);overflow:hidden;border:2px solid var(--line);box-shadow:0 4px 0 var(--edge);
   background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(40,70,20,.12)),url(assets/anime/bg_meadow.jpg) center 70%/cover;aspect-ratio:16/8;max-width:100%}
 @media (max-width:760px){.chapter{aspect-ratio:3/4.2}.chapter .ch-title{max-width:calc(100% - 24px)}.chapter .ch-title span{display:none!important}}
@@ -756,7 +686,6 @@ body:not(.mode-chart) .raid-lists{display:none}
 .rstars .rw{font-family:var(--display);font-size:14px;color:var(--navy);text-align:center}
 
 /* ---- minigames ---- */
-body.mode-chart .mg-sec{display:none}
 .mglist{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
 .mgcard{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:var(--r);padding:12px 14px;cursor:pointer;box-shadow:0 4px 0 var(--edge)}
 .mgcard:active{transform:translateY(2px)}
@@ -907,7 +836,6 @@ body.mode-chart .mg-sec{display:none}
       </div>
     </div>
     <div class="row">
-      <div class="seg mode-seg" role="group" aria-label="보기 방식"><button type="button" data-mode="game" aria-pressed="true">게임</button><button type="button" data-mode="chart" aria-pressed="false">차트</button></div>
       <button class="iconbtn" id="dexBtn" type="button">도감</button>
       <button class="iconbtn" id="helpBtn" type="button" title="게임 방법">?</button>
       <button class="iconbtn" id="unlockBtn" type="button" aria-pressed="false" title="전직 전에도 모든 상품을 써 보는 체험 모드">체험 모드</button>
@@ -921,7 +849,6 @@ body.mode-chart .mg-sec{display:none}
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
       <div class="hero-sheet" id="heroSheet"></div>
     </div>
-    <div class="chart-intro"><h2>실제 시장 이벤트에 내 포트폴리오를 넣어 보세요</h2><p>캐릭터 없이 차트와 숫자로만 진행해요. 이벤트를 고르고, 비중을 정하고, 하루씩 넘기며 시장과 비교해요.</p></div>
     <div class="rhythm">
       <button type="button" class="today-card" id="todayCard" hidden></button>
       <div class="week-card" id="weekCard"></div>
@@ -931,16 +858,16 @@ body.mode-chart .mg-sec{display:none}
     <div class="mg-sec"><div class="section-h"><h3>미니게임</h3><span class="chip" style="color:var(--blue)">버튼 하나 · 실제 차트</span></div><div class="mglist" id="minigames"></div></div>
     <div class="raid-lists">
     <div>
-      <div class="section-h"><h3 data-chart="실제 이벤트">실전 레이드</h3><span class="chip real">실제 종가</span></div>
+      <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
       <div class="raids" id="raids"></div>
     </div>
     <div>
-      <div class="section-h"><h3 data-chart="연습 시나리오">훈련 레이드</h3><span class="chip example">예시 시세</span></div>
+      <div class="section-h"><h3>훈련 레이드</h3><span class="chip example">예시 시세</span></div>
       <div class="raids" id="raidsExample"></div>
     </div>
     </div>
     <div>
-      <div class="section-h"><h3 data-chart="다가오는 이벤트">다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
+      <div class="section-h"><h3>다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
       <div class="raids" id="raidsUpcoming"></div>
     </div>
     <p class="foot">학습용 게임이며 특정 상품의 투자권유가 아닙니다. · <button class="iconbtn" id="resetBtn" type="button" style="padding:3px 10px;font-size:11px">진행 초기화</button></p>
@@ -955,7 +882,7 @@ body.mode-chart .mg-sec{display:none}
         <p class="brief-copy" id="bBrief"></p>
         <div class="event-card" id="bEvent"></div>
         <div class="row">
-          <button class="btn" id="toParty" type="button" data-chart="비중 정하기">파티 짜기</button>
+          <button class="btn" id="toParty" type="button">파티 짜기</button>
           <button class="btn secondary" id="backToSelect" type="button">돌아가기</button>
         </div>
         <details class="cp-more" id="bMore">
@@ -974,7 +901,7 @@ body.mode-chart .mg-sec{display:none}
   <section id="screen-party" class="screen" hidden style="display:flex;flex-direction:column;gap:14px">
     <div class="party-top">
       <div class="party-meta">
-        <h2 style="font-size:28px;color:var(--navy)" data-chart="포트폴리오 정하기">파티 짜기</h2>
+        <h2 style="font-size:28px;color:var(--navy)">파티 짜기</h2>
         <button type="button" class="account" id="accountBtn" aria-pressed="false"><span class="acc-l"><b>내 계좌로 편성</b><span class="hold"></span></span></button>
         <div class="presets" role="group" aria-label="추천 편성">
           <button type="button" class="preset" data-preset="balanced" aria-pressed="false"><b>기본 배분</b></button>
@@ -988,7 +915,7 @@ body.mode-chart .mg-sec{display:none}
     <details class="card more" id="partyDetail" open><summary>직접 조정</summary><div class="roles" id="roles" style="margin-top:12px"></div></details>
     <div class="row" style="justify-content:space-between">
       <button class="btn secondary" id="backToBrief" type="button">브리핑으로</button>
-      <button class="btn" id="startBattle" type="button" data-chart="시작하기">출발!</button>
+      <button class="btn" id="startBattle" type="button">출발!</button>
     </div>
   </section>
 
@@ -1038,7 +965,7 @@ body.mode-chart .mg-sec{display:none}
           <button class="btn" id="nextRaidBtn" type="button">다음 레이드 ▶</button>
           <div class="row">
             <button class="btn secondary" id="retryBtn" type="button">↻ 파티 바꿔 다시</button>
-            <button class="btn secondary" id="otherBtn" type="button" data-chart="이벤트 목록">지도로</button>
+            <button class="btn secondary" id="otherBtn" type="button">지도로</button>
             <button class="btn secondary" id="etfBtn" type="button">내가 담은 상품</button>
           </div>
         </div>
@@ -1064,7 +991,7 @@ body.mode-chart .mg-sec{display:none}
           <div class="chartbox" style="padding:0;border:0;background:transparent;box-shadow:none"><div class="legend"><span class="small muted">내가 든 상품들의 실제 흐름 (시작 대비 %)</span></div><div class="legend" id="rPriceLegend" style="justify-content:flex-start;gap:10px"></div><div class="chart" id="rPriceChart" style="height:150px"></div></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:14px">
-          <div><div class="small muted" style="margin-bottom:8px" data-chart="자산별 기여도 (포트폴리오 %p)">역할별 기여도 (포트폴리오 %p)</div><div class="contribs" id="rContribs"></div></div>
+          <div><div class="small muted" style="margin-bottom:8px">역할별 기여도 (포트폴리오 %p)</div><div class="contribs" id="rContribs"></div></div>
           <div><div class="small muted" style="margin-bottom:6px">체크포인트 선택</div><div class="decisions" id="rDecisions"></div></div>
           <div><div class="small muted" style="margin-bottom:6px">이번 레이드에서 배운 개념</div><div class="concepts" id="rConcepts"></div></div>
         </div>
@@ -1084,10 +1011,10 @@ body.mode-chart .mg-sec{display:none}
     <div class="cp-facts" id="cpFacts"></div>
     <p class="cp-hint" id="cpHint"></p>
     <div class="cp-money"><small>내 자금</small><b class="tabular" id="cpMoney"></b><span class="ret tabular" id="cpMoneyD"></span></div>
-    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b data-chart="그대로 두기">이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
+    <button class="btn primary-choice" id="cpHoldBtn" type="button"><span><b>이대로 간다</b><small>지금 편성 그대로 다음 구간</small></span><span id="cpHoldPay"></span></button>
     <div class="choices two" role="tablist">
-      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span data-chart="한 자산의 상품만 교체">한 캐릭터의 상품만 교체</span></button>
-      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span data-chart="자산 간 비중 이동">캐릭터 간 비중 이동</span></button>
+      <button type="button" role="tab" data-tab="equip" aria-selected="false"><b>상품 바꾸기</b><span>한 캐릭터의 상품만 교체</span></button>
+      <button type="button" role="tab" data-tab="rebalance" aria-selected="false"><b>비중 바꾸기</b><span>캐릭터 간 비중 이동</span></button>
     </div>
     <div id="cpHold" hidden></div>
     <div class="cp-panel cp-roles" id="cpEquip" hidden></div>
@@ -1807,7 +1734,7 @@ function loadProfile() {
 function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch {} }
 function effectiveLevel() { return profile.unlockAll ? 99 : profile.level; }
 /** products open with the hero, not a player level: a stronger product unlocks when its holder changes class */
-function skillOpen(s) { return !s.unlockLevel || profile.unlockAll || chartMode() || !!hero(s.role).branch; }
+function skillOpen(s) { return !s.unlockLevel || profile.unlockAll || !!hero(s.role).branch; }
 const lockLabel = s => `${charOf(s.role).name} 전직 후`;
 /* ---------- product catalog (상품 도감) ----------
    Facts verified on stockanalysis.com, 2026-10-27. The game role line explains how the product behaved in raids. */
@@ -1931,13 +1858,6 @@ function renderProfile() {
 /* Screens                                                             */
 /* ------------------------------------------------------------------ */
 const SCREENS = ['select', 'brief', 'party', 'battle', 'result'];
-const chartMode = () => profile.mode === 'chart';
-/** swaps game words for plain market words in chart mode (elements carry data-chart) */
-function applyMode() {
-  document.body.classList.toggle('mode-chart', chartMode());
-  $$('[data-chart]').forEach(el => { if (el.dataset.game === undefined) el.dataset.game = el.textContent; el.textContent = chartMode() ? el.dataset.chart : el.dataset.game; });
-  $$('.mode-seg [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === (profile.mode || 'game'))));
-}
 function showScreen(name) {
   SCREENS.forEach(s => { const el = $('#screen-' + s); el.hidden = s !== name; el.classList.remove('enter'); });
   if (!reduceMotion) { const el = $('#screen-' + name); void el.offsetWidth; el.classList.add('enter'); }
@@ -2006,22 +1926,22 @@ function earnStars(s, r) {
 /* ---------- 리더보드: the same tape, played by a fixed field of other parties (deterministic, cached per tape) ---------- */
 const FIELD_CACHE = new Map();
 function fieldFor(tape) {
-  const key = tape.id + (chartMode() ? ':chart' : '');
-  if (!FIELD_CACHE.has(key)) FIELD_CACHE.set(key, buildField(tape, { lossLimit: starLoss(tape.id), unit: chartMode() ? '포트폴리오' : '모험단' }));
+  const key = tape.id + ('');
+  if (!FIELD_CACHE.has(key)) FIELD_CACHE.set(key, buildField(tape, { lossLimit: starLoss(tape.id), unit: '모험단' }));
   return FIELD_CACHE.get(key);
 }
 function renderBoard(s) {
   const host = $('#rBoard'); if (!host) return;
   const field = fieldFor(currentTape), me = fieldScore(s, starLoss(currentTape.id));
-  const meName = chartMode() ? '내 포트폴리오' : '나';
+  const meName = '나';
   const rows = [...field.map(e => ({ ...e, me: false })), { ...me, name: meName, me: true }]
     .sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : b.me ? 1 : 0));   // ranked by return only
   const myI = rows.findIndex(x => x.me), rank = myI + 1, total = rows.length, pct = Math.max(1, Math.round(rank / total * 100));
   const shown = rows.slice(0, 3); if (myI >= 3) shown.push(null, rows[myI]);
   const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.returnPct)}</span><span class="st">${'★'.repeat(e.stars)}<i>${'★'.repeat(3 - e.stars)}</i></span></div>` : `<div class="gap"><span class="rk">⋯</span></div>`;
-  host.innerHTML = `<div class="hd"><b>이번 판 ${total}${chartMode() ? '개 포트폴리오' : '명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
-    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${chartMode() ? '포트폴리오' : '모험단'}</span><span class="v">수익률</span><span class="st">별</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
-    <p class="small muted">같은 판을 플레이한 ${chartMode() ? '포트폴리오' : '모험단'} 기준 · 실제 서비스에서는 같은 주에 플레이한 고객이 올라요</p>`;
+  host.innerHTML = `<div class="hd"><b>이번 판 ${total}${'명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
+    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${'모험단'}</span><span class="v">수익률</span><span class="st">별</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
+    <p class="small muted">같은 판을 플레이한 ${'모험단'} 기준 · 실제 서비스에서는 같은 주에 플레이한 고객이 올라요</p>`;
   return { rank, total, pct };
 }
 /* ---------- 시즌: 천만 원으로 시작해서 판 결과가 다음 판으로 이어져요 ---------- */
@@ -2030,7 +1950,7 @@ let SEASON_FIELD = null;
 /** other parties' seasons: each plays the first n stages of the map in order (n is fixed per name), compounding the same
  *  per-raid results the raid leaderboards show. Deterministic, no randomness. */
 function seasonField() {
-  const key = chartMode() ? 'chart' : 'game';
+  const key = 'game';
   if (SEASON_FIELD?.key === key) return SEASON_FIELD.rows;
   const order = CHAPTERS.flatMap(c => c.stages).map(id => TAPES.find(t => t.id === id)).filter(Boolean);
   const per = order.map(t => Object.fromEntries(fieldFor(t).map(e => [e.name, e.returnPct])));
@@ -2043,13 +1963,13 @@ function seasonField() {
 }
 function renderSeason() {
   const host = $('#season'); if (!host) return;
-  const se = season(), myRet = (se.bal / SEASON_START - 1) * 100, meName = chartMode() ? '내 포트폴리오' : '나';
+  const se = season(), myRet = (se.bal / SEASON_START - 1) * 100, meName = '나';
   const rows = [...seasonField().map(e => ({ ...e, me: false })), { name: meName, raids: se.raids, ret: myRet, me: true }]
     .sort((a, b) => b.ret - a.ret || (a.me ? -1 : b.me ? 1 : 0));
   const myI = rows.findIndex(x => x.me), shown = rows.slice(0, 5); if (myI >= 5) shown.push(null, rows[myI]);
   const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.ret >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.ret)}</span><span class="st">${e.raids}판</span></div>` : '<div class="gap">…</div>';
-  host.innerHTML = `<div class="hd"><h3>시즌 순위 · 천만 원으로 시작, 판 결과가 다음 판으로 이어져요</h3><b>${se.raids ? `${rows.length}${chartMode() ? '개' : '명'} 중 ${myI + 1}등 · 잔고 ${fmtKRW(se.bal)}` : '첫 판을 하면 순위에 올라요'}</b></div>
-    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${chartMode() ? '포트폴리오' : '모험단'}</span><span class="v">누적 수익률</span><span class="st">판수</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
+  host.innerHTML = `<div class="hd"><h3>시즌 순위 · 천만 원으로 시작, 판 결과가 다음 판으로 이어져요</h3><b>${se.raids ? `${rows.length}${'명'} 중 ${myI + 1}등 · 잔고 ${fmtKRW(se.bal)}` : '첫 판을 하면 순위에 올라요'}</b></div>
+    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${'모험단'}</span><span class="v">누적 수익률</span><span class="st">판수</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
     ${se.raids ? '<button type="button" class="linkbtn" id="seasonReset">시즌 새로 시작</button>' : ''}`;
   const rb = host.querySelector('#seasonReset'); if (rb) rb.onclick = () => { if (rb.dataset.armed) { profile.season = { bal: SEASON_START, raids: 0 }; saveProfile(); renderSeason(); toast('시즌을 새로 시작했어요'); } else { rb.dataset.armed = '1'; rb.textContent = '정말 새로 시작? (한 번 더)'; } };
 }
@@ -2105,20 +2025,20 @@ function renderSelect() {
   UPCOMING.forEach(u => {
     const d = document.createElement('div'); d.className = 'raid upcoming';
     d.innerHTML = `${thumbHTML(u)}<img src="${portrait(bossUnit(u.species))}" alt="" class="pf" style="filter:brightness(.25) contrast(1.2) sepia(.4)">
-      <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)}</span></div><span class="small muted">${chartMode() ? u.note : '보스 ' + u.boss}</span></div>`;
+      <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)}</span></div><span class="small muted">${'보스 ' + u.boss}</span></div>`;
     $('#raidsUpcoming').appendChild(d);
   });
 }
 
 /* ---------- rhythm: a short raid every day, a boss every week, a class change every few weeks ---------- */
-const evTitle = t => chartMode() ? t.replace(/ 레이드$/, '') : t;
+const evTitle = t => t;
 function renderRhythm() {
   const t = TAPES.find(x => x.dailyRaid), done = t && profile.plays[t.id]?.count;
   const tc = $('#todayCard');
   if (t) {
     tc.hidden = false; tc.classList.toggle('done', !!done);
     tc.innerHTML = `${thumbHTML(t)}<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
-      <div class="tx"><small>오늘의 한 판</small><b>${done ? '오늘 판은 끝났어요' : t.headline || t.title}</b><span>${done ? `내일 아침에 새 판이 열려요` : `3턴${chartMode() ? '' : ' · 보스 ' + t.boss}`}</span></div>
+      <div class="tx"><small>오늘의 한 판</small><b>${done ? '오늘 판은 끝났어요' : t.headline || t.title}</b><span>${done ? `내일 아침에 새 판이 열려요` : `3턴${' · 보스 ' + t.boss}`}</span></div>
       <span class="go">${done ? '다시 하기' : '시작'}</span>`;
     tc.onclick = async () => { unlock(); sfx.select(); await openBrief(t.id); openParty(); };
   } else tc.hidden = true;
@@ -2126,7 +2046,7 @@ function renderRhythm() {
   const wc = $('#weekCard');
   if (up) { const days = Math.ceil((up.t - now) / 86400000), d = new Date(up.t + 9 * 3600000);
     wc.innerHTML = `${thumbHTML(up)}<img src="${portrait(bossUnit(up.species))}" alt="" class="pf">
-      <div class="tx"><small>${chartMode() ? '이번 주 이벤트' : '이번 주 보스'}</small><b>${chartMode() ? up.title : up.boss}</b><span>${chartMode() ? up.note : up.title}</span></div>
+      <div class="tx"><small>${'이번 주 보스'}</small><b>${up.boss}</b><span>${up.title}</span></div>
       <span class="dday"><b>${days <= 0 ? '오늘' : 'D-' + days}</b><small>${WD[d.getUTCDay()]}요일</small></span>`; }
 }
 
@@ -2152,15 +2072,14 @@ function renderNewsline() { $('#newsline').hidden = true; }
 /* ---------- 2. briefing ---------- */
 let bChart = null;
 async function openBrief(id) {
-  if ($('#bMore')) $('#bMore').open = chartMode();
   currentTape = await adapter.load(id);
-  if (!chartMode()) currentTape = { ...currentTape, skills: currentTape.skills.filter(k => !k.chartOnly) };   // futures and options live in chart mode
+  if (true) currentTape = { ...currentTape, skills: currentTape.skills.filter(k => !k.chartOnly) };   // futures and options live in chart mode
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
   $('#bArt').alt = t.boss;
   $('#bTag').textContent = `${t.market === 'US' ? '미국' : '국내'} 레이드 · ${t.example ? '예시 데이터' : '실제 종가 데이터'}`;
   $('#bDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} · 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ' · 출처 ' + t.source : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
-  $('#bTitle').textContent = chartMode() ? evTitle(t.title) : `${t.boss} 출현`;
+  $('#bTitle').textContent = `${t.boss} 출현`;
   $('#bThumb').style.backgroundImage = `url(${sceneOf(t)})`; $('#bThumbTitle').textContent = evTitle(t.title); $('#bThumbDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} · ${t.example ? '예시 시세' : '실제 종가'}` : `${fmtDate(t.bars[0].t)} · ${t.example ? '예시 시세' : '실제 시세'}`;
   $('#bBrief').textContent = t.briefing;
   // labels after the first checkpoint describe what happened; keep them hidden until the raid reaches them
@@ -2170,7 +2089,7 @@ async function openBrief(id) {
   $('#bConcepts').innerHTML = (t.concepts || []).map(c => `<span class="chip" style="color:var(--gold)">${c.name}</span>`).join('');
   const main = mainInstrument(t);
   $('#bChartTitle').innerHTML = `${main} ${t.instruments[main].name} <span class="muted">· ${t.example ? '예시 시세' : '실제 종가'} · 첫 체크포인트까지</span>`;
-  bChart?.remove(); bChart = new BattleChart($('#bChart'), t, 'price', { upto: reveal, quiet: true, futureShade: true }); $('#bMore').open = chartMode(); if (chartMode()) setTimeout(() => bChart?.c.timeScale().fitContent(), 80); $('#bMore').ontoggle = () => { if ($('#bMore').open) setTimeout(() => bChart?.c.timeScale().fitContent(), 50); };
+  bChart?.remove(); bChart = new BattleChart($('#bChart'), t, 'price', { upto: reveal, quiet: true, futureShade: true }); $('#bMore').open = false; $('#bMore').ontoggle = () => { if ($('#bMore').open) setTimeout(() => bChart?.c.timeScale().fitContent(), 50); };
   showScreen('brief');
   gsap.fromTo('#bArt', { scale: .6, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .6, ease: 'back.out(1.6)' });
   if (!reduceMotion) gsap.fromTo('.boss-stage', { x: -6 }, { x: 6, duration: .06, repeat: 5, yoyo: true, clearProps: 'x', delay: .35 });
@@ -2853,7 +2772,7 @@ class BattleChart {
       this.eq = this.c.addAreaSeries({ lineColor: '#E0A72E', topColor: 'rgba(224,167,46,.30)', bottomColor: 'rgba(224,167,46,0)', lineWidth: 4, lastValueVisible: true, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: pct });
       this.series = [this.eq, this.bm];
       const breakPct = this.state ? 100 / this.state.bossScale : 100 / (tape.scale?.bossHpPerPct || 40);
-      if (!chartMode()) this.eq.createPriceLine({ price: breakPct, color: '#D6453F', lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title: '보스 격파' });
+      if (true) this.eq.createPriceLine({ price: breakPct, color: '#D6453F', lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title: '보스 격파' });
       this.eq.createPriceLine({ price: 0, color: '#8E8676', lineWidth: 1, lineStyle: 3, axisLabelVisible: false, title: '' });
       this.eq.applyOptions({ autoscaleInfoProvider: orig => { const r = orig(); if (!r) return r; const span = Math.max(r.priceRange.maxValue - r.priceRange.minValue, .6); const mid = (r.priceRange.maxValue + r.priceRange.minValue) / 2; return { priceRange: { minValue: Math.min(mid - span / 2, -span * .1), maxValue: Math.max(mid + span / 2, span * .1) }, margins: r.margins }; } });
     } else {
@@ -2926,7 +2845,7 @@ class BattleChart {
     const up = Math.min(this.upto, this.tape.bars.length - 1);
     if (this.mode === 'equity') { const h = this.state?.history.find(p => p.bar === up); const eq = h ? h.equity - 100 : 0, bm = h ? h.benchmark - 100 : 0;
       const goal = this.state ? 100 / this.state.bossScale : 100 / (this.tape.scale?.bossHpPerPct || 40);
-      return `<span><i style="background:#E0A72E"></i>${chartMode() ? '내 포트폴리오' : '내 파티'} <b class="ret tabular ${eq >= 0 ? 'up' : 'down'}">${fmtPct(eq)}</b> <span class="muted tabular">(${fmtKRW(SEED * (1 + eq / 100))})</span></span><span><i style="background:#9AA0AA"></i>시장 ${benchmarkOf(this.tape)} <b class="tabular">${fmtPct(bm)}</b></span>${chartMode() ? '' : `<span><i style="background:#D6453F"></i>격파 ${fmtPct(goal)}</span>`}`; }
+      return `<span><i style="background:#E0A72E"></i>${'내 파티'} <b class="ret tabular ${eq >= 0 ? 'up' : 'down'}">${fmtPct(eq)}</b> <span class="muted tabular">(${fmtKRW(SEED * (1 + eq / 100))})</span></span><span><i style="background:#9AA0AA"></i>시장 ${benchmarkOf(this.tape)} <b class="tabular">${fmtPct(bm)}</b></span>${`<span><i style="background:#D6453F"></i>격파 ${fmtPct(goal)}</span>`}`; }
     return this.ids.map((id, i) => { const p0 = this.tape.bars[0].prices[id], p = this.tape.bars[up].prices[id], ins = this.tape.instruments[id];
       return `<span><i style="background:${INS_COLORS[i % INS_COLORS.length]}"></i>${id} ${ins.name} <b class="tabular">${fmtMoney(p, ins.currency)}</b> <span class="${p >= p0 ? 'ret up' : 'ret down'} tabular" style="font-size:12px">${fmtPct(100 * (p / p0 - 1))}</span></span>`; }).join('');
   }
@@ -2952,7 +2871,6 @@ async function startBattle() {
   $('#hMoney').dataset.v = SEED; $('#hMoney').textContent = fmtKRW(SEED);
   battle = createBattle(currentTape, party); aborted = false; userPaused = false; skipping = false; justDecided = false; nextWaiter = null; $('#nextBtn').hidden = true; $('#skipBtn').disabled = false; $('#pauseBtn').textContent = '일시정지';
   showScreen('battle');
-  if (chartMode()) { renderBossHud(); renderPartyHud(); renderTurnLine(null); rebuildBattleChart(); renderNewsline(); await raidLoop(); return; }
   let sc; try { sc = await ensureGame(); } catch (e) { toast(e.message, 5000); try { game?.destroy(true); } catch {} game = null; scene = null; showScreen('party'); return; }
   game.scale.refresh();
   await sc.setup(currentTape);
@@ -2970,7 +2888,7 @@ async function raidLoop() {
   while (!battle.done && !aborted) {
     await waitResume(); if (aborted) return;
     const nb = currentTape.bars[battle.bar + 1];
-    if (nb && !battle.paused) await waitNext(chartMode() ? `다음 ▶ ${fmtBar(nb.t)}` : `다음 턴 ▶ ${fmtBar(nb.t)} ${nb.label}`);
+    if (nb && !battle.paused) await waitNext(`다음 턴 ▶ ${fmtBar(nb.t)} ${nb.label}`);
     if (aborted) return;
     const turn = step(battle);
     if (!turn) { if (battle.paused) { skipping = false; $('#skipBtn').disabled = false; await showCheckpoint(battle.paused); continue; } break; }
@@ -2978,7 +2896,6 @@ async function raidLoop() {
     const ret = turn.boss.portfolioRet;
     drama.combo = ret > 0 ? drama.combo + 1 : 0; drama.maxCombo = Math.max(drama.maxCombo, drama.combo);
     const rageNow = !drama.rage && battle.bossHp > 0 && battle.bossHp <= 50; if (rageNow) drama.rage = true;
-    if (chartMode()) { flashChart(ret); await battleChartEq.reveal(turn.bar, 520 / sp); renderChartLegends(); renderTurnLine(turn); renderPartyHud(turn); renderBossHud(); battleChartEq.markers(); continue; }
     await scene.playTurn(turn, sp, {
       combo: drama.combo, rage: drama.rage && !rageNow, rageNow,
       news: freshFact(turn.bar + 1),
@@ -2998,7 +2915,7 @@ async function raidLoop() {
   skipping = false; $('#skipBtn').disabled = false;
   stopBgm();
   const r = battle.result;
-  if (chartMode()) await sleep(200); else if (r.bossDown) await scene.bossDefeated(speedFactor()); else if (r.alive === 0) await scene.partyWiped(speedFactor()); else await sleep(400);
+  if (r.bossDown) await scene.bossDefeated(speedFactor()); else if (r.alive === 0) await scene.partyWiped(speedFactor()); else await sleep(400);
   showResult();
 }
 
@@ -3106,7 +3023,7 @@ async function showCheckpoint(cp) {
     tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(openTab === t.dataset.tab ? null : t.dataset.tab); }; });
     setTab(null);
     const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; $('#tip').hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); justDecided = true; resolve(); };
-    $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, chartMode() ? '그대로 둘게요' : '그대로 간다!'); };
+    $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip
     const lvl = effectiveLevel();
     $('#cpEquip').innerHTML = '';
@@ -3151,9 +3068,9 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
-  const inMap = !chartMode() && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
+  const inMap = true && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
   const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
-  const growth = chartMode() ? { gains: Object.fromEntries(ROLES.map(x => [x, { atk: 0, def: 0, stab: 0, ins: 0 }])), evolved: [] } : growHeroes(s);
+  const growth = growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
   { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }
   const after = { ...profile };
@@ -3175,7 +3092,7 @@ async function showResult() {
   // next raid: the first one not yet played (real first), else the next in the list
   const order2 = [...TAPES.filter(t => !t.example).slice().reverse(), ...TAPES.filter(t => t.example)];
   const next = order2.find(t => !profile.plays[t.id] && t.id !== currentTape.id) || order2[(order2.findIndex(t => t.id === currentTape.id) + 1) % order2.length];
-  $('#nextRaidBtn').innerHTML = `${chartMode() ? '다음 이벤트' : '다음 레이드'} ▶ ${evTitle(next.title)}${next.example ? '' : ' <span class="chip real" style="margin-left:4px">실제</span>'}`;
+  $('#nextRaidBtn').innerHTML = `${'다음 레이드'} ▶ ${evTitle(next.title)}${next.example ? '' : ' <span class="chip real" style="margin-left:4px">실제</span>'}`;
   $('#nextRaidBtn').onclick = () => { sfx.select(); party = null; openBrief(next.id); };
   $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
   $('#rMoney').textContent = fmtKRW(totalValue());
@@ -3190,7 +3107,7 @@ async function showResult() {
   $('#rDecisions').innerHTML = acts.length ? acts.map(a => {
     const bar = currentTape.bars[a.at]; const after = s.log.filter(t => t.bar >= a.at).reduce((x, t) => x + t.boss.portfolioRet, 0);
     const what = a.type === 'hold' ? '그대로' : a.type === 'equip' ? `${charOf(ROLES.find(r => s.party._bySkill[a.to]?.role === r) || 'dealer').name} → ${s.party._bySkill[a.to].name}` : '비중 조정 ' + ROLES.map(r => a.to[r]).join('/');
-    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">· 이후 ${chartMode() ? "포트폴리오" : "파티"} ${fmtPct(after)}</span></div>`;
+    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">· 이후 ${"파티"} ${fmtPct(after)}</span></div>`;
   }).join('') : '<span class="muted">체크포인트 없음</span>';
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
@@ -3242,7 +3159,7 @@ async function showResult() {
     const pick = eq >= 70 ? ['AOA', '주식 80%'] : eq >= 55 ? ['AOR', '주식 60%'] : eq >= 40 ? ['AOM', '주식 40%'] : ['AOK', '주식 30%'];
     const AO = { AOA: ['iShares Core Aggressive Allocation', 80], AOR: ['iShares Core Growth Allocation', 60], AOM: ['iShares Core Moderate Allocation', 40], AOK: ['iShares Core Conservative Allocation', 30] }[pick[0]];
     const card = $('#rEtfCard');
-    if (card) { card.hidden = chartMode(); card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
+    if (card) { card.hidden = false; card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
         <div class="ec-bar"><i style="width:${AO[1]}%">주식 ${AO[1]}</i><em style="width:${100 - AO[1]}%">채권 ${100 - AO[1]}</em></div>
         <div class="ec-bar mine"><i style="width:${eq}%">내 파티 주식 ${eq}</i><em style="width:${100 - eq}%">${100 - eq}</em></div>
         <p>주식과 채권을 이 비율로 나눠 담는 ETF예요. 참고용이고 추천은 아니에요.</p></div></div>`; } }
@@ -3323,8 +3240,6 @@ $('#bmenuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $
 document.addEventListener('click', e => { if (!e.target.closest('#bmenu')) { $('#bmenu').classList.remove('open'); $('#bmenuBtn').setAttribute('aria-expanded', 'false'); } else if (e.target.closest('button')) setTimeout(() => $('#bmenu').classList.remove('open'), 0); });
 
 // mode switch (게임 / 차트)
-$$('.mode-seg [data-mode]').forEach(b => b.addEventListener('click', () => { profile.mode = b.dataset.mode; saveProfile(); applyMode(); sfx.select(); if (!$('#screen-battle').hidden) { aborted = true; nextWaiter?.(); stopBgm(); } party = null; renderSelect(); showScreen('select'); }));
-applyMode();
 matchMedia('(max-width:760px)').addEventListener('change', () => { if (!$('#screen-select').hidden) renderChapter(); });
 
 /* ===== src/minigames.js ===== */

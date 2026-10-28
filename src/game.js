@@ -78,7 +78,7 @@ function loadProfile() {
 function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch {} }
 function effectiveLevel() { return profile.unlockAll ? 99 : profile.level; }
 /** products open with the hero, not a player level: a stronger product unlocks when its holder changes class */
-function skillOpen(s) { return !s.unlockLevel || profile.unlockAll || chartMode() || !!hero(s.role).branch; }
+function skillOpen(s) { return !s.unlockLevel || profile.unlockAll || !!hero(s.role).branch; }
 const lockLabel = s => `${charOf(s.role).name} 전직 후`;
 /* ---------- product catalog (상품 도감) ----------
    Facts verified on stockanalysis.com, 2026-10-27. The game role line explains how the product behaved in raids. */
@@ -202,13 +202,6 @@ function renderProfile() {
 /* Screens                                                             */
 /* ------------------------------------------------------------------ */
 const SCREENS = ['select', 'brief', 'party', 'battle', 'result'];
-const chartMode = () => profile.mode === 'chart';
-/** swaps game words for plain market words in chart mode (elements carry data-chart) */
-function applyMode() {
-  document.body.classList.toggle('mode-chart', chartMode());
-  $$('[data-chart]').forEach(el => { if (el.dataset.game === undefined) el.dataset.game = el.textContent; el.textContent = chartMode() ? el.dataset.chart : el.dataset.game; });
-  $$('.mode-seg [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === (profile.mode || 'game'))));
-}
 function showScreen(name) {
   SCREENS.forEach(s => { const el = $('#screen-' + s); el.hidden = s !== name; el.classList.remove('enter'); });
   if (!reduceMotion) { const el = $('#screen-' + name); void el.offsetWidth; el.classList.add('enter'); }
@@ -277,22 +270,22 @@ function earnStars(s, r) {
 /* ---------- 리더보드: the same tape, played by a fixed field of other parties (deterministic, cached per tape) ---------- */
 const FIELD_CACHE = new Map();
 function fieldFor(tape) {
-  const key = tape.id + (chartMode() ? ':chart' : '');
-  if (!FIELD_CACHE.has(key)) FIELD_CACHE.set(key, buildField(tape, { lossLimit: starLoss(tape.id), unit: chartMode() ? '포트폴리오' : '모험단' }));
+  const key = tape.id + ('');
+  if (!FIELD_CACHE.has(key)) FIELD_CACHE.set(key, buildField(tape, { lossLimit: starLoss(tape.id), unit: '모험단' }));
   return FIELD_CACHE.get(key);
 }
 function renderBoard(s) {
   const host = $('#rBoard'); if (!host) return;
   const field = fieldFor(currentTape), me = fieldScore(s, starLoss(currentTape.id));
-  const meName = chartMode() ? '내 포트폴리오' : '나';
+  const meName = '나';
   const rows = [...field.map(e => ({ ...e, me: false })), { ...me, name: meName, me: true }]
     .sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : b.me ? 1 : 0));   // ranked by return only
   const myI = rows.findIndex(x => x.me), rank = myI + 1, total = rows.length, pct = Math.max(1, Math.round(rank / total * 100));
   const shown = rows.slice(0, 3); if (myI >= 3) shown.push(null, rows[myI]);
   const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.returnPct >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.returnPct)}</span><span class="st">${'★'.repeat(e.stars)}<i>${'★'.repeat(3 - e.stars)}</i></span></div>` : `<div class="gap"><span class="rk">⋯</span></div>`;
-  host.innerHTML = `<div class="hd"><b>이번 판 ${total}${chartMode() ? '개 포트폴리오' : '명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
-    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${chartMode() ? '포트폴리오' : '모험단'}</span><span class="v">수익률</span><span class="st">별</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
-    <p class="small muted">같은 판을 플레이한 ${chartMode() ? '포트폴리오' : '모험단'} 기준 · 실제 서비스에서는 같은 주에 플레이한 고객이 올라요</p>`;
+  host.innerHTML = `<div class="hd"><b>이번 판 ${total}${'명'} 중 ${rank}등 · 상위 ${pct}%</b></div>
+    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${'모험단'}</span><span class="v">수익률</span><span class="st">별</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
+    <p class="small muted">같은 판을 플레이한 ${'모험단'} 기준 · 실제 서비스에서는 같은 주에 플레이한 고객이 올라요</p>`;
   return { rank, total, pct };
 }
 /* ---------- 시즌: 천만 원으로 시작해서 판 결과가 다음 판으로 이어져요 ---------- */
@@ -301,7 +294,7 @@ let SEASON_FIELD = null;
 /** other parties' seasons: each plays the first n stages of the map in order (n is fixed per name), compounding the same
  *  per-raid results the raid leaderboards show. Deterministic, no randomness. */
 function seasonField() {
-  const key = chartMode() ? 'chart' : 'game';
+  const key = 'game';
   if (SEASON_FIELD?.key === key) return SEASON_FIELD.rows;
   const order = CHAPTERS.flatMap(c => c.stages).map(id => TAPES.find(t => t.id === id)).filter(Boolean);
   const per = order.map(t => Object.fromEntries(fieldFor(t).map(e => [e.name, e.returnPct])));
@@ -314,13 +307,13 @@ function seasonField() {
 }
 function renderSeason() {
   const host = $('#season'); if (!host) return;
-  const se = season(), myRet = (se.bal / SEASON_START - 1) * 100, meName = chartMode() ? '내 포트폴리오' : '나';
+  const se = season(), myRet = (se.bal / SEASON_START - 1) * 100, meName = '나';
   const rows = [...seasonField().map(e => ({ ...e, me: false })), { name: meName, raids: se.raids, ret: myRet, me: true }]
     .sort((a, b) => b.ret - a.ret || (a.me ? -1 : b.me ? 1 : 0));
   const myI = rows.findIndex(x => x.me), shown = rows.slice(0, 5); if (myI >= 5) shown.push(null, rows[myI]);
   const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.ret >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.ret)}</span><span class="st">${e.raids}판</span></div>` : '<div class="gap">…</div>';
-  host.innerHTML = `<div class="hd"><h3>시즌 순위 · 천만 원으로 시작, 판 결과가 다음 판으로 이어져요</h3><b>${se.raids ? `${rows.length}${chartMode() ? '개' : '명'} 중 ${myI + 1}등 · 잔고 ${fmtKRW(se.bal)}` : '첫 판을 하면 순위에 올라요'}</b></div>
-    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${chartMode() ? '포트폴리오' : '모험단'}</span><span class="v">누적 수익률</span><span class="st">판수</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
+  host.innerHTML = `<div class="hd"><h3>시즌 순위 · 천만 원으로 시작, 판 결과가 다음 판으로 이어져요</h3><b>${se.raids ? `${rows.length}${'명'} 중 ${myI + 1}등 · 잔고 ${fmtKRW(se.bal)}` : '첫 판을 하면 순위에 올라요'}</b></div>
+    <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${'모험단'}</span><span class="v">누적 수익률</span><span class="st">판수</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
     ${se.raids ? '<button type="button" class="linkbtn" id="seasonReset">시즌 새로 시작</button>' : ''}`;
   const rb = host.querySelector('#seasonReset'); if (rb) rb.onclick = () => { if (rb.dataset.armed) { profile.season = { bal: SEASON_START, raids: 0 }; saveProfile(); renderSeason(); toast('시즌을 새로 시작했어요'); } else { rb.dataset.armed = '1'; rb.textContent = '정말 새로 시작? (한 번 더)'; } };
 }
@@ -376,20 +369,20 @@ function renderSelect() {
   UPCOMING.forEach(u => {
     const d = document.createElement('div'); d.className = 'raid upcoming';
     d.innerHTML = `${thumbHTML(u)}<img src="${portrait(bossUnit(u.species))}" alt="" class="pf" style="filter:brightness(.25) contrast(1.2) sepia(.4)">
-      <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)}</span></div><span class="small muted">${chartMode() ? u.note : '보스 ' + u.boss}</span></div>`;
+      <div class="meta"><h3>${u.title}</h3><div class="row" style="gap:6px"><span class="chip">${fmtDate(u.date)} ${fmtTime(u.date)}</span></div><span class="small muted">${'보스 ' + u.boss}</span></div>`;
     $('#raidsUpcoming').appendChild(d);
   });
 }
 
 /* ---------- rhythm: a short raid every day, a boss every week, a class change every few weeks ---------- */
-const evTitle = t => chartMode() ? t.replace(/ 레이드$/, '') : t;
+const evTitle = t => t;
 function renderRhythm() {
   const t = TAPES.find(x => x.dailyRaid), done = t && profile.plays[t.id]?.count;
   const tc = $('#todayCard');
   if (t) {
     tc.hidden = false; tc.classList.toggle('done', !!done);
     tc.innerHTML = `${thumbHTML(t)}<img src="${portrait(bossUnit(t.bossSpecies))}" alt="" class="pf">
-      <div class="tx"><small>오늘의 한 판</small><b>${done ? '오늘 판은 끝났어요' : t.headline || t.title}</b><span>${done ? `내일 아침에 새 판이 열려요` : `3턴${chartMode() ? '' : ' · 보스 ' + t.boss}`}</span></div>
+      <div class="tx"><small>오늘의 한 판</small><b>${done ? '오늘 판은 끝났어요' : t.headline || t.title}</b><span>${done ? `내일 아침에 새 판이 열려요` : `3턴${' · 보스 ' + t.boss}`}</span></div>
       <span class="go">${done ? '다시 하기' : '시작'}</span>`;
     tc.onclick = async () => { unlock(); sfx.select(); await openBrief(t.id); openParty(); };
   } else tc.hidden = true;
@@ -397,7 +390,7 @@ function renderRhythm() {
   const wc = $('#weekCard');
   if (up) { const days = Math.ceil((up.t - now) / 86400000), d = new Date(up.t + 9 * 3600000);
     wc.innerHTML = `${thumbHTML(up)}<img src="${portrait(bossUnit(up.species))}" alt="" class="pf">
-      <div class="tx"><small>${chartMode() ? '이번 주 이벤트' : '이번 주 보스'}</small><b>${chartMode() ? up.title : up.boss}</b><span>${chartMode() ? up.note : up.title}</span></div>
+      <div class="tx"><small>${'이번 주 보스'}</small><b>${up.boss}</b><span>${up.title}</span></div>
       <span class="dday"><b>${days <= 0 ? '오늘' : 'D-' + days}</b><small>${WD[d.getUTCDay()]}요일</small></span>`; }
 }
 
@@ -423,15 +416,14 @@ function renderNewsline() { $('#newsline').hidden = true; }
 /* ---------- 2. briefing ---------- */
 let bChart = null;
 async function openBrief(id) {
-  if ($('#bMore')) $('#bMore').open = chartMode();
   currentTape = await adapter.load(id);
-  if (!chartMode()) currentTape = { ...currentTape, skills: currentTape.skills.filter(k => !k.chartOnly) };   // futures and options live in chart mode
+  if (true) currentTape = { ...currentTape, skills: currentTape.skills.filter(k => !k.chartOnly) };   // futures and options live in chart mode
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
   $('#bArt').alt = t.boss;
   $('#bTag').textContent = `${t.market === 'US' ? '미국' : '국내'} 레이드 · ${t.example ? '예시 데이터' : '실제 종가 데이터'}`;
   $('#bDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} · 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ' · 출처 ' + t.source : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
-  $('#bTitle').textContent = chartMode() ? evTitle(t.title) : `${t.boss} 출현`;
+  $('#bTitle').textContent = `${t.boss} 출현`;
   $('#bThumb').style.backgroundImage = `url(${sceneOf(t)})`; $('#bThumbTitle').textContent = evTitle(t.title); $('#bThumbDate').textContent = t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} · ${t.example ? '예시 시세' : '실제 종가'}` : `${fmtDate(t.bars[0].t)} · ${t.example ? '예시 시세' : '실제 시세'}`;
   $('#bBrief').textContent = t.briefing;
   // labels after the first checkpoint describe what happened; keep them hidden until the raid reaches them
@@ -441,7 +433,7 @@ async function openBrief(id) {
   $('#bConcepts').innerHTML = (t.concepts || []).map(c => `<span class="chip" style="color:var(--gold)">${c.name}</span>`).join('');
   const main = mainInstrument(t);
   $('#bChartTitle').innerHTML = `${main} ${t.instruments[main].name} <span class="muted">· ${t.example ? '예시 시세' : '실제 종가'} · 첫 체크포인트까지</span>`;
-  bChart?.remove(); bChart = new BattleChart($('#bChart'), t, 'price', { upto: reveal, quiet: true, futureShade: true }); $('#bMore').open = chartMode(); if (chartMode()) setTimeout(() => bChart?.c.timeScale().fitContent(), 80); $('#bMore').ontoggle = () => { if ($('#bMore').open) setTimeout(() => bChart?.c.timeScale().fitContent(), 50); };
+  bChart?.remove(); bChart = new BattleChart($('#bChart'), t, 'price', { upto: reveal, quiet: true, futureShade: true }); $('#bMore').open = false; $('#bMore').ontoggle = () => { if ($('#bMore').open) setTimeout(() => bChart?.c.timeScale().fitContent(), 50); };
   showScreen('brief');
   gsap.fromTo('#bArt', { scale: .6, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: .6, ease: 'back.out(1.6)' });
   if (!reduceMotion) gsap.fromTo('.boss-stage', { x: -6 }, { x: 6, duration: .06, repeat: 5, yoyo: true, clearProps: 'x', delay: .35 });
@@ -1124,7 +1116,7 @@ class BattleChart {
       this.eq = this.c.addAreaSeries({ lineColor: '#E0A72E', topColor: 'rgba(224,167,46,.30)', bottomColor: 'rgba(224,167,46,0)', lineWidth: 4, lastValueVisible: true, priceLineVisible: false, crosshairMarkerVisible: false, priceFormat: pct });
       this.series = [this.eq, this.bm];
       const breakPct = this.state ? 100 / this.state.bossScale : 100 / (tape.scale?.bossHpPerPct || 40);
-      if (!chartMode()) this.eq.createPriceLine({ price: breakPct, color: '#D6453F', lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title: '보스 격파' });
+      if (true) this.eq.createPriceLine({ price: breakPct, color: '#D6453F', lineWidth: 2, lineStyle: 2, axisLabelVisible: true, title: '보스 격파' });
       this.eq.createPriceLine({ price: 0, color: '#8E8676', lineWidth: 1, lineStyle: 3, axisLabelVisible: false, title: '' });
       this.eq.applyOptions({ autoscaleInfoProvider: orig => { const r = orig(); if (!r) return r; const span = Math.max(r.priceRange.maxValue - r.priceRange.minValue, .6); const mid = (r.priceRange.maxValue + r.priceRange.minValue) / 2; return { priceRange: { minValue: Math.min(mid - span / 2, -span * .1), maxValue: Math.max(mid + span / 2, span * .1) }, margins: r.margins }; } });
     } else {
@@ -1197,7 +1189,7 @@ class BattleChart {
     const up = Math.min(this.upto, this.tape.bars.length - 1);
     if (this.mode === 'equity') { const h = this.state?.history.find(p => p.bar === up); const eq = h ? h.equity - 100 : 0, bm = h ? h.benchmark - 100 : 0;
       const goal = this.state ? 100 / this.state.bossScale : 100 / (this.tape.scale?.bossHpPerPct || 40);
-      return `<span><i style="background:#E0A72E"></i>${chartMode() ? '내 포트폴리오' : '내 파티'} <b class="ret tabular ${eq >= 0 ? 'up' : 'down'}">${fmtPct(eq)}</b> <span class="muted tabular">(${fmtKRW(SEED * (1 + eq / 100))})</span></span><span><i style="background:#9AA0AA"></i>시장 ${benchmarkOf(this.tape)} <b class="tabular">${fmtPct(bm)}</b></span>${chartMode() ? '' : `<span><i style="background:#D6453F"></i>격파 ${fmtPct(goal)}</span>`}`; }
+      return `<span><i style="background:#E0A72E"></i>${'내 파티'} <b class="ret tabular ${eq >= 0 ? 'up' : 'down'}">${fmtPct(eq)}</b> <span class="muted tabular">(${fmtKRW(SEED * (1 + eq / 100))})</span></span><span><i style="background:#9AA0AA"></i>시장 ${benchmarkOf(this.tape)} <b class="tabular">${fmtPct(bm)}</b></span>${`<span><i style="background:#D6453F"></i>격파 ${fmtPct(goal)}</span>`}`; }
     return this.ids.map((id, i) => { const p0 = this.tape.bars[0].prices[id], p = this.tape.bars[up].prices[id], ins = this.tape.instruments[id];
       return `<span><i style="background:${INS_COLORS[i % INS_COLORS.length]}"></i>${id} ${ins.name} <b class="tabular">${fmtMoney(p, ins.currency)}</b> <span class="${p >= p0 ? 'ret up' : 'ret down'} tabular" style="font-size:12px">${fmtPct(100 * (p / p0 - 1))}</span></span>`; }).join('');
   }
@@ -1223,7 +1215,6 @@ async function startBattle() {
   $('#hMoney').dataset.v = SEED; $('#hMoney').textContent = fmtKRW(SEED);
   battle = createBattle(currentTape, party); aborted = false; userPaused = false; skipping = false; justDecided = false; nextWaiter = null; $('#nextBtn').hidden = true; $('#skipBtn').disabled = false; $('#pauseBtn').textContent = '일시정지';
   showScreen('battle');
-  if (chartMode()) { renderBossHud(); renderPartyHud(); renderTurnLine(null); rebuildBattleChart(); renderNewsline(); await raidLoop(); return; }
   let sc; try { sc = await ensureGame(); } catch (e) { toast(e.message, 5000); try { game?.destroy(true); } catch {} game = null; scene = null; showScreen('party'); return; }
   game.scale.refresh();
   await sc.setup(currentTape);
@@ -1241,7 +1232,7 @@ async function raidLoop() {
   while (!battle.done && !aborted) {
     await waitResume(); if (aborted) return;
     const nb = currentTape.bars[battle.bar + 1];
-    if (nb && !battle.paused) await waitNext(chartMode() ? `다음 ▶ ${fmtBar(nb.t)}` : `다음 턴 ▶ ${fmtBar(nb.t)} ${nb.label}`);
+    if (nb && !battle.paused) await waitNext(`다음 턴 ▶ ${fmtBar(nb.t)} ${nb.label}`);
     if (aborted) return;
     const turn = step(battle);
     if (!turn) { if (battle.paused) { skipping = false; $('#skipBtn').disabled = false; await showCheckpoint(battle.paused); continue; } break; }
@@ -1249,7 +1240,6 @@ async function raidLoop() {
     const ret = turn.boss.portfolioRet;
     drama.combo = ret > 0 ? drama.combo + 1 : 0; drama.maxCombo = Math.max(drama.maxCombo, drama.combo);
     const rageNow = !drama.rage && battle.bossHp > 0 && battle.bossHp <= 50; if (rageNow) drama.rage = true;
-    if (chartMode()) { flashChart(ret); await battleChartEq.reveal(turn.bar, 520 / sp); renderChartLegends(); renderTurnLine(turn); renderPartyHud(turn); renderBossHud(); battleChartEq.markers(); continue; }
     await scene.playTurn(turn, sp, {
       combo: drama.combo, rage: drama.rage && !rageNow, rageNow,
       news: freshFact(turn.bar + 1),
@@ -1269,7 +1259,7 @@ async function raidLoop() {
   skipping = false; $('#skipBtn').disabled = false;
   stopBgm();
   const r = battle.result;
-  if (chartMode()) await sleep(200); else if (r.bossDown) await scene.bossDefeated(speedFactor()); else if (r.alive === 0) await scene.partyWiped(speedFactor()); else await sleep(400);
+  if (r.bossDown) await scene.bossDefeated(speedFactor()); else if (r.alive === 0) await scene.partyWiped(speedFactor()); else await sleep(400);
   showResult();
 }
 
@@ -1377,7 +1367,7 @@ async function showCheckpoint(cp) {
     tabs.forEach(t => { t.onclick = () => { sfx.select(); setTab(openTab === t.dataset.tab ? null : t.dataset.tab); }; });
     setTab(null);
     const done = (action, msg) => { try { intervene(battle, action); } catch (e) { toast(e.message); return; } clearInterval(cpTimer); m.hidden = true; $('#tip').hidden = true; if (msg) toast(msg); renderPartyHud(); battleChart?.markers(); battleChartEq?.markers(); justDecided = true; resolve(); };
-    $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, chartMode() ? '그대로 둘게요' : '그대로 간다!'); };
+    $('#cpHoldBtn').onclick = () => { sfx.select(); done({ type: 'hold' }, '그대로 간다!'); };
     // equip
     const lvl = effectiveLevel();
     $('#cpEquip').innerHTML = '';
@@ -1422,9 +1412,9 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
-  const inMap = !chartMode() && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
+  const inMap = true && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
   const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
-  const growth = chartMode() ? { gains: Object.fromEntries(ROLES.map(x => [x, { atk: 0, def: 0, stab: 0, ins: 0 }])), evolved: [] } : growHeroes(s);
+  const growth = growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
   { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }
   const after = { ...profile };
@@ -1446,7 +1436,7 @@ async function showResult() {
   // next raid: the first one not yet played (real first), else the next in the list
   const order2 = [...TAPES.filter(t => !t.example).slice().reverse(), ...TAPES.filter(t => t.example)];
   const next = order2.find(t => !profile.plays[t.id] && t.id !== currentTape.id) || order2[(order2.findIndex(t => t.id === currentTape.id) + 1) % order2.length];
-  $('#nextRaidBtn').innerHTML = `${chartMode() ? '다음 이벤트' : '다음 레이드'} ▶ ${evTitle(next.title)}${next.example ? '' : ' <span class="chip real" style="margin-left:4px">실제</span>'}`;
+  $('#nextRaidBtn').innerHTML = `${'다음 레이드'} ▶ ${evTitle(next.title)}${next.example ? '' : ' <span class="chip real" style="margin-left:4px">실제</span>'}`;
   $('#nextRaidBtn').onclick = () => { sfx.select(); party = null; openBrief(next.id); };
   $('#rRet').textContent = `${fmtKRWd(totalValue() - SEED)} (${fmtPct(r.returnPct)})`; $('#rRet').style.color = r.returnPct >= 0 ? 'var(--green)' : 'var(--red)';
   $('#rMoney').textContent = fmtKRW(totalValue());
@@ -1461,7 +1451,7 @@ async function showResult() {
   $('#rDecisions').innerHTML = acts.length ? acts.map(a => {
     const bar = currentTape.bars[a.at]; const after = s.log.filter(t => t.bar >= a.at).reduce((x, t) => x + t.boss.portfolioRet, 0);
     const what = a.type === 'hold' ? '그대로' : a.type === 'equip' ? `${charOf(ROLES.find(r => s.party._bySkill[a.to]?.role === r) || 'dealer').name} → ${s.party._bySkill[a.to].name}` : '비중 조정 ' + ROLES.map(r => a.to[r]).join('/');
-    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">· 이후 ${chartMode() ? "포트폴리오" : "파티"} ${fmtPct(after)}</span></div>`;
+    return `<div><span class="t">${fmtBar(bar.t)}</span><span>${what}</span><span class="muted">· 이후 ${"파티"} ${fmtPct(after)}</span></div>`;
   }).join('') : '<span class="muted">체크포인트 없음</span>';
   // what-if: best / worst single-action strategies from the same starting party
   const alts = alternatives(currentTape, { weights: { ...party.weights }, skills: { ...party.skills }, _bySkill: party._bySkill });
@@ -1513,7 +1503,7 @@ async function showResult() {
     const pick = eq >= 70 ? ['AOA', '주식 80%'] : eq >= 55 ? ['AOR', '주식 60%'] : eq >= 40 ? ['AOM', '주식 40%'] : ['AOK', '주식 30%'];
     const AO = { AOA: ['iShares Core Aggressive Allocation', 80], AOR: ['iShares Core Growth Allocation', 60], AOM: ['iShares Core Moderate Allocation', 40], AOK: ['iShares Core Conservative Allocation', 30] }[pick[0]];
     const card = $('#rEtfCard');
-    if (card) { card.hidden = chartMode(); card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
+    if (card) { card.hidden = false; card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
         <div class="ec-bar"><i style="width:${AO[1]}%">주식 ${AO[1]}</i><em style="width:${100 - AO[1]}%">채권 ${100 - AO[1]}</em></div>
         <div class="ec-bar mine"><i style="width:${eq}%">내 파티 주식 ${eq}</i><em style="width:${100 - eq}%">${100 - eq}</em></div>
         <p>주식과 채권을 이 비율로 나눠 담는 ETF예요. 참고용이고 추천은 아니에요.</p></div></div>`; } }
@@ -1594,6 +1584,4 @@ $('#bmenuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $
 document.addEventListener('click', e => { if (!e.target.closest('#bmenu')) { $('#bmenu').classList.remove('open'); $('#bmenuBtn').setAttribute('aria-expanded', 'false'); } else if (e.target.closest('button')) setTimeout(() => $('#bmenu').classList.remove('open'), 0); });
 
 // mode switch (게임 / 차트)
-$$('.mode-seg [data-mode]').forEach(b => b.addEventListener('click', () => { profile.mode = b.dataset.mode; saveProfile(); applyMode(); sfx.select(); if (!$('#screen-battle').hidden) { aborted = true; nextWaiter?.(); stopBgm(); } party = null; renderSelect(); showScreen('select'); }));
-applyMode();
 matchMedia('(max-width:760px)').addEventListener('change', () => { if (!$('#screen-select').hidden) renderChapter(); });
