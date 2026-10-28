@@ -823,6 +823,12 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 #rMore .result{grid-template-columns:1fr}
 .rmain .row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .season{width:100%}
+.season .sbal{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.season .sbal small{display:block;font-size:12px;color:var(--muted)}
+.season .sbal b{font-family:var(--display);font-weight:400;font-size:30px;color:var(--navy);line-height:1.1}
+.season .sbal em{font-style:normal;font-family:var(--display);font-size:16px;margin-left:8px}
+.season .sbal .rank{text-align:right}
+.season .sbal .rank b{font-size:20px}
 .linkbtn{align-self:flex-start;background:none;border:0;padding:0;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer}
 </style>
 
@@ -843,6 +849,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 
   <!-- 1. raid select -->
   <section id="screen-select" class="screen">
+    <div class="board season" id="season"></div>
     <div class="home-stage">
       <div class="home-cast-wrap"><div class="home-chip" id="homeChip"></div><div class="home-cast" id="homeCast"></div></div>
       <div class="hero-sheet" id="heroSheet"></div>
@@ -852,7 +859,6 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="week-card" id="weekCard"></div>
     </div>
     <div class="chapters" id="chapterMap" aria-label="시나리오 지도"></div>
-    <div class="board season" id="season"></div>
     <div class="mg-sec"><div class="section-h"><h3>미니게임</h3><span class="chip" style="color:var(--blue)">버튼 하나 · 실제 차트</span></div><div class="mglist" id="minigames"></div></div>
     <div class="raid-lists">
     <div>

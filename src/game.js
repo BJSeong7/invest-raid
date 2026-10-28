@@ -310,9 +310,10 @@ function renderSeason() {
   const se = season(), myRet = (se.bal / SEASON_START - 1) * 100, meName = '나';
   const rows = [...seasonField().map(e => ({ ...e, me: false })), { name: meName, raids: se.raids, ret: myRet, me: true }]
     .sort((a, b) => b.ret - a.ret || (a.me ? -1 : b.me ? 1 : 0));
-  const myI = rows.findIndex(x => x.me), shown = rows.slice(0, 5); if (myI >= 5) shown.push(null, rows[myI]);
+  const myI = rows.findIndex(x => x.me), shown = rows.slice(0, 3); if (myI >= 3) shown.push(null, rows[myI]);
   const line = (e, i) => e ? `<div class="${e.me ? 'me' : ''}"><span class="rk">${i + 1}</span><span class="nm">${e.name}</span><span class="v tabular" style="color:${e.ret >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(e.ret)}</span><span class="st">${e.raids}판</span></div>` : '<div class="gap">…</div>';
-  host.innerHTML = `<div class="hd"><h3>시즌 순위 · 천만 원으로 시작, 판 결과가 다음 판으로 이어져요</h3><b>${se.raids ? `${rows.length}${'명'} 중 ${myI + 1}등 · 잔고 ${fmtKRW(se.bal)}` : '첫 판을 하면 순위에 올라요'}</b></div>
+  host.innerHTML = `<div class="sbal"><div><small>내 잔고 · 천만 원으로 시작해서 판 결과가 이어져요</small><b class="tabular">${fmtKRW(se.bal)}</b><em class="tabular" style="color:${myRet >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtPct(myRet)}</em></div>
+    <div class="rank"><small>시즌 순위</small><b>${se.raids ? `${rows.length}명 중 ${myI + 1}등 · ${se.raids}판` : '첫 판을 하면 올라가요'}</b></div></div>
     <div class="tbl"><div class="th"><span class="rk">순위</span><span class="nm">${'모험단'}</span><span class="v">누적 수익률</span><span class="st">판수</span></div>${shown.map(e => line(e, e ? rows.indexOf(e) : 0)).join('')}</div>
     ${se.raids ? '<button type="button" class="linkbtn" id="seasonReset">시즌 새로 시작</button>' : ''}`;
   const rb = host.querySelector('#seasonReset'); if (rb) rb.onclick = () => { if (rb.dataset.armed) { profile.season = { bal: SEASON_START, raids: 0 }; saveProfile(); renderSeason(); toast('시즌을 새로 시작했어요'); } else { rb.dataset.armed = '1'; rb.textContent = '정말 새로 시작? (한 번 더)'; } };
