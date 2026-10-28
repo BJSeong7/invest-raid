@@ -476,7 +476,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   .hero-sheet{margin:0;border:2px solid var(--line);box-shadow:0 4px 0 var(--edge)}
   .cast .tag{padding:2px 8px}.cast .tag b{font-size:13px}.cast .tag small{display:none}
 }
-.rhythm{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+.rhythm{display:grid;grid-template-columns:1fr;gap:12px}
 @media (max-width:760px){.rhythm{grid-template-columns:1fr}}
 .today-card,.week-card{display:flex;align-items:center;gap:14px;border-radius:20px;padding:14px 16px;text-align:left;min-width:0}
 .today-card{cursor:pointer;border:2px solid #B9841A;background:linear-gradient(135deg,#FFE9A8,#FFD166 60%,#F5B83D);box-shadow:0 4px 0 #9A6B0E,0 10px 22px rgba(160,110,0,.18);transition:transform .08s,box-shadow .08s}
@@ -823,12 +823,14 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 #rMore .result{grid-template-columns:1fr}
 .rmain .row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .season{width:100%}
-.season .sbal{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.season .sbal small{display:block;font-size:12px;color:var(--muted)}
-.season .sbal b{font-family:var(--display);font-weight:400;font-size:30px;color:var(--navy);line-height:1.1}
-.season .sbal em{font-style:normal;font-family:var(--display);font-size:16px;margin-left:8px}
-.season .sbal .rank{text-align:right}
-.season .sbal .rank b{font-size:20px}
+.season{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:12px 28px;align-items:center}
+.season .s-left{display:flex;flex-direction:column;gap:10px;min-width:0}
+.season small{display:block;font-size:12px;color:var(--muted)}
+.season .sbal b{font-family:var(--display);font-weight:400;font-size:32px;color:var(--navy);line-height:1.1}
+.season .sbal em{font-style:normal;font-family:var(--display);font-size:17px;margin-left:8px}
+.season .srank b{font-family:var(--display);font-weight:400;font-size:20px;color:var(--navy)}
+.season .tbl>div{grid-template-columns:34px minmax(0,1fr) 84px 44px}
+@media (max-width:760px){.season{grid-template-columns:1fr}}
 .linkbtn{align-self:flex-start;background:none;border:0;padding:0;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer}
 </style>
 
@@ -855,11 +857,10 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="hero-sheet" id="heroSheet"></div>
     </div>
     <div class="rhythm">
-      <button type="button" class="today-card" id="todayCard" hidden></button>
       <div class="week-card" id="weekCard"></div>
     </div>
     <div class="chapters" id="chapterMap" aria-label="시나리오 지도"></div>
-    <div class="mg-sec"><div class="section-h"><h3>미니게임</h3><span class="chip" style="color:var(--blue)">버튼 하나 · 실제 차트</span></div><div class="mglist" id="minigames"></div></div>
+    <div class="mg-sec"><div class="section-h"><h3>미니게임</h3><span class="chip" style="color:var(--blue)">실제 차트로 해요</span></div><div class="mglist" id="minigames"></div></div>
     <div class="raid-lists">
     <div>
       <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
@@ -874,7 +875,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
       <div class="section-h"><h3>다가오는 보스</h3><span class="chip" style="color:var(--purple)">주간 라이브</span></div>
       <div class="raids" id="raidsUpcoming"></div>
     </div>
-    <p class="foot">학습용 게임이며 특정 상품의 투자권유가 아닙니다. · <button class="iconbtn" id="resetBtn" type="button" style="padding:3px 10px;font-size:11px">진행 초기화</button></p>
+    <p class="foot">학습용 게임이며 특정 상품의 투자권유가 아닙니다. <button class="iconbtn" id="resetBtn" type="button" style="padding:3px 10px;font-size:11px">진행 초기화</button></p>
   </section>
 
   <!-- 2. briefing -->
@@ -1001,7 +1002,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
         </div>
       </div>
     </details>
-    <p class="foot">게임 결과는 학습용이며 특정 상품의 투자권유가 아닙니다. 투자 전 상품설명서를 확인하세요. · 캐릭터·배경 아트: 이 게임을 위해 생성한 오리지널 디자인 · 차트: TradingView Lightweight Charts</p>
+    <p class="foot">게임 결과는 학습용이며 특정 상품의 투자권유가 아닙니다. 투자 전 상품설명서를 확인하세요. 캐릭터·배경 아트: 이 게임을 위해 생성한 오리지널 디자인. 차트: TradingView Lightweight Charts</p>
   </section>
 </div>
 
@@ -1051,7 +1052,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
     <div class="dexgrid" id="dexBosses"></div>
     <div class="small muted">전직 도감</div>
     <div class="dexgrid" id="dexClasses"></div>
-    <div class="small muted">상품 도감 · 레이드에서 써본 상품이 열려요</div>
+    <div class="small muted">상품 도감 (레이드에서 써 본 상품이 열려요)</div>
     <div class="pgrid mini" id="dexProducts"></div>
     <button class="btn secondary" id="dexClose" type="button">닫기</button>
   </div>

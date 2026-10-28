@@ -70,9 +70,9 @@ function runRunner(host, onEnd) {
     ctx.drawImage(img, PX - s / 2, cy - s + 4, s, s);
     // date strip
     ctx.fillStyle = 'rgba(36,64,95,.85)'; ctx.fillRect(0, 0, W, 34); ctx.fillStyle = '#fff'; ctx.font = '15px Jua, "Noto Sans KR", sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText(`${path[i].d.replace(/-/g, '.')}  ${path[i].event} · ${path[i].label}`, 12, 23);
+    ctx.fillText(`${path[i].d.replace(/-/g, '.')}  ${path[i].event}, ${path[i].label}`, 12, 23);
     ctx.textAlign = 'right'; ctx.fillText(`${days}일 버팀  +${coins}`, W - 12, 23);
-    hud.textContent = `${days}일 · 보너스 ${coins}`;
+    hud.textContent = `${days}일째, 보너스 ${coins}`;
     raf = requestAnimationFrame(draw);
   }
   function finish(won) {
@@ -87,17 +87,17 @@ function runRunner(host, onEnd) {
 /* ---------- 2. 시총 더높이더낮게: Higher or Lower with real market caps ---------- */
 // Market caps in USD billions, stockanalysis.com biggest-companies list, checked 2026-10-27. Rounded; the game only compares.
 const CAPS = [
-  ['엔비디아', 5220, '미국 · 반도체'], ['애플', 5020, '미국 · 스마트폰'], ['마이크로소프트', 3960, '미국 · 소프트웨어'], ['알파벳(구글)', 3870, '미국 · 검색·광고'], ['아마존', 2690, '미국 · 전자상거래'],
-  ['TSMC', 1900, '대만 · 반도체 위탁생산'], ['아람코', 1650, '사우디 · 석유'], ['메타', 1610, '미국 · SNS'], ['브로드컴', 1570, '미국 · 반도체'], ['테슬라', 1550, '미국 · 전기차'],
-  ['일라이 릴리', 1140, '미국 · 제약'], ['삼성전자', 1070, '한국 · 반도체·가전'], ['마이크론', 1020, '미국 · 메모리'], ['월마트', 954, '미국 · 유통'], ['JP모건', 887, '미국 · 은행'],
-  ['AMD', 867, '미국 · 반도체'], ['엑슨모빌', 759, '미국 · 석유'], ['SK하이닉스', 745, '한국 · 메모리'], ['비자', 742, '미국 · 결제'], ['존슨앤드존슨', 641, '미국 · 제약'],
-  ['ASML', 615, '네덜란드 · 반도체 장비'], ['마스터카드', 537, '미국 · 결제'], ['팔란티어', 478, '미국 · 데이터 소프트웨어'], ['셰브론', 455, '미국 · 석유'], ['코스트코', 445, '미국 · 유통'],
-  ['텐센트', 444, '중국 · 게임·메신저'], ['시스코', 435, '미국 · 네트워크 장비'], ['코카콜라', 399, '미국 · 음료'], ['오라클', 382, '미국 · 소프트웨어'], ['P&G', 371, '미국 · 생활용품'],
-  ['HSBC', 345, '영국 · 은행'], ['넷플릭스', 300, '미국 · 스트리밍'], ['알리바바', 289, '중국 · 전자상거래'], ['셸', 269, '영국 · 석유'], ['도요타', 228, '일본 · 자동차'],
-  ['세일즈포스', 192, '미국 · 소프트웨어'], ['디즈니', 179, '미국 · 미디어'], ['맥도날드', 177, '미국 · 외식'], ['노보 노디스크', 175, '덴마크 · 제약'], ['화이자', 159, '미국 · 제약'],
-  ['보잉', 156, '미국 · 항공기'], ['우버', 143, '미국 · 모빌리티'], ['소니', 138, '일본 · 전자·게임'], ['스타벅스', 108, '미국 · 커피'], ['스포티파이', 103, '스웨덴 · 음악'],
-  ['에어비앤비', 95, '미국 · 숙박'], ['어도비', 95, '미국 · 소프트웨어'], ['페라리', 79, '이탈리아 · 자동차'], ['GM', 73, '미국 · 자동차'], ['나이키', 54, '미국 · 스포츠'],
-  ['코인베이스', 53, '미국 · 코인 거래소'], ['포드', 52, '미국 · 자동차'], ['KB금융', 46, '한국 · 은행'], ['페이팔', 45, '미국 · 결제'], ['신한지주', 39, '한국 · 은행'],
+  ['엔비디아', 5220, '미국 반도체'], ['애플', 5020, '미국 스마트폰'], ['마이크로소프트', 3960, '미국 소프트웨어'], ['알파벳(구글)', 3870, '미국 검색·광고'], ['아마존', 2690, '미국 전자상거래'],
+  ['TSMC', 1900, '대만 반도체 위탁생산'], ['아람코', 1650, '사우디 석유'], ['메타', 1610, '미국 SNS'], ['브로드컴', 1570, '미국 반도체'], ['테슬라', 1550, '미국 전기차'],
+  ['일라이 릴리', 1140, '미국 제약'], ['삼성전자', 1070, '한국 반도체·가전'], ['마이크론', 1020, '미국 메모리'], ['월마트', 954, '미국 유통'], ['JP모건', 887, '미국 은행'],
+  ['AMD', 867, '미국 반도체'], ['엑슨모빌', 759, '미국 석유'], ['SK하이닉스', 745, '한국 메모리'], ['비자', 742, '미국 결제'], ['존슨앤드존슨', 641, '미국 제약'],
+  ['ASML', 615, '네덜란드 반도체 장비'], ['마스터카드', 537, '미국 결제'], ['팔란티어', 478, '미국 데이터 소프트웨어'], ['셰브론', 455, '미국 석유'], ['코스트코', 445, '미국 유통'],
+  ['텐센트', 444, '중국 게임·메신저'], ['시스코', 435, '미국 네트워크 장비'], ['코카콜라', 399, '미국 음료'], ['오라클', 382, '미국 소프트웨어'], ['P&G', 371, '미국 생활용품'],
+  ['HSBC', 345, '영국 은행'], ['넷플릭스', 300, '미국 스트리밍'], ['알리바바', 289, '중국 전자상거래'], ['셸', 269, '영국 석유'], ['도요타', 228, '일본 자동차'],
+  ['세일즈포스', 192, '미국 소프트웨어'], ['디즈니', 179, '미국 미디어'], ['맥도날드', 177, '미국 외식'], ['노보 노디스크', 175, '덴마크 제약'], ['화이자', 159, '미국 제약'],
+  ['보잉', 156, '미국 항공기'], ['우버', 143, '미국 모빌리티'], ['소니', 138, '일본 전자·게임'], ['스타벅스', 108, '미국 커피'], ['스포티파이', 103, '스웨덴 음악'],
+  ['에어비앤비', 95, '미국 숙박'], ['어도비', 95, '미국 소프트웨어'], ['페라리', 79, '이탈리아 자동차'], ['GM', 73, '미국 자동차'], ['나이키', 54, '미국 스포츠'],
+  ['코인베이스', 53, '미국 코인 거래소'], ['포드', 52, '미국 자동차'], ['KB금융', 46, '한국 은행'], ['페이팔', 45, '미국 결제'], ['신한지주', 39, '한국 은행'],
 ];
 const capText = b => b >= 1000 ? `${(b / 1000).toFixed(2).replace(/\.?0+$/, '')}조 달러` : `${Math.round(b * 10).toLocaleString('ko-KR')}억 달러`;
 /* Other measures. Sources, checked 2026-10-27: revenue (TTM, USD) and employees = stockanalysis.com lists and company pages;
@@ -134,7 +134,7 @@ function runHiLo(host, onEnd) {
     box.innerHTML = `<div class="mg-q"><small class="mg-cat">${cat.name}</small><b>${cat.q(B[0])} ${A[0]}보다?</b><i class="mg-timer"><em style="width:100%"></em></i></div>
       <div class="mg-two caps">${card(A, true, 'known')}${card(B, false, 'ask')}</div>
       <div class="mg-two"><button type="button" class="mg-btn up" data-k="up">▲ ${cat.up}</button><button type="button" class="mg-btn dn" data-k="dn">▼ ${cat.dn}</button></div>
-      <div class="mg-score">${'♥'.repeat(lives)}${'♡'.repeat(3 - lives)} · 연속 ${streak}</div>`;
+      <div class="mg-score">${'♥'.repeat(lives)}${'♡'.repeat(3 - lives)}  연속 ${streak}</div>`;
     const bar = box.querySelector('.mg-timer em'); clearInterval(timer); const t0 = performance.now();
     timer = setInterval(() => { const el = (performance.now() - t0) / 1000; bar.style.width = Math.max(0, 100 - el / 5 * 100) + '%'; if (el >= 5 && !locked) answer(null); }, 50);
     box.querySelectorAll('.mg-btn').forEach(b => b.onclick = () => answer(b.dataset.k));
@@ -147,7 +147,7 @@ function runHiLo(host, onEnd) {
     box.querySelectorAll('.mg-btn').forEach(b => { b.disabled = true; b.classList.add(b.dataset.k === right ? 'win' : 'lose'); });
     const ratio = B[1] / A[1];
     const note = cat.ratio ? `${B[0]}${josa(B[0], '은', '는')} ${A[0]}의 ${ratio >= 1 ? `${ratio.toFixed(1)}배` : `${Math.round(ratio * 100)}%`}예요` : `${Math.abs(B[1] - A[1])}년 차이예요`;
-    box.querySelector('.mg-score').innerHTML = `${ans === null ? '시간이 다 됐어요' : ok ? '맞았어요!' : '아쉬워요'} · ${note}`;
+    box.querySelector('.mg-score').innerHTML = `${ans === null ? '시간이 다 됐어요' : ok ? '맞았어요!' : '아쉬워요'} ${note}`;
     setTimeout(() => { k++; show(); }, 1500);
   }
   show();
@@ -169,7 +169,7 @@ function runSizeUp(host, onEnd) {
     const which = Math.random() < 0.5 && dd >= 2 ? 'dd' : 'tot';
     const w = 320, h = 110, mn = Math.min(...ps), mx = Math.max(...ps), pts = ps.map((p, i) => `${(i / (ps.length - 1) * (w - 16) + 8).toFixed(1)},${(h - 10 - (p - mn) / (mx - mn || 1) * (h - 20)).toFixed(1)}`).join(' ');
     const svg = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="#24405F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    const span = `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)} · 눈금은 숨겼어요`;
+    const span = `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t).slice(5)}, 눈금은 숨겼어요`;
     return which === 'dd' ? { kind: 'pct', text: `${t.title.replace(/ 레이드$/, '')} 때 나스닥100은 고점에서 얼마나 빠졌을까요?`, sub: span, hint: `참고로 ${oname} 때는 고점에서 ${os.dd.toFixed(1)}% 빠졌어요. 하루에 3% 넘게 빠지면 큰 날이에요.`, svg, actual: -dd, lo: -40, hi: 0, fmt: v => `${v.toFixed(1)}%` }
       : { kind: 'pct', text: `${t.title.replace(/ 레이드$/, '')} 구간 전체에서 나스닥100은 몇 % 움직였을까요?`, sub: span, hint: `참고로 ${oname} 구간은 ${os.tot >= 0 ? '+' : ''}${os.tot.toFixed(1)}%였어요. 이 구간은 ${t.bars.length - 1}거래일이에요.`, svg, actual: tot, lo: -30, hi: 30, fmt: v => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` }; };
   const qs = Array.from({ length: 8 }, (_, i) => i % 2 ? chartQ() : numQ());
@@ -197,7 +197,7 @@ function runSizeUp(host, onEnd) {
       r.disabled = true; box.querySelector('#suOk').hidden = true;
       const ax = Math.min(1, Math.max(0, toX(Q, Q.actual)));
       box.querySelector('.su-ends').insertAdjacentHTML('beforebegin', `<div class="su-answer" style="--x:${(ax * 100).toFixed(1)}%"><i></i><b>${Q.fmt(Q.actual)}</b></div>`);
-      box.querySelector('.mg-score').innerHTML = `<b style="color:${pt >= 70 ? 'var(--green)' : pt >= 30 ? 'var(--gold-dark)' : 'var(--red)'}">+${pt}점</b> · ${pt >= 90 ? '거의 정확해요!' : pt >= 70 ? '가까워요' : pt >= 30 ? '조금 벗어났어요' : '많이 벗어났어요'} · 내 답 ${Q.fmt(g)}`;
+      box.querySelector('.mg-score').innerHTML = `<b style="color:${pt >= 70 ? 'var(--green)' : pt >= 30 ? 'var(--gold-dark)' : 'var(--red)'}">+${pt}점</b> ${pt >= 90 ? '거의 정확해요!' : pt >= 70 ? '가까워요' : pt >= 30 ? '조금 벗어났어요' : '많이 벗어났어요'}, 내 답 ${Q.fmt(g)}`;
       setTimeout(() => { q++; show(); }, 1800);
     };
   }

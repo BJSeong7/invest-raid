@@ -68,12 +68,12 @@ const S = [
       { bar: 6, title: '예금 보호 발표 다음 날 아침', hint: '일요일 밤 정부가 예금을 전액 보호하겠다고 했어요. 월요일 시장은 어떻게 반응할까요?', bull: '공포가 줄면 반등해요.', bear: '은행 불안이 남으면 금융주가 많은 배당주가 계속 흔들려요.' }] },
 
   { id: 'carry-2024', file: 'carry', title: '2024 엔 캐리 청산', boss: '엔화 와이번', bossSpecies: 'wyvern', iv: 0.22,
-    cuts: [['2024-07-26', '주말 전'], ['2024-07-29', 'FOMC 주간'], ['2024-07-30', '반도체 약세'], ['2024-07-31', '일본 금리 인상 · 연준 동결'], ['2024-08-01', '경기 걱정'], ['2024-08-02', '고용 쇼크'], ['2024-08-05', '일본 증시 폭락'], ['2024-08-06', '반등'], ['2024-08-08', '실업수당 안도'], ['2024-08-09', '주말 전']],
+    cuts: [['2024-07-26', '주말 전'], ['2024-07-29', 'FOMC 주간'], ['2024-07-30', '반도체 약세'], ['2024-07-31', '일본 금리 인상, 연준 동결'], ['2024-08-01', '경기 걱정'], ['2024-08-02', '고용 쇼크'], ['2024-08-05', '일본 증시 폭락'], ['2024-08-06', '반등'], ['2024-08-08', '실업수당 안도'], ['2024-08-09', '주말 전']],
     event: { kind: 'crisis', company: '엔 캐리 트레이드 청산', facts: [
       { at: 3, label: '일본은행', value: '기준금리 0.25%로 인상', good: false },
       { at: 3, label: '연준', value: '동결, 9월 인하 가능성 언급', good: true },
       { at: 4, label: '반도체(SOXX) 하루', calc: ['SOXX', 3, 4] },
-      { at: 5, label: '7월 미국 고용', value: '+11.4만 명 · 실업률 4.3%', note: '예상보다 크게 부진', good: false },
+      { at: 5, label: '7월 미국 고용', value: '+11.4만 명, 실업률 4.3%', note: '예상보다 크게 부진', good: false },
       { at: 6, label: '닛케이225 (8/5)', value: '하루 −12.4%', good: false }] },
     briefing: '2024년 여름, 일본이 금리를 올리자 싼 엔화를 빌려 투자하던 돈이 한꺼번에 빠져나갔어요. 미국 고용까지 나쁘게 나오며 공포가 커졌어요.',
     lesson: '공포가 가장 클 때가 바닥 근처인 경우가 많아요. 이 구간에서는 일본 증시가 폭락한 8월 5일이 나스닥의 바닥이었어요.',
@@ -179,7 +179,7 @@ for (const sc of S) {
   const tape = buildTape({
     id: sc.id, title: sc.title, boss: sc.boss, bossSpecies: sc.bossSpecies, market: 'US', daily: true, source: SOURCE,
     scale: { hpPerPct: 8, bossHpPerPct: 15 },
-    event: { kind: sc.event.kind, company: sc.event.company, ticker: sc.id.toUpperCase(), logo: null, source: `${SOURCE} · 공개 발표 자료`, facts },
+    event: { kind: sc.event.kind, company: sc.event.company, ticker: sc.id.toUpperCase(), logo: null, source: `${SOURCE}, 공개 발표 자료`, facts },
     briefing: sc.briefing, lesson: sc.lesson, concepts: sc.concepts,
     cuts: sc.cuts.map(([d, label]) => ({ t: T(d), label })),
     instruments: Object.fromEntries(Object.entries(INSTRUMENTS).map(([k, v]) => [k, { ...v, bars: k }])),
@@ -189,6 +189,6 @@ for (const sc of S) {
   tape.history = true;
   calibrate(tape);
   writeFileSync(`data/tapes/${tape.id}.json`, JSON.stringify(tape, null, 1));
-  out.push(`${tape.id} ${tape.bars.length - 1} turns · ${tape.scale.note} · QQQ ${pct(rows.QQQ[0], rows.QQQ.at(-1))}`);
+  out.push(`${tape.id} ${tape.bars.length - 1} turns, ${tape.scale.note}, QQQ ${pct(rows.QQQ[0], rows.QQQ.at(-1))}`);
 }
 console.log(out.join('\n'));

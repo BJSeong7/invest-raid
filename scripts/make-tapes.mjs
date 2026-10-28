@@ -27,7 +27,7 @@ const D1 = '2026-10-29';
 const fomc = build({
   id: 'fomc-2026-10-29', title: '10월 FOMC 레이드', boss: '동결이',
   event: { kind: 'fomc', company: '미국 연준 FOMC', ticker: 'FOMC', logo: null, example: true, source: '일정은 실제, 시세 흐름은 예시 시나리오',
-    facts: [{ at: 0, label: '회의 일정', value: '10/28~29 · 결정 10/30 03:00 한국시간' }, { at: 0, label: '현재 기준금리', value: '3.75~4.00%' }, { at: 0, label: '시나리오(예시)', value: '동결 + 매파 기자회견' }] },
+    facts: [{ at: 0, label: '회의 일정', value: '10/28~29, 결정 10/30 03:00 한국시간' }, { at: 0, label: '현재 기준금리', value: '3.75~4.00%' }, { at: 0, label: '시나리오(예시)', value: '동결 + 매파 기자회견' }] },
   bossSpecies: 'minotaur', market: 'US', example: true,
   briefing: 'FOMC는 동결이 유력해요. 진짜 승부는 결정 뒤 기자회견이에요. "더 올릴 수도 있다"는 한마디가 가장 큰 변수예요.',
   lesson: '시장은 결과보다 예상과 얼마나 다른지에 반응해요. 동결은 다들 예상했고, 기자회견 말투가 새 소식이었어요.',
@@ -73,7 +73,7 @@ const D2 = '2026-10-28';
 const semi = build({
   id: 'semi-earnings-2026-10-28', title: '반도체 실적 레이드', boss: '불꽃이',
   event: { kind: 'earnings', company: '반도체 대형주 실적 (예시 시나리오)', ticker: 'KSEMI', logo: 'assets/logos/samsung.png', example: true, logos: [{ src: 'assets/logos/samsung.png', name: '삼성전자' }, { src: 'assets/logos/skhynix.png', name: 'SK하이닉스' }], source: 'ETF 주요 구성 종목은 실제, 실적 숫자와 시세 흐름은 예시',
-    facts: [{ at: 0, label: 'ETF 주요 구성', value: '삼성전자 · SK하이닉스' }, { at: 0, label: '시나리오(예시)', value: '영업이익 컨센서스 상회, 가이던스는 유지' }, { at: 1, label: '시초가 반응(예시)', value: '반도체 ETF +2.6%', good: true }] },
+    facts: [{ at: 0, label: 'ETF 주요 구성', value: '삼성전자, SK하이닉스' }, { at: 0, label: '시나리오(예시)', value: '영업이익 컨센서스 상회, 가이던스는 유지' }, { at: 1, label: '시초가 반응(예시)', value: '반도체 ETF +2.6%', good: true }] },
   bossSpecies: 'wyvern', market: 'KR', example: true,
   briefing: 'SK하이닉스 3분기 실적이 장 시작 전에 나와요. 시장 기대가 이미 높아서, 좋은 정도로는 부족하고 기대보다 좋아야 올라요.',
   lesson: '기대가 이미 높으면 좋은 뉴스도 차익실현의 빌미가 돼요.',
@@ -118,7 +118,7 @@ const D3 = '2026-10-29';
 const pce = build({
   id: 'pce-2026-10-29', title: '물가 지표(PCE) 레이드', boss: '불개미',
   event: { kind: 'macro', company: '미국 9월 PCE 물가', ticker: 'PCE', logo: null, example: true, source: '일정은 실제, 숫자와 시세 흐름은 예시 시나리오',
-    facts: [{ at: 0, label: '발표 일정', value: '10/29(목) 21:30 한국시간' }, { at: 0, label: '예상치(예시)', value: '전년 대비 3.7%' }, { at: 1, label: '발표(예시)', value: '3.9% · 예상 상회', good: false }] },
+    facts: [{ at: 0, label: '발표 일정', value: '10/29(목) 21:30 한국시간' }, { at: 0, label: '예상치(예시)', value: '전년 대비 3.7%' }, { at: 1, label: '발표(예시)', value: '3.9%, 예상 상회', good: false }] },
   bossSpecies: 'fireant', market: 'US', example: true,
   briefing: '9월 PCE 물가가 미국 장 시작 한 시간 전에 나와요. 예상은 3.7%예요. 예상보다 높으면 금리 인하 기대가 줄어요.',
   lesson: '현금은 그대로여도 물가가 오르면 살 수 있는 게 줄어요. 그래서 물가가 오를 때 금 같은 실물자산을 함께 보기도 해요.',

@@ -96,7 +96,7 @@ try {
   const decisions = await page.textContent('#rDecisions');
   check(decisions.includes('그대로') && decisions.includes('→'), 'decision log lists hold + equip');
   const board = await page.textContent('#rBoard .hd b');
-  check(/^이번 판 \d+명 중 \d+등 · 상위 \d+%$/.test(board.trim()), 'leaderboard headline: ' + board.trim());
+  check(/^이번 판 \d+명 중 \d+등$/.test(board.trim()), 'leaderboard headline: ' + board.trim());
   check((await page.$$('#rBoard .tbl .me')).length === 1 && (await page.$$('#rBoard .tbl > div')).length >= 4, 'leaderboard lists top 3 + my row');
   check(!(await page.$eval('#rEtfCard', e => e.hidden)) && /AO[ARMK]/.test(await page.textContent('#rEtfCard b')), 'result shows the allocation ETF card');
   await shot(page, '6-result');

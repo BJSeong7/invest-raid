@@ -18,12 +18,12 @@
   "company": "미국 연준 FOMC",
   "ticker": "FOMC",
   "logo": null,
-  "source": "연준 성명서(2026-09-16) · Advisor Perspectives",
+  "source": "연준 성명서(2026-09-16), Advisor Perspectives",
   "facts": [
    {
     "at": 0,
     "label": "회의 일정",
-    "value": "9/15~16 · 결정 9/16 14:00 뉴욕"
+    "value": "9/15~16, 결정 9/16 14:00 뉴욕"
    },
    {
     "at": 0,
@@ -33,7 +33,7 @@
    {
     "at": 0,
     "label": "관전 포인트",
-    "value": "25bp 인상 여부 · 점도표(연말 금리 전망)"
+    "value": "25bp 인상 여부, 점도표(연말 금리 전망)"
    },
    {
     "at": 5,
@@ -49,7 +49,7 @@
    },
    {
     "at": 5,
-    "label": "점도표 · 2026년 말",
+    "label": "점도표, 2026년 말",
     "value": "4.1~4.4%",
     "note": "직전 3.6~4.1%에서 상향",
     "good": false
