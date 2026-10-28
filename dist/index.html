@@ -845,7 +845,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .daily-card.done{grid-template-columns:minmax(0,1fr) auto auto;background:linear-gradient(135deg,#FFFDF6,#F4ECD8);border-color:var(--line);box-shadow:0 4px 0 var(--edge)}
 .daily-card .dc-l{display:flex;flex-direction:column;gap:2px;min-width:0}
 .daily-card small{font-family:var(--display);font-size:13px;color:#8A5A00}
-.daily-card .dc-l b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--navy);line-height:1.2}
+.daily-card .dc-l b{font-family:var(--display);font-weight:400;font-size:30px;color:var(--navy);line-height:1.15}
 .daily-card .dc-l span{font-size:13.5px;color:#6B5523}
 .daily-card strong.up{color:var(--green)} .daily-card strong.down{color:var(--red)}
 .daily-card .dc-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
@@ -883,6 +883,10 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .week-card.major .tx{gap:4px}.week-card.major .dpick{margin-top:4px}
 body.r2-mode .role .skills{display:none}
 @media (max-width:620px){.week-card.major{grid-template-columns:48px minmax(0,1fr)}.week-card.major .btn,.week-card.major .dgrid{grid-column:1/-1}}
+.arch{display:flex;flex-direction:column;gap:6px}
+.arch-row{display:grid;grid-template-columns:80px 90px minmax(0,1fr);align-items:center;gap:10px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 14px;cursor:pointer}
+.arch-row b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--navy)}
+.arch-row small{color:var(--muted)}
 </style>
 
 <div class="wrap">
@@ -911,8 +915,7 @@ body.r2-mode .role .skills{display:none}
     <div class="rhythm">
       <div class="week-card" id="weekCard"></div>
     </div>
-    <div class="section-h"><h3>지난 문제 연습</h3></div>
-    <div class="chapters" id="chapterMap" aria-label="지난 문제"></div>
+    <div class="archive" id="archive" hidden></div>
     <div class="raid-lists">
     <div>
       <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
@@ -1936,7 +1939,7 @@ function showScreen(name) {
   if (!reduceMotion) { const el = $('#screen-' + name); void el.offsetWidth; el.classList.add('enter'); }
   window.scrollTo({ top: 0, behavior: 'smooth' });
   $('#tip').hidden = true;
-  if (name === 'select') { renderChapter(); renderHome(); }
+  if (name === 'select') { renderArchive(); renderHome(); }
   if (name === 'brief' || name === 'party' || name === 'result') setTimeout(() => showTip(name), 450);
   if (name === 'battle') setTimeout(() => showTip('battle'), 1800);
 }
@@ -2019,10 +2022,12 @@ function renderBoard(s) {
 /* ---------- 시즌: 천만 원으로 시작해서 판 결과가 다음 판으로 이어져요 ---------- */
 const season = () => (profile.season ||= { bal: SEASON_START, raids: 0 });
 
-/* ---------- 오늘의 한 판: 매일 모두가 같은 과거 이벤트를 풀어요. 사건은 끝날 때까지 가리고, 하루 한 번만 ---------- */
+/* ---------- daily problem: 매일 모두가 같은 과거 이벤트를 풀어요. 사건은 끝날 때까지 가리고, 하루 한 번만 ---------- */
 const DAILY_START = '2026-10-28';
 const DAILY_ORDER = ['cpi-2022-09', 'svb-2023', 'covid-2020', 'fomc-2026-09-16', 'tariff-2025', 'cpi-2022-06', 'carry-2024', 'jackson-2022', 'cpi-2022-11', 'capex-2026-10-22'];
 const kstDay = (ms = Date.now()) => new Date(ms + 9 * 3600000).toISOString().slice(0, 10);
+const dailyDate = n => { const d = new Date(Date.parse(DAILY_START) + (n - 1) * 864e5); return `${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일`; };
+const GAME_NAME = '모험단 레이드', dailyHead = n => `${GAME_NAME} No. ${n}`;
 let DAILY_OVERRIDE = null;
 const dailyNo = () => DAILY_OVERRIDE || Math.max(1, Math.round((Date.parse(kstDay()) - Date.parse(DAILY_START)) / 864e5) + 1);
 const dailyTapeId = n => { const ids = DAILY_ORDER.filter(id => TAPES.some(t => t.id === id)); return ids[(n - 1) % ids.length]; };
@@ -2034,14 +2039,23 @@ const BLIND_LINE = { fomc: '금리 결정 발표를 앞두고 있어요.', macro
 function blindTape(t, n) {
   const kind = t.event?.kind || 'macro', dated = v => /(19|20)\d\d|\d{1,2}\/\d{1,2}|\d+월/.test(String(v || ''));
   return { ...t, blind: true, dailyNo: n, real: { title: t.title, briefing: t.briefing, lesson: t.lesson, from: t.bars[0].t, to: t.bars.at(-1).t },
-    title: `오늘의 한 판 #${n}`, briefing: BLIND_LINE[kind] || '큰 발표를 앞두고 있어요.', concepts: [],
+    title: dailyHead(n), briefing: BLIND_LINE[kind] || '큰 발표를 앞두고 있어요.', concepts: [],
     event: t.event ? { ...t.event, company: KIND_WORD[kind] || '시장 이벤트', source: '', facts: (t.event.facts || []).filter(f => !dated(f.value) && !dated(f.label) && !dated(f.note)) } : t.event,
     bars: t.bars.map((b, i) => ({ ...b, label: i === 0 ? '시작' : `${i}일차` })), checkpoints: t.checkpoints.map((c, k) => ({ ...c, title: `${k + 2}라운드` })) };
 }
-async function openDaily() {
-  const n = dailyNo(); if (dailyRec(n)?.done) { renderSelect(); return; }
+async function openDaily(k) {
+  const n = k || dailyNo(), practice = n !== dailyNo(); if (!practice && dailyRec(n)?.done) { renderSelect(); return; }
   unlock(); sfx.select(); party = null;
-  await openBrief(null, blindTape(await adapter.load(dailyTapeId(n)), n));
+  await openBrief(null, Object.assign(blindTape(await adapter.load(dailyTapeId(n)), n), { practice }));
+}
+/** past problems only, newest first: played ones show their grid, the rest can be practised (no season, no record) */
+function renderArchive() {
+  const host = $('#archive'); if (!host) return;
+  const n = dailyNo(), past = Array.from({ length: n - 1 }, (_, i) => n - 1 - i);
+  host.hidden = !past.length; if (!past.length) return;
+  host.innerHTML = `<div class="section-h"><h3>지난 문제</h3></div><div class="arch">${past.map(k => { const rec = dailyRec(k);
+    return `<button type="button" class="arch-row" data-k="${k}"><b>No. ${k}</b><small>${dailyDate(k)}</small>${rec?.done ? gridHTML(rec.grid, true) : '<span class="muted small">안 풀었어요</span>'}</button>`; }).join('')}</div>`;
+  host.querySelectorAll('.arch-row').forEach(b => b.onclick = () => openDaily(+b.dataset.k));
 }
 /** one row per round (start, then each checkpoint), one cell per role: up, down, flat or empty */
 function dailyGrid(s) {
@@ -2051,7 +2065,7 @@ function dailyGrid(s) {
 }
 const GRID_EMOJI = { g: '🟩', r: '🟥', n: '⬜', e: '⬛' };
 const gridHTML = (g, small, heads) => `<div class="dgrid ${small ? 'sm' : ''}">${heads ? `<div class="dh">${ROLES.map(r => `<span>${ROLE_META[r].char}</span>`).join('')}</div>` : ''}${g.map(row => `<div>${row.map(c => `<i class="${c}"></i>`).join('')}</div>`).join('')}</div>`;
-const shareText = rec => `${rec.label || `오늘의 한 판 #${rec.n}`} 시장보다 ${fmtPct(rec.alpha).replace('%', '%p')}\n${rec.grid.map(row => row.map(c => GRID_EMOJI[c]).join('')).join('\n')}`;
+const shareText = rec => `${rec.label || dailyHead(rec.n)} 시장보다 ${fmtPct(rec.alpha).replace('%', '%p')}\n${rec.grid.map(row => row.map(c => GRID_EMOJI[c]).join('')).join('\n')}`;
 async function copyShare(rec, btn) {
   const txt = shareText(rec);
   try { await navigator.clipboard.writeText(txt); toast('결과를 복사했어요'); }
@@ -2078,14 +2092,14 @@ function renderDailyCard() {
   const n = dailyNo(), rec = dailyRec(n), st = dailyStreak(), t = TAPES.find(x => x.id === dailyTapeId(n));
   if (!rec?.done) {
     host.className = 'daily-card';
-    host.innerHTML = `<div class="dc-l"><small>오늘의 한 판 #${n}</small><b>오늘 문제는 ${KIND_WORD[t?.event?.kind] || '시장 이벤트'}예요</b><span>무슨 사건인지는 끝나고 알려 드려요. 하루 한 번만 할 수 있어요.</span></div>
+    host.innerHTML = `<div class="dc-l"><b>${GAME_NAME}</b><small>No. ${n}, ${dailyDate(n)}</small></div>
       <div class="dc-r">${st ? `<em>연속 ${st}일</em>` : ''}<button type="button" class="btn" id="dailyGo">시작</button></div>`;
     host.querySelector('#dailyGo').onclick = openDaily;
   } else {
     host.className = 'daily-card done';
-    host.innerHTML = `<div class="dc-l"><small>오늘의 한 판 #${n}</small><b>${rec.title}</b><span>시장보다 <strong class="${rec.alpha >= 0 ? 'up' : 'down'}">${fmtPct(rec.alpha)}p</strong>, 참가자 중 상위 ${rec.pct}%</span></div>
+    host.innerHTML = `<div class="dc-l"><b>${GAME_NAME}</b><small>No. ${n}, ${dailyDate(n)}</small><span><strong class="${rec.alpha >= 0 ? 'up' : 'down'}">시장보다 ${fmtPct(rec.alpha)}p</strong>, 상위 ${rec.pct}%</span></div>
       <div class="dc-g">${gridHTML(rec.grid, true)}</div>
-      <div class="dc-r"><button type="button" class="btn secondary" id="dailyShare">결과 복사</button><small>다음 문제까지 <b class="dcount"></b></small></div>`;
+      <div class="dc-r"><button type="button" class="btn secondary" id="dailyShare">결과 복사</button><small>다음 문제 <b class="dcount"></b></small></div>`;
     host.querySelector('#dailyShare').onclick = e => copyShare(rec, e.currentTarget);
     startCountdown();
   }
@@ -2094,15 +2108,15 @@ function renderDailyCard() {
 function renderDailyResult(s, r) {
   const t = currentTape, field = fieldFor(t), me = { name: '나', alpha: r.alpha, returnPct: r.returnPct, me: true, pick: ROLES.map(x => ({ role: x, w: s.party.weights[x], skill: s.party._bySkill[s.party.skills[x]].name })) };
   const rows = [...field, me].sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : 1)), rank = rows.indexOf(me) + 1, pct = Math.max(1, Math.round(rank / rows.length * 100)), top = rows[0];
-  const head = t.blind ? `오늘의 한 판 #${t.dailyNo}` : `이번 주 메이저 ${t.title}`, realTitle = t.real?.title || `${t.title}`, from = t.real?.from || t.bars[0].t, to = t.real?.to || t.bars.at(-1).t;
+  const head = t.blind ? dailyHead(t.dailyNo) : `이번 주 메이저 ${t.title}`, realTitle = t.real?.title || `${t.title}`, from = t.real?.from || t.bars[0].t, to = t.real?.to || t.bars.at(-1).t;
   const note = t.real?.briefing || (MAJOR?.result ? `${MAJOR.result.label}: ${MAJOR.result.value}` : '');
   const rec = { n: t.dailyNo, label: head, done: true, tape: t.id, title: realTitle, alpha: r.alpha, ret: r.returnPct, grid: dailyGrid(s), pct, at: Date.now() };
-  if (t.blind) profile.daily = { ...(profile.daily || {}), [rec.n]: rec }; else majorRec().done = rec;
+  if (t.practice) {} else if (t.blind) profile.daily = { ...(profile.daily || {}), [rec.n]: rec }; else majorRec().done = rec;
   $('#rDaily').innerHTML = `<div class="dr-top"><small>${head}</small>${gridHTML(rec.grid)}<b class="${rec.alpha >= 0 ? 'up' : 'down'}">시장보다 ${fmtPct(rec.alpha)}p</b></div>
-    <div class="dr-reveal"><small>${t.blind ? '오늘의 사건' : '이번 주 메이저'}</small><b>${realTitle}</b><span>${fmtDate(from)} ~ ${fmtDate(to)}</span>${note ? `<p>${note}</p>` : ''}</div>
+    <div class="dr-reveal"><small>${t.blind ? '이번 문제' : '이번 주 메이저'}</small><b>${realTitle}</b><span>${fmtDate(from)} ~ ${fmtDate(to)}</span>${note ? `<p>${note}</p>` : ''}</div>
     <div class="dr-dist"><div><small>${t.blind ? '오늘 ' : ''}참가자 ${rows.length}명</small><b>상위 ${pct}%</b></div>${distHTML(field, r.alpha)}</div>
     <div class="dr-top1"><small>${top.me ? '1등은 나예요' : `1등 ${top.name}, 시장보다 ${fmtPct(top.alpha)}p`}</small>${pickHTML(top.pick)}</div>
-    <div class="dr-share"><button type="button" class="btn secondary" id="rShare">결과 복사</button><small>다음 문제까지 <b class="dcount"></b></small></div>`;
+    <div class="dr-share"><button type="button" class="btn secondary" id="rShare">결과 복사</button><small>다음 문제 <b class="dcount"></b></small></div>`;
   $('#rShare').onclick = e => copyShare(rec, e.currentTarget);
   startCountdown();
   return rec;
@@ -2173,7 +2187,7 @@ function renderSelect() {
   $('#raids').innerHTML = ''; $('#raidsExample').innerHTML = ''; $('#raidsUpcoming').innerHTML = '';
   // real tapes first (most recent on top), then the hand-made training scenarios
   const real = TAPES.filter(t => !t.example && !t.dailyRaid).slice().reverse(), examples = TAPES.filter(t => t.example);
-  renderRhythm(); renderChapter();
+  renderRhythm(); renderArchive();
   [...real, ...examples].forEach(t => {
     const best = profile.plays[t.id]?.best;
     const b = document.createElement('button'); b.type = 'button'; b.className = 'raid';
@@ -2284,8 +2298,8 @@ async function openBrief(id, pre) {
   const t = currentTape;
   $('#bArt').src = cutArt(bossUnit(t.bossSpecies));
   $('#bArt').alt = t.boss;
-  $('#bTag').textContent = t.blind ? `오늘의 한 판 #${t.dailyNo}` : `${t.market === 'US' ? '미국' : '국내'} 레이드 (${t.example ? '예시 데이터' : '실제 종가 데이터'})`;
-  $('#bDate').textContent = t.blind ? `무슨 사건인지는 끝나고 알려 드려요` : t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)}, 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ` (출처: ${t.source})` : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
+  $('#bTag').textContent = t.blind ? dailyHead(t.dailyNo) : `${t.market === 'US' ? '미국' : '국내'} 레이드 (${t.example ? '예시 데이터' : '실제 종가 데이터'})`;
+  $('#bDate').textContent = t.blind ? dailyDate(t.dailyNo) : t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)}, 뉴욕 종가 기준 ${t.bars.length - 1}거래일${t.source ? ` (출처: ${t.source})` : ''}` : `${fmtDate(t.bars[0].t)} ${fmtTime(t.bars[0].t)} ~ ${fmtTime(t.bars.at(-1).t)} (한국시간)`;
   $('#bTitle').textContent = `${t.boss} 출현`;
   $('#bThumb').hidden = !!t.blind; $('#bThumb').style.backgroundImage = `url(${sceneOf(t)})`; $('#bThumbTitle').textContent = evTitle(t.title); $('#bThumbDate').textContent = t.blind ? '' : t.daily ? `${fmtDate(t.bars[0].t)} ~ ${fmtDate(t.bars.at(-1).t)} (${t.example ? '예시 시세' : '실제 종가'})` : `${fmtDate(t.bars[0].t)} (${t.example ? '예시 시세' : '실제 시세'})`;
   $('#bBrief').textContent = t.briefing;
@@ -3280,11 +3294,11 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
-  const daily = !!currentTape.blind || !!currentTape.major, inMap = !daily && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
+  const daily = !!currentTape.blind || !!currentTape.major, counts = daily && !currentTape.practice, inMap = !daily && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
   const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
   const growth = growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
-  if (daily) { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }   // only today's problem (and the weekly major) moves the season
+  if (counts) { const se = season(); se.bal = Math.round(totalValue()); se.raids++; }   // only today's problem (and the weekly major) moves the season
   const after = { ...profile };
   const play = profile.plays[currentTape.id] || { count: 0 };
   const order = ['F', 'D', 'C', 'B', 'A', 'S'];
@@ -3423,7 +3437,7 @@ $('#tutSkip').addEventListener('click', () => { sfx.back(); $('#tut').hidden = t
 $('#helpBtn').addEventListener('click', () => { sfx.select(); openTutorial(); });
 // ---- guided first raid: one coach tip per screen, shown once (replaces the up-front modal) ----
 const TIPS = {
-  select: ['<b>오늘의 한 판</b>부터 시작해 보세요. 하루 한 문제예요.', 'dailyCard'],
+  select: ['하루에 한 문제, 한 번만 풀 수 있어요.', 'dailyCard'],
   brief: ['보스는 실제 시장 이벤트예요. 자료를 보고 <b>파티 짜기</b>를 누르세요.', 'toParty'],
   party: ['비중이 곧 포트폴리오예요. 처음엔 <b>기본 배분</b>을 고르고 바로 출발해도 돼요.', 'startBattle'],
   battle: ['턴마다 <b>차트가 먼저</b> 움직이고 캐릭터가 반응해요. 내 자금 칸에서 돈이 어떻게 변하는지 보세요.', null],
@@ -3459,6 +3473,6 @@ $('#bmenuBtn').addEventListener('click', e => { e.stopPropagation(); const m = $
 document.addEventListener('click', e => { if (!e.target.closest('#bmenu')) { $('#bmenu').classList.remove('open'); $('#bmenuBtn').setAttribute('aria-expanded', 'false'); } else if (e.target.closest('button')) setTimeout(() => $('#bmenu').classList.remove('open'), 0); });
 
 // mode switch (게임 / 차트)
-matchMedia('(max-width:760px)').addEventListener('change', () => { if (!$('#screen-select').hidden) renderChapter(); });
+
 
 </script>

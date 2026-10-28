@@ -31,12 +31,12 @@ try {
   await page.waitForSelector('#tip:not([hidden])', { timeout: 5000 });
   check(true, 'first-visit coach tip appears');
   await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
-  check((await page.$$('#chapterMap .stage')).length === 13 && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'map shows 13 stages + 3 upcoming');
+  check(!(await page.$('#chapterMap')) && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'home has no scenario map (it would spoil future problems) and lists 3 upcoming');
   check(!!(await page.$('#dailyGo')) && !!(await page.$('#weekCard .btn')), 'home shows today\'s problem and the weekly major');
   await shot(page, '1-select');
 
   // brief
-  await page.click('.stage[data-tape="fomc-2026-10-29"]');
+  await page.evaluate(id => window.__rpg.openBrief(id), 'fomc-2026-10-29');
   await page.waitForSelector('#screen-brief:not([hidden])');
   check(await page.textContent('#bTitle') !== '', 'briefing title filled');
   await shot(page, '2-brief');
@@ -119,7 +119,7 @@ try {
 
   // second raid quickly at 4x with default party (KR tape)
   await page.click('#backToBrief'); await page.click('#backToSelect');
-  await page.click('.stage[data-tape="semi-earnings-2026-10-28"]');
+  await page.evaluate(id => window.__rpg.openBrief(id), 'semi-earnings-2026-10-28');
   await page.click('#toParty'); await page.click('[data-preset="balanced"]'); await page.click('#startBattle');
   await page.waitForSelector('#cp:not([hidden])', { timeout: 30000 });
   await page.click('#cp [data-tab="rebalance"]');
@@ -137,7 +137,7 @@ try {
   // third raid: real daily-close tape (lich boss) — date labels, chart without clock times, hedge equip at checkpoint 1
   await page.click('#otherBtn');
   await page.waitForSelector('#screen-select:not([hidden])');
-  await page.evaluate(() => { if (!document.querySelector('#unlockBtn').getAttribute('aria-pressed').includes('true')) document.querySelector('#unlockBtn').click(); }); await page.click('.stage[data-tape="fomc-2026-09-16"]');
+  await page.evaluate(() => { if (!document.querySelector('#unlockBtn').getAttribute('aria-pressed').includes('true')) document.querySelector('#unlockBtn').click(); }); await page.evaluate(id => window.__rpg.openBrief(id), 'fomc-2026-09-16');
   await page.waitForSelector('#screen-brief:not([hidden])');
   check((await page.textContent('#bDate')).includes('뉴욕 종가'), 'daily tape briefing says 뉴욕 종가: ' + (await page.textContent('#bDate')).trim());
   check(/\d\d\/\d\d\(.\)/.test(await page.textContent('#bTimeline')), 'daily timeline shows dates, not clock times');
@@ -162,7 +162,7 @@ try {
   await page.evaluate(() => { document.querySelector('#screen-select').hidden = false; });
   await page.evaluate(() => window.__rpg.openDaily());
   await page.waitForSelector('#screen-brief:not([hidden])');
-  check((await page.textContent('#bTag')).startsWith('오늘의 한 판 #'), 'daily brief hides the event: ' + (await page.textContent('#bTag')));
+  check((await page.textContent('#bTag')).startsWith('모험단 레이드 No. '), 'daily brief hides the event: ' + (await page.textContent('#bTag')));
   await page.click('#toParty'); await page.waitForSelector('#screen-party:not([hidden])');
   await page.evaluate(() => window.__rpg.setSpeed(4)); await page.click('#startBattle');
   for (let k = 0; k < 4; k++) { const hit = await Promise.race([page.waitForSelector('#cp:not([hidden])', { timeout: 60000 }).then(() => 'cp'), page.waitForSelector('#screen-result:not([hidden])', { timeout: 60000 }).then(() => 'res')]); if (hit === 'res') break; await page.click('#cpHoldBtn'); }
@@ -180,7 +180,7 @@ try {
 
   const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(overflow <= 0, 'no horizontal overflow at 390px (' + overflow + ')');
-  await phone.click('.stage[data-tape="fomc-2026-10-29"]'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; });
+  await phone.evaluate(id => window.__rpg.openBrief(id), 'fomc-2026-10-29'); await phone.click('#toParty'); await phone.evaluate(() => { document.querySelector('#partyDetail').open = true; });
   const ov2 = await phone.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   check(ov2 <= 0, 'no horizontal overflow on party screen at 390px (' + ov2 + ')');
   await phone.waitForTimeout(700); await shot(phone, '7-phone-party');

@@ -843,7 +843,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .daily-card.done{grid-template-columns:minmax(0,1fr) auto auto;background:linear-gradient(135deg,#FFFDF6,#F4ECD8);border-color:var(--line);box-shadow:0 4px 0 var(--edge)}
 .daily-card .dc-l{display:flex;flex-direction:column;gap:2px;min-width:0}
 .daily-card small{font-family:var(--display);font-size:13px;color:#8A5A00}
-.daily-card .dc-l b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--navy);line-height:1.2}
+.daily-card .dc-l b{font-family:var(--display);font-weight:400;font-size:30px;color:var(--navy);line-height:1.15}
 .daily-card .dc-l span{font-size:13.5px;color:#6B5523}
 .daily-card strong.up{color:var(--green)} .daily-card strong.down{color:var(--red)}
 .daily-card .dc-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
@@ -881,6 +881,10 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .week-card.major .tx{gap:4px}.week-card.major .dpick{margin-top:4px}
 body.r2-mode .role .skills{display:none}
 @media (max-width:620px){.week-card.major{grid-template-columns:48px minmax(0,1fr)}.week-card.major .btn,.week-card.major .dgrid{grid-column:1/-1}}
+.arch{display:flex;flex-direction:column;gap:6px}
+.arch-row{display:grid;grid-template-columns:80px 90px minmax(0,1fr);align-items:center;gap:10px;text-align:left;background:#fff;border:2px solid var(--line);border-radius:var(--r2);padding:10px 14px;cursor:pointer}
+.arch-row b{font-family:var(--display);font-weight:400;font-size:17px;color:var(--navy)}
+.arch-row small{color:var(--muted)}
 </style>
 
 <div class="wrap">
@@ -909,8 +913,7 @@ body.r2-mode .role .skills{display:none}
     <div class="rhythm">
       <div class="week-card" id="weekCard"></div>
     </div>
-    <div class="section-h"><h3>지난 문제 연습</h3></div>
-    <div class="chapters" id="chapterMap" aria-label="지난 문제"></div>
+    <div class="archive" id="archive" hidden></div>
     <div class="raid-lists">
     <div>
       <div class="section-h"><h3>실전 레이드</h3><span class="chip real">실제 종가</span></div>
