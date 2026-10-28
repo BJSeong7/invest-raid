@@ -451,7 +451,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
 .cast.evo::before{content:"";position:absolute;inset:18% 0 4%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--bc) 45%,transparent),transparent);z-index:0}
 .cast .tag{display:flex;flex-direction:column;align-items:center;margin-bottom:4px;background:rgba(255,255,255,.92);border-radius:12px;padding:3px 12px;box-shadow:0 2px 0 rgba(0,0,0,.08);transition:transform .2s;white-space:nowrap;line-height:1.15}
 .cast .tag b{font-family:var(--display);font-weight:400;font-size:15px;color:var(--navy)}
-.cast .tag small{font-size:11px;color:var(--muted)}
+.cast .tag small{font-size:11.5px;color:var(--muted);font-family:var(--display)}
 .cast.sel .tag{background:var(--rc);transform:translateY(-4px)}
 .cast.sel .tag b,.cast.sel .tag small{color:#fff}
 @keyframes castBob{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-5px) scaleY(1.01)}}
@@ -476,7 +476,7 @@ input[type=range]{width:100%;accent-color:var(--rc);height:28px}
   .home-stage{grid-template-columns:1fr;background:none;border:0;box-shadow:none;overflow:visible;gap:10px}
   .home-cast-wrap{min-height:250px;border-radius:22px;border:2px solid var(--line);box-shadow:0 4px 0 var(--edge);background:url(assets/anime/bg_meadow.jpg) center 62%/cover;overflow:hidden}
   .hero-sheet{margin:0;border:2px solid var(--line);box-shadow:0 4px 0 var(--edge)}
-  .cast .tag{padding:2px 8px}.cast .tag b{font-size:13px}.cast .tag small{display:none}
+  .cast .tag{padding:2px 7px}.cast .tag b{font-size:12.5px;white-space:nowrap}.cast .tag small{display:block;font-size:10.5px}
 }
 .rhythm{display:grid;grid-template-columns:1fr;gap:12px}
 @media (max-width:760px){.rhythm{grid-template-columns:1fr}}
@@ -2437,12 +2437,16 @@ function statusWindowHTML(role, opts = {}) {
 }
 /* ---------- home: the party on stage; tap one to see how it is growing ---------- */
 let homeSel = null;
+function myParty() {
+  const lp = profile.lastParty; if (lp) return lp;
+  return { w: { tank: 25, dealer: 40, healer: 20, support: 15 }, p: { tank: 'TLT', dealer: 'QQQ', healer: 'GLD', support: 'SCHD' } };
+}
 function renderHome() {
   if (!homeSel) homeSel = ROLES.filter(r => !hero(r).branch && hero(r).raids).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0] || 'dealer';
   $('#homeChip').hidden = true;   // money and raid count live in the season card above
   $('#homeCast').innerHTML = ROLES.map((r, i) => { const h = hero(r), sel = r === homeSel;
     return `<button type="button" class="cast ${sel ? 'sel' : ''} ${h.branch ? 'evo' : ''}" data-role="${r}" style="--rc:${ROLE_COLOR[r]};--bc:${h.branch ? EVO_COLOR : ROLE_COLOR[r]};--d:${-i * .45}s" aria-pressed="${sel}">
-      <span class="tag"><b>${ROLE_META[r].char}</b></span>
+      <span class="tag"><b>${ROLE_META[r].char} ${myParty().w[r]}%</b><small>${myParty().p[r]}</small></span>
       <img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span class="ring"></span></button>`; }).join('');
   $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); });
   $('#heroSheet').innerHTML = heroSheetHTML(homeSel);
@@ -3124,12 +3128,13 @@ function flashChart(ret) { const box = $('#battleChartBox'); box.classList.remov
 async function startBattle() {
   if (currentTape?.major && currentTape.majorMode !== 'play') {
     const m = majorRec(); if (currentTape.majorMode === 'bet') m.party = { weights: { ...party.weights }, skills: { ...party.skills } }; else m.r2 = { ...party.weights };
-    m.at = Date.now(); saveProfile(); document.body.classList.remove('r2-mode'); $('#startBattle').textContent = '출발!';
+    m.at = Date.now(); profile.lastParty = { w: { ...party.weights }, p: Object.fromEntries(ROLES.map(r => [r, party._bySkill[party.skills[r]].instrument])) }; saveProfile(); document.body.classList.remove('r2-mode'); $('#startBattle').textContent = '출발!';
     toast(currentTape.majorMode === 'bet' ? '파티를 걸었어요' : '2라운드 비중을 정했어요'); party = null; renderSelect(); showScreen('select'); return;
   }
   const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
   unlock(); sfx.select();
   SEED = season().bal;
+  profile.lastParty = { w: { ...party.weights }, p: Object.fromEntries(ROLES.map(r => [r, party._bySkill[party.skills[r]].instrument])) }; saveProfile();
   $('#hMoney').dataset.v = SEED; $('#hMoney').textContent = fmtKRW(SEED);
   battle = createBattle(currentTape, party); aborted = false; userPaused = false; skipping = false; justDecided = false; nextWaiter = null; $('#nextBtn').hidden = true; $('#skipBtn').disabled = false; $('#pauseBtn').textContent = '일시정지';
   showScreen('battle');

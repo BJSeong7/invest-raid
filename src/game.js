@@ -670,12 +670,16 @@ function statusWindowHTML(role, opts = {}) {
 }
 /* ---------- home: the party on stage; tap one to see how it is growing ---------- */
 let homeSel = null;
+function myParty() {
+  const lp = profile.lastParty; if (lp) return lp;
+  return { w: { tank: 25, dealer: 40, healer: 20, support: 15 }, p: { tank: 'TLT', dealer: 'QQQ', healer: 'GLD', support: 'SCHD' } };
+}
 function renderHome() {
   if (!homeSel) homeSel = ROLES.filter(r => !hero(r).branch && hero(r).raids).sort((a, b) => raidsLeft(a) - raidsLeft(b))[0] || 'dealer';
   $('#homeChip').hidden = true;   // money and raid count live in the season card above
   $('#homeCast').innerHTML = ROLES.map((r, i) => { const h = hero(r), sel = r === homeSel;
     return `<button type="button" class="cast ${sel ? 'sel' : ''} ${h.branch ? 'evo' : ''}" data-role="${r}" style="--rc:${ROLE_COLOR[r]};--bc:${h.branch ? EVO_COLOR : ROLE_COLOR[r]};--d:${-i * .45}s" aria-pressed="${sel}">
-      <span class="tag"><b>${ROLE_META[r].char}</b></span>
+      <span class="tag"><b>${ROLE_META[r].char} ${myParty().w[r]}%</b><small>${myParty().p[r]}</small></span>
       <img src="${cutArt(heroUnit(r))}" alt="${charOf(r).name}"><span class="ring"></span></button>`; }).join('');
   $$('#homeCast .cast').forEach(b => b.onclick = () => { homeSel = b.dataset.role; sfx.select?.(); renderHome(); });
   $('#heroSheet').innerHTML = heroSheetHTML(homeSel);
@@ -1357,12 +1361,13 @@ function flashChart(ret) { const box = $('#battleChartBox'); box.classList.remov
 async function startBattle() {
   if (currentTape?.major && currentTape.majorMode !== 'play') {
     const m = majorRec(); if (currentTape.majorMode === 'bet') m.party = { weights: { ...party.weights }, skills: { ...party.skills } }; else m.r2 = { ...party.weights };
-    m.at = Date.now(); saveProfile(); document.body.classList.remove('r2-mode'); $('#startBattle').textContent = '출발!';
+    m.at = Date.now(); profile.lastParty = { w: { ...party.weights }, p: Object.fromEntries(ROLES.map(r => [r, party._bySkill[party.skills[r]].instrument])) }; saveProfile(); document.body.classList.remove('r2-mode'); $('#startBattle').textContent = '출발!';
     toast(currentTape.majorMode === 'bet' ? '파티를 걸었어요' : '2라운드 비중을 정했어요'); party = null; renderSelect(); showScreen('select'); return;
   }
   const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
   unlock(); sfx.select();
   SEED = season().bal;
+  profile.lastParty = { w: { ...party.weights }, p: Object.fromEntries(ROLES.map(r => [r, party._bySkill[party.skills[r]].instrument])) }; saveProfile();
   $('#hMoney').dataset.v = SEED; $('#hMoney').textContent = fmtKRW(SEED);
   battle = createBattle(currentTape, party); aborted = false; userPaused = false; skipping = false; justDecided = false; nextWaiter = null; $('#nextBtn').hidden = true; $('#skipBtn').disabled = false; $('#pauseBtn').textContent = '일시정지';
   showScreen('battle');
