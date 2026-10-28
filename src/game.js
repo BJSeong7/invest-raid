@@ -1342,7 +1342,7 @@ async function showCheckpoint(cp) {
     const mv = moveSize(cp.bar - 1), mainId = mainInstrument(currentTape);
     $('#cpBull').textContent = cp.bull || '좋은 쪽으로 가면 공격적인 상품이 크게 벌어요.';
     $('#cpBear').textContent = cp.bear || '나쁜 쪽으로 가면 현금, 채권, 풋옵션이 덜 빠져요.';
-    $('#cpScenNote').textContent = `${mainId}가 ±${mv}% 움직인다고 가정한 대략의 예상치예요. 상품별 민감도(레버리지 3배, 풋옵션 역방향 등)로 계산합니다.`;
+    $('#cpScenNote').textContent = '';
     $('#cpHoldPay').innerHTML = payoffHTML(battle.party.weights, battle.party.skills, mv);
     $('#cpEvent').innerHTML = eventCardHTML(currentTape, cp.bar, { source: false, newAt: cp.bar });
     $('#cpSay').innerHTML = heroLines(cp).slice(0, 2).map(([r, line]) => `<span><img src="${portrait(heroUnit(r))}" alt=""><b>${charOf(r).name}</b> ${line}</span>`).join('');
@@ -1495,7 +1495,7 @@ async function showResult() {
     if (card) { card.hidden = false; card.innerHTML = `<div class="ec-flip"><div class="ec-face"><small>이 파티와 닮은 ETF</small><b>${pick[0]}</b><span>${AO[0]}</span>
         <div class="ec-bar"><i style="width:${AO[1]}%">주식 ${AO[1]}</i><em style="width:${100 - AO[1]}%">채권 ${100 - AO[1]}</em></div>
         <div class="ec-bar mine"><i style="width:${eq}%">내 파티 주식 ${eq}</i><em style="width:${100 - eq}%">${100 - eq}</em></div>
-        <p>주식과 채권을 이 비율로 나눠 담는 ETF예요. 참고용이고 추천은 아니에요.</p></div></div>`; } }
+        <p>주식과 채권을 이 비율로 나눠 담는 ETF예요.</p></div></div>`; } }
   (async () => { for (const line of lines) { const p = document.createElement('p'); p.className = 'typing'; bubble.appendChild(p); for (const ch of line) { p.textContent += ch; if (!reduceMotion) await sleep(14); } p.classList.remove('typing'); await sleep(200); } })();
   renderProfile();
 }
