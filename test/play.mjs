@@ -32,7 +32,7 @@ try {
   check(true, 'first-visit coach tip appears');
   await page.click('#helpBtn'); await page.waitForSelector('#tut:not([hidden])'); await page.click('#tutSkip'); await page.waitForSelector('#tut', { state: 'hidden' });
   check((await page.$$('#chapterMap .stage')).length === 13 && (await page.$$('#raidsUpcoming .raid.upcoming')).length === 3, 'map shows 13 stages + 3 upcoming');
-  check((await page.$$('#minigames .mgcard')).length === 3, 'home lists 3 minigames');
+  check(!!(await page.$('#dailyGo')) && !!(await page.$('#weekCard .btn')), 'home shows today\'s problem and the weekly major');
   await shot(page, '1-select');
 
   // brief
@@ -106,7 +106,7 @@ try {
   check(prof && prof.exp >= 0 && prof.plays['fomc-2026-10-29']?.count === 1, 'profile saved with play count');
 
   // season carries over
-  check(prof.season && prof.season.raids === 1 && Math.abs(prof.season.bal - 10_000_000) > 0, 'season balance carried over: ' + prof.season?.bal);
+  check(!prof.season || prof.season.raids === 0, 'practice raids leave the season alone');
   // collection
   await page.click('#dexBtn'); await page.waitForSelector('#dex:not([hidden])');
   check((await page.$$('#dexBosses .dex:not(.unknown)')).length === 1 && (await page.$$('#dexClasses .dex')).length === 4, '도감 shows the met boss and 4 class slots');
@@ -157,6 +157,21 @@ try {
   check((await page.textContent('#hTime')).includes('뉴욕 종가'), 'battle HUD unit note says 뉴욕 종가');
   await shot(page, '6b-result-real');
 
+  // today's problem: blind brief, one try, reveal with grid, season moves
+  await page.evaluate(() => { window.__rpg.setDaily(null); });
+  await page.evaluate(() => { document.querySelector('#screen-select').hidden = false; });
+  await page.evaluate(() => window.__rpg.openDaily());
+  await page.waitForSelector('#screen-brief:not([hidden])');
+  check((await page.textContent('#bTag')).startsWith('오늘의 한 판 #'), 'daily brief hides the event: ' + (await page.textContent('#bTag')));
+  await page.click('#toParty'); await page.waitForSelector('#screen-party:not([hidden])');
+  await page.evaluate(() => window.__rpg.setSpeed(4)); await page.click('#startBattle');
+  for (let k = 0; k < 4; k++) { const hit = await Promise.race([page.waitForSelector('#cp:not([hidden])', { timeout: 60000 }).then(() => 'cp'), page.waitForSelector('#screen-result:not([hidden])', { timeout: 60000 }).then(() => 'res')]); if (hit === 'res') break; await page.click('#cpHoldBtn'); }
+  await page.waitForSelector('#screen-result:not([hidden])', { timeout: 60000 }); await page.waitForTimeout(1200);
+  const dprof = await page.evaluate(() => JSON.parse(localStorage.getItem('invest-rpg.profile.v1')));
+  const drec = Object.values(dprof.daily || {})[0];
+  check(!!drec?.done && drec.grid.length >= 2 && !(await page.$eval('#rDaily', e => e.hidden)), 'daily reveal shows the grid and saves the result');
+  check(dprof.season?.raids === 1, 'daily result moves the season');
+  await shot(page, '6c-daily');
   await page.close();   // free the software GPU before the next Phaser instance
   // phone width sanity: no horizontal overflow on select screen
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });

@@ -1,0 +1,17 @@
+{
+  "id": "major-fomc-2026-10",
+  "title": "10월 FOMC",
+  "boss": "금리 마법사",
+  "bossSpecies": "lich",
+  "kind": "fomc",
+  "company": "미국 연준 FOMC",
+  "base": "daily-2026-10-27",
+  "dates": ["2026-10-27", "2026-10-28", "2026-10-29"],
+  "labels": ["시작", "10/28 미국 장", "10/29 FOMC 결정일"],
+  "locks": ["2026-10-29T05:00:00+09:00", "2026-10-30T05:00:00+09:00"],
+  "decision": "2026-10-30T03:00:00+09:00",
+  "facts": [{ "label": "현재 기준금리", "value": "3.75~4.00%" }],
+  "result": null,
+  "closes": { "2026-10-27": null, "2026-10-28": null, "2026-10-29": null },
+  "_note": "closes: { ticker: close } for QQQ TQQQ SOXX TLT SHY GLD BIL SCHD, filled as each US session ends (stockanalysis.com history pages). result: { label, value } once the Fed announces."
+}

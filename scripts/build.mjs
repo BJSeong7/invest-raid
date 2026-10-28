@@ -31,7 +31,7 @@ for (const [variant, libs] of Object.entries(LIBS)) {
   // function replacements: a plain string replacement would interpret `$$` / `$&` inside the game source
   let html = tpl
     .replace('<!--LIBS-->', () => libs.map(u => `<script src="${u}"></script>`).join('\n'))
-    .replace('<!--TAPES-->', () => `<script>window.__TAPES__ = ${JSON.stringify(tapes)};</script>`)
+    .replace('<!--TAPES-->', () => `<script>window.__TAPES__ = ${JSON.stringify(tapes)}; window.__MAJOR__ = ${read('data/live/major.json')};</script>`)
     .replace('<!--GAME-->', () => `<script type="module">\n${inline}\n</script>`);
   if (variant === 'local') {
     // headless tests cannot reach Google Fonts: serve the same faces from node_modules (@fontsource)

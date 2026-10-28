@@ -322,7 +322,7 @@ function dailyGrid(s) {
 }
 const GRID_EMOJI = { g: '🟩', r: '🟥', n: '⬜', e: '⬛' };
 const gridHTML = (g, small, heads) => `<div class="dgrid ${small ? 'sm' : ''}">${heads ? `<div class="dh">${ROLES.map(r => `<span>${ROLE_META[r].char}</span>`).join('')}</div>` : ''}${g.map(row => `<div>${row.map(c => `<i class="${c}"></i>`).join('')}</div>`).join('')}</div>`;
-const shareText = rec => `오늘의 한 판 #${rec.n} 시장보다 ${fmtPct(rec.alpha).replace('%', '%p')}\n${rec.grid.map(row => row.map(c => GRID_EMOJI[c]).join('')).join('\n')}`;
+const shareText = rec => `${rec.label || `오늘의 한 판 #${rec.n}`} 시장보다 ${fmtPct(rec.alpha).replace('%', '%p')}\n${rec.grid.map(row => row.map(c => GRID_EMOJI[c]).join('')).join('\n')}`;
 async function copyShare(rec, btn) {
   const txt = shareText(rec);
   try { await navigator.clipboard.writeText(txt); toast('결과를 복사했어요'); }
@@ -365,12 +365,14 @@ function renderDailyCard() {
 function renderDailyResult(s, r) {
   const t = currentTape, field = fieldFor(t), me = { name: '나', alpha: r.alpha, returnPct: r.returnPct, me: true, pick: ROLES.map(x => ({ role: x, w: s.party.weights[x], skill: s.party._bySkill[s.party.skills[x]].name })) };
   const rows = [...field, me].sort((a, b) => b.returnPct - a.returnPct || (a.me ? -1 : 1)), rank = rows.indexOf(me) + 1, pct = Math.max(1, Math.round(rank / rows.length * 100)), top = rows[0];
-  const rec = { n: t.dailyNo, done: true, tape: t.id, title: t.real.title, alpha: r.alpha, ret: r.returnPct, grid: dailyGrid(s), pct, at: Date.now() };
-  profile.daily = { ...(profile.daily || {}), [rec.n]: rec };
-  $('#rDaily').innerHTML = `<div class="dr-top"><small>오늘의 한 판 #${rec.n}</small>${gridHTML(rec.grid)}<b class="${rec.alpha >= 0 ? 'up' : 'down'}">시장보다 ${fmtPct(rec.alpha)}p</b></div>
-    <div class="dr-reveal"><small>오늘의 사건</small><b>${t.real.title}</b><span>${fmtDate(t.real.from)} ~ ${fmtDate(t.real.to)}</span><p>${t.real.briefing}</p></div>
-    <div class="dr-dist"><div><small>오늘 참가자 ${rows.length}명</small><b>상위 ${pct}%</b></div>${distHTML(field, r.alpha)}</div>
-    <div class="dr-top1"><small>${top.me ? '오늘 1등은 나예요' : `오늘 1등 ${top.name}, 시장보다 ${fmtPct(top.alpha)}p`}</small>${pickHTML(top.pick)}</div>
+  const head = t.blind ? `오늘의 한 판 #${t.dailyNo}` : `이번 주 메이저 ${t.title}`, realTitle = t.real?.title || `${t.title}`, from = t.real?.from || t.bars[0].t, to = t.real?.to || t.bars.at(-1).t;
+  const note = t.real?.briefing || (MAJOR?.result ? `${MAJOR.result.label}: ${MAJOR.result.value}` : '');
+  const rec = { n: t.dailyNo, label: head, done: true, tape: t.id, title: realTitle, alpha: r.alpha, ret: r.returnPct, grid: dailyGrid(s), pct, at: Date.now() };
+  if (t.blind) profile.daily = { ...(profile.daily || {}), [rec.n]: rec }; else majorRec().done = rec;
+  $('#rDaily').innerHTML = `<div class="dr-top"><small>${head}</small>${gridHTML(rec.grid)}<b class="${rec.alpha >= 0 ? 'up' : 'down'}">시장보다 ${fmtPct(rec.alpha)}p</b></div>
+    <div class="dr-reveal"><small>${t.blind ? '오늘의 사건' : '이번 주 메이저'}</small><b>${realTitle}</b><span>${fmtDate(from)} ~ ${fmtDate(to)}</span>${note ? `<p>${note}</p>` : ''}</div>
+    <div class="dr-dist"><div><small>${t.blind ? '오늘 ' : ''}참가자 ${rows.length}명</small><b>상위 ${pct}%</b></div>${distHTML(field, r.alpha)}</div>
+    <div class="dr-top1"><small>${top.me ? '1등은 나예요' : `1등 ${top.name}, 시장보다 ${fmtPct(top.alpha)}p`}</small>${pickHTML(top.pick)}</div>
     <div class="dr-share"><button type="button" class="btn secondary" id="rShare">결과 복사</button><small>다음 문제까지 <b class="dcount"></b></small></div>`;
   $('#rShare').onclick = e => copyShare(rec, e.currentTarget);
   startCountdown();
@@ -464,13 +466,66 @@ function renderSelect() {
 
 /* ---------- rhythm: a short raid every day, a boss every week, a class change every few weeks ---------- */
 const evTitle = t => t;
-function renderRhythm() {
-  const now = Date.now(), up = UPCOMING.map(u => ({ ...u, t: Date.parse(u.date) })).filter(u => u.t > now).sort((a, b) => a.t - b.t)[0];
-  const wc = $('#weekCard');
-  if (up) { const days = Math.ceil((up.t - now) / 86400000), d = new Date(up.t + 9 * 3600000);
-    wc.innerHTML = `${thumbHTML(up)}<img src="${portrait(bossUnit(up.species))}" alt="" class="pf">
-      <div class="tx"><small>${'이번 주 보스'}</small><b>${up.boss}</b><span>${up.title}</span></div>
-      <span class="dday"><b>${days <= 0 ? '오늘' : 'D-' + days}</b><small>${WD[d.getUTCDay()]}요일</small></span>`; }
+function renderRhythm() { renderMajorCard(); }
+
+/* ---------- 이번 주 메이저: 결과가 아직 안 나온 실제 이벤트에 미리 걸어요 ----------
+   Config and closes live in data/live/major.json. Round 1 settles on the first close after the bet, round 2 on the
+   decision day's close; a round-2 change is weights only. Nothing here is simulated: a round with no close stays shut. */
+const MAJOR = window.__MAJOR__ || null;
+const MAJOR_IDS = ['QQQ', 'TQQQ', 'SOXX', 'TLT', 'SHY', 'GLD', 'BIL', 'SCHD'];
+const majorRec = () => MAJOR ? ((profile.major ||= {})[MAJOR.id] ||= {}) : {};
+const majorHave = () => MAJOR ? MAJOR.dates.filter(d => MAJOR.closes?.[d]).length : 0;
+function majorStage() {
+  if (!MAJOR) return null;
+  const now = Date.now(), m = majorRec(), have = majorHave(), [l1, l2] = MAJOR.locks.map(Date.parse);
+  if (m.done) return 'done';
+  if (!m.party) return now < l1 ? 'bet' : 'missed';
+  if (have === MAJOR.dates.length) return 'result';
+  if (have >= 2 && !m.r2 && now < l2) return 'r2';
+  return 'wait';
+}
+const kstWhen = iso => { const d = new Date(Date.parse(iso) + 9 * 3600000); return `${d.getUTCMonth() + 1}/${d.getUTCDate()}(${WD[d.getUTCDay()]}) ${d.getUTCHours() < 12 ? '새벽' : '오후'} ${d.getUTCHours() % 12 || 12}시`; };
+async function majorTape(mode) {
+  const base = await adapter.load(MAJOR.base);
+  const ok = id => MAJOR_IDS.includes(id), skills = base.skills.filter(k => !k.chartOnly && ok(k.instrument) && (!k.blend || Object.keys(k.blend).every(ok)));
+  const dates = MAJOR.dates.filter(d => MAJOR.closes?.[d]);
+  const bars = dates.length ? dates.map((d, i) => ({ t: `${d}T16:00:00-04:00`, label: MAJOR.labels[i], prices: MAJOR.closes[d] })) : [{ ...base.bars.at(-1), label: '시작' }];
+  return { ...base, id: MAJOR.id, title: MAJOR.title, boss: MAJOR.boss, bossSpecies: MAJOR.bossSpecies, example: false, dailyRaid: false, major: true, majorMode: mode,
+    instruments: Object.fromEntries(MAJOR_IDS.map(id => [id, base.instruments[id]])), skills, bars, concepts: [], lesson: '',
+    checkpoints: bars.length >= 3 ? [{ bar: 2, title: 'FOMC 결정 전날', hint: '오늘 밤 금리 결정이 나와요.', allow: ['hold', 'rebalance'] }] : [],
+    event: { kind: MAJOR.kind, company: MAJOR.company, facts: (MAJOR.facts || []).map(f => ({ at: 0, ...f })).concat(MAJOR.result ? [{ at: 2, ...MAJOR.result }] : []) },
+    briefing: `${kstWhen(MAJOR.decision)}에 금리 결정이 나와요. 결과가 나오기 전에 파티를 걸어 두세요.` };
+}
+/** round-1 colors straight from the closes, before any battle is played */
+function majorRow1(m) {
+  const c0 = MAJOR.closes[MAJOR.dates[0]], c1 = MAJOR.closes[MAJOR.dates[1]]; if (!c0 || !c1) return null;
+  const sk = Object.fromEntries((window.__TAPES__ || []).find(t => t.id === MAJOR.base)?.skills.map(k => [k.id, k]) || []);
+  return ROLES.map(r => { if (!m.party.weights[r]) return 'e'; const k = sk[m.party.skills[r]], parts = k?.blend ? Object.entries(k.blend) : [[k?.instrument, 1]];
+    const x = parts.reduce((a, [id, w]) => a + w * (c1[id] / c0[id] - 1), 0); return x > 0.001 ? 'g' : x < -0.001 ? 'r' : 'n'; });
+}
+function renderMajorCard() {
+  const wc = $('#weekCard'); if (!wc) return; if (!MAJOR) { wc.hidden = true; return; }
+  const st = majorStage(), m = majorRec(), row1 = m.party ? majorRow1(m) : null;
+  const pick = m.party ? ROLES.map(r => ({ role: r, w: (m.r2 || m.party.weights)[r], skill: ((window.__TAPES__ || []).find(t => t.id === MAJOR.base)?.skills.find(k => k.id === m.party.skills[r]) || {}).name || '' })) : null;
+  const line = { bet: `${kstWhen(MAJOR.locks[0])}까지 파티를 걸어 두세요.`, missed: '이번 주는 마감됐어요.', wait: majorHave() < 2 ? `${kstWhen(MAJOR.locks[0])}에 1라운드 결과가 나와요.` : `${kstWhen(MAJOR.locks[1])}에 최종 결과가 나와요.`,
+    r2: '1라운드 결과가 나왔어요. 금리 결정 전에 비중을 한 번 바꿀 수 있어요.', result: '최종 결과가 나왔어요.', done: m.done ? `시장보다 ${fmtPct(m.done.alpha)}p, 참가자 중 상위 ${m.done.pct}%` : '' }[st];
+  const btn = { bet: '파티 걸기', r2: '2라운드 정하기', result: '결과 보기' }[st];
+  wc.className = 'week-card major';
+  wc.innerHTML = `<img src="${portrait(bossUnit(MAJOR.bossSpecies))}" alt="" class="pf">
+    <div class="tx"><small>이번 주 메이저</small><b>${MAJOR.title}</b><span>${line}</span>${pick && st !== 'done' ? pickHTML(pick) : ''}</div>
+    ${m.done ? gridHTML(m.done.grid, true) : row1 ? gridHTML([row1], true) : ''}
+    ${btn ? `<button type="button" class="btn" id="majorGo">${btn}</button>` : ''}`;
+  const go = wc.querySelector('#majorGo'); if (go) go.onclick = () => openMajor(st);
+}
+async function openMajor(st) {
+  unlock(); sfx.select();
+  const m = majorRec(); currentTape = await majorTape(st === 'result' ? 'play' : st);
+  const p = defaultParty(currentTape); if (m.party) { p.weights = { ...(st === 'result' ? m.party.weights : (m.r2 || m.party.weights)) }; p.skills = { ...m.party.skills }; }
+  party = Object.assign(p, { _tapeId: currentTape.id }); SEED = season().bal;
+  if (st === 'result') { startBattle(); return; }
+  document.body.classList.toggle('r2-mode', st === 'r2');
+  renderPartyScreen(); showScreen('party');
+  $('#startBattle').textContent = st === 'bet' ? '이 파티로 걸기' : '이 비중으로 정하기';
 }
 
 /* ---------- event facts (what a brokerage user expects to see next to the chart) ---------- */
@@ -701,7 +756,7 @@ function renderPartyMeta() {
   renderPresets();
 }
 function openParty() {
-  SEED = season().bal;
+  SEED = season().bal; document.body.classList.remove('r2-mode'); $('#startBattle').textContent = '출발!';
   party = party && party._tapeId === currentTape.id ? party : Object.assign(defaultParty(currentTape), { _tapeId: currentTape.id });
   renderPartyScreen();
   showScreen('party');
@@ -1285,6 +1340,11 @@ function renderChartLegends() { $('#chartLegendEq').innerHTML = battleChartEq.le
 function flashChart(ret) { const box = $('#battleChartBox'); box.classList.remove('flash-up', 'flash-down'); void box.offsetWidth; box.classList.add(ret >= 0 ? 'flash-up' : 'flash-down'); }
 
 async function startBattle() {
+  if (currentTape?.major && currentTape.majorMode !== 'play') {
+    const m = majorRec(); if (currentTape.majorMode === 'bet') m.party = { weights: { ...party.weights }, skills: { ...party.skills } }; else m.r2 = { ...party.weights };
+    m.at = Date.now(); saveProfile(); document.body.classList.remove('r2-mode'); $('#startBattle').textContent = '출발!';
+    toast(currentTape.majorMode === 'bet' ? '파티를 걸었어요' : '2라운드 비중을 정했어요'); party = null; renderSelect(); showScreen('select'); return;
+  }
   const errs = validateParty(party, currentTape); if (errs.length) { toast(errs[0]); return; }
   unlock(); sfx.select();
   SEED = season().bal;
@@ -1390,6 +1450,7 @@ function heroLines(cp) {
 }
 let cpChart = null, cpTimer = null;
 async function showCheckpoint(cp) {
+  if (currentTape.major) { const w = majorRec().r2; try { intervene(battle, w ? { type: 'rebalance', weights: w } : { type: 'hold' }); } catch (e) { intervene(battle, { type: 'hold' }); } renderPartyHud(); return; }
   if (speed < 4) await cutIn({ text: '체크포인트!', sub: `${cpWhen(cp)} ${cp.title}`, bg: '#2F6BD0', artL: null, artR: null }, Math.max(1.6, speedFactor()));
   return new Promise(resolve => {
     sfx.pause();
@@ -1490,7 +1551,7 @@ async function showResult() {
   const bonus = Math.min(30, drama.maxCombo * 3 + drama.guards * 4);
   const before = { ...profile };
   bumpStreak(); recordBoss(currentTape.bossSpecies, r.grade, r.bossDown); recordProducts(s);
-  const daily = !!currentTape.blind, inMap = !daily && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
+  const daily = !!currentTape.blind || !!currentTape.major, inMap = !daily && CHAPTERS.some(ch => ch.stages.includes(currentTape.id));
   const starFlags = inMap ? earnStars(s, r) : null, starRes = inMap ? grantStars(currentTape.id, starFlags) : null;
   const growth = growHeroes(s);
   profile.totalPnl = (profile.totalPnl || 0) + (totalValue() - SEED);
